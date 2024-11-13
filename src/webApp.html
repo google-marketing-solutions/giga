@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+  <header>
+    <link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      body {
+        background: #f8f9fa;
+        font-family: 'Product Sans', sans-serif;
+
+        width: 100%;
+        max-width: 1000px;
+        margin: 1em auto;
+      }
+
+    button {
+      margin-top: 10px;
+      background-color: #027ad6;
+      font-weight: bold;
+      border-radius: 2px;
+      outline: none;
+      border: 1px solid #027ad6;
+      color: white;
+      transition: background-color 150ms linear;
+      cursor: pointer;
+    }
+
+    button:not(.flat-button) {
+      padding: 15px;
+    }
+
+    button:hover:not(:disabled),
+    button.back {
+      background-color: white;
+      border: 1px solid #027ad6;
+      color: #027ad6;
+    }
+
+    button.back:hover {
+      background-color: #027ad6;
+      border: 1px solid #027ad6;
+      color: white;
+    }
+
+    button:disabled,
+    button[disabled] {
+      cursor: auto;
+      background-color: #ccc !important;
+      border-color: #bbb !important;
+      color: white !important;
+    }
+
+    #advanced-config {
+      background-color: lavender;
+      border-radius: 1em;
+      margin: 0.5em;
+      padding: 1em;
+    }
+    </style>
+
+  </header>
+  <body id="appsScriptWebAppBody">
+    <h1>GIGA - Gemini Insights Generation Analysis</h1>
+    <br>
+    <div><strong>Keywords</strong></div>
+    <div>Comma separated, up to 20</div>
+    <input type="text" value="" id="topics" size="50">
+
+    <br>
+    <br>
+
+    <div><strong>Language</strong></div>
+    <div>Language of generated keyword ideas</div>
+    <div>To add a custom language please see
+      <a href="https://developers.google.com/google-ads/api/data/codes-formats#languages" target="_blank" rel="noopener noreferrer">Codes and formats </a>
+      for details</div>
+
+    <select id="language" onchange="addOption(this, 'Please enter your numeric ID for the language of the keyword Ideas (e.g. 1000 for English or 1001 for German, please see see https://developers.google.com/google-ads/api/data/codes-formats#languages for the correct ID):')">
+      <option value="1000">English</option>
+      <option value="1001">German</option>
+      <option value="">Enter custom ID...</option>
+    </select>
+
+    <br>
+    <br>
+
+    <div><strong>Location</strong></div>
+    <div>Where the search was issued</div>
+    <div>To add custom contry please see <a href="https://developers.google.com/google-ads/api/data/geotargets" target="_blank" rel="noopener noreferrer">Geo targets</a> for details</div>
+    <select id="country" onchange="addOption(this, 'Please enter your numeric ID for your target (e.g. 2276 for Germany or 2826 for UK, please see see https://developers.google.com/google-ads/api/data/codes-formats#languages for the correct ID):')">
+      <option value="">Worldwide</option>
+      <option value="2276">Germany</option>
+      <option value="2826">UK</option>
+      <option value="">Enter custom ID...</option>
+    </select>
+
+    <br>
+    <br>
+
+    <script>
+      function addOption(select, text) {
+        if (select.value === "") {
+          let id = prompt(text);
+          if (!id) {
+            select.selectedIndex = 0;
+          } else if (isNaN(Number(id))) {
+            alert("Only Number IDs are allowed.");
+            select.selectedIndex = 0;
+          } else {
+            select.add(new Option(id, id));
+            select.value = id;
+          }
+        }
+      }
+    </script>
+
+    <section id='config_section'>
+      <details>
+        <summary>Advanced Config</summary>
+        <div id="advanced-config">
+
+          <div><strong>Clustering prompt</strong></div>
+          <textarea id="promptTemplate" rows="8" cols="80">
+You are given a list of Google Ads keyword ideas.
+Your task is to create 10 clusters. For each cluster use only up to 20 keywords that are most representative of that cluster.
+Make sure to only assign only the keywords provided to the cluster and do not invent new keywords.
+All keywords assigned to a cluster must be exactly the same (e.g. same case, same spacing, same accents).
+
+The Google Ads keyword ideas are:
+
+          </textarea>
+        <!-- </p> -->
+        </div>
+      </details>
+    </section>
+
+    <span><button id='run-button' onclick="run()">Start</button>
+
+    <div>
+      <canvas id="ideasChart" style="display: none; width:100%;"></canvas>
+    </div>
+
+    <br>
+
+    <div id='clusters'>
+      <canvas id="clustersChart" style="display: none; width:100%;"></canvas>
+    </div>
+
+    <div>
+      <canvas id="clusterChart" style="display: none; width:100%;"></canvas>
+    </div>
+
+    <div>
+      <canvas id="cluserKeywordsChart" style="display: none; width:100%;"></canvas>
+    </div>
+
+    <div id='insights'></div><br>
+    <div id='campaigns'></div><br>
+    <div id='youtube'></div><br>
+
+    <br>
+    <div id='status'></div>
+  </body>
+
+</html>
+
+<script>
+  const googleScriptRun = new Proxy({}, {
+    get: (target, prop, receiver) => (...args) => {
+      console.log(`Running ${prop} in AppsScript backend...`);
+      if (prop in google.script.run) {
+        return new Promise((resolve, reject) =>
+          google.script.run
+            .withSuccessHandler(res => resolve(res))
+            .withFailureHandler(err => { throw err })[prop](...args))
+      } else {
+        throw new Error(`No function in AppScript named '${prop}'`);
+      }
+    }
+  });
+
+  const containsStringIgnoreCase = (array, str) => {
+    const lowerStr = str.toLowerCase();
+    return array.some(item => item.toLowerCase() === lowerStr);
+  }
+
+  const setInnerHtml = (elementId, text) =>
+    document.getElementById(elementId).innerHTML = text;
+
+  const rgbaToRgb = rgba => {
+    const [_, r,g,b] = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*([0-9.]+)?\)/);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  const zip = (a, b) =>
+    a.map((item, index) => [item, b[index]]);
+</script>
+
+<script>
+    const reset = () => {
+      ['cluserKeywordsChart', 'clustersChart', 'ideasChart']
+        .forEach(id => document.getElementById(id).style.display = 'none');
+      ['campaigns', 'insights'].forEach(id => setInnerHtml(id, ''));
+    }
+
+    const showClusterKeywordsChart = cluster => {
+      const element = document.getElementById('cluserKeywordsChart');
+      // remove previous chart
+      Chart.getChart(element)?.destroy();
+      element.style.display = '';
+
+      const datasets =  zip(cluster.keywords, cluster.searchVolumes).map(([keywordText, searchVolume]) => ({
+        label: keywordText,
+        data: searchVolume,
+      }));
+      new Chart(
+        element, {
+          type: 'line',
+          data:  {
+            labels: ideasChart.data.labels,
+            datasets
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Search Volume'
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                  display: true,
+                  labels: {
+                      color: 'rgb(255, 99, 132)'
+                  }
+              }
+            }
+          }
+      });
+    }
+
+    const showClustersChart = clusters => {
+      const element = document.getElementById('clustersChart');
+      // remove previous chart
+      Chart.getChart(element)?.destroy();
+      element.style.display = '';
+
+      const maxSearchVolume = clusters.reduce((max, cluster) => Math.max(max, cluster.searchVolume), 0);
+      const maxRadiusPixels = 50;
+      const minRadiusPixel = 5;
+      const datasets = clusters.map(cluster => ({
+        label: cluster.topic,
+        data: [{
+          x: cluster.searchVolume,
+          y: cluster.yearOverYearGrowth,
+          r: minRadiusPixel + (cluster.searchVolume / maxSearchVolume) * (maxRadiusPixels - minRadiusPixel),
+          label: cluster.topic
+        }]
+      }));
+
+      const chart = new Chart(
+        element, {
+          type: 'bubble',
+          data:  {
+            labels: clusters.map(cluster => cluster.searchVolume),
+            datasets
+          },
+          options: {
+            onClick: function (evt) {
+              const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+              if (points.length > 0) {
+                  const datasetIndex = points[0].datasetIndex;
+                  const cluster = clusters[datasetIndex];
+                  const color = chart.data.datasets[datasetIndex].backgroundColor;
+
+                  showIdeasChart([{
+                    text: cluster.topic,
+                    searchVolume: cluster.searchVolumeHistory,
+                    months: ideasChart.data.labels
+                  }], 'clusterChart', rgbaToRgb(color))
+
+
+                  showClusterKeywordsChart(cluster);
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'YoY Growth'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Search Volume'
+                }
+              }
+
+            }
+          }
+      });
+    }
+
+    var ideasChart;
+
+    const showIdeasChart = (ideas, elementId, color) => {
+      const element = document.getElementById(elementId);
+      // remove previous chart
+      Chart.getChart(element)?.destroy();
+      element.style.display = '';
+
+      const datasets = ideas.map(idea => ({
+        label: idea.text,
+        data: idea.searchVolume,
+        backgroundColor: color
+      }));
+      ideasChart = new Chart(
+        element, {
+          type: 'line',
+          data:  {
+            labels: ideas[0].months,
+            datasets
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Search Volume'
+                }
+              }
+            },
+
+          }
+      });
+    }
+
+  const run = async () => {
+
+    reset();
+
+    try {
+      const status = document.getElementById("status");
+      status.innerHTML = 'Get keyword ideas...';
+
+      const MAX_SEED_KEYWORDS = 20;
+
+      const seedKeywordsUserInput = document.getElementById('topics').value;
+      if (seedKeywordsUserInput === '') {
+        alert(`Please enter at least one keyword.`);
+        return;
+      }
+
+
+      const seedKeywords = seedKeywordsUserInput.split(', ').map(k => k.trim());
+      console.log({seedKeywords});
+
+      if (seedKeywords.length > MAX_SEED_KEYWORDS) {
+        alert(`Please enter a maximum of ${MAX_SEED_KEYWORDS} keywords only.`);
+        return;
+      }
+
+      const geoID = document.getElementById('country').value || undefined ;
+      const languageID = document.getElementById('language').value || undefined;
+      console.log("geoID:", geoID, "languageID", languageID);
+
+      const MAX_IDEAS = 5000;
+      const MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH = 0;
+
+      const ideas = (await googleScriptRun.generateKeywordIdeas(seedKeywords, geoID, languageID, MAX_IDEAS))
+        .filter(res => res.keywordIdeaMetrics !== undefined);
+
+      const expandIdeaWithCloseVariants = idea =>
+        (idea.closeVariants || []).concat(idea.text).map(keyword => [keyword, idea]);
+
+      const ideasData = ideas.flatMap(expandIdeaWithCloseVariants)
+        .map(([keyword, res]) => ({
+            text: keyword,
+            searchVolume: res.keywordIdeaMetrics.monthlySearchVolumes.map(item => Number(item.monthlySearches)),
+            months: res.keywordIdeaMetrics.monthlySearchVolumes.map(item => `${item.month} ${item.year}`)
+        }));
+
+      console.log(ideasData);
+
+      const seedKeywordsChartData = ideasData.filter(res => seedKeywords.map(k => k.toLowerCase()).includes(res.text));
+      console.log({seedKeywordsChartData});
+      showIdeasChart(seedKeywordsChartData, 'ideasChart');
+
+      const relevantIdeas = Object.fromEntries(ideasData
+        .filter(idea => idea.searchVolume.at(-1) > MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH)
+        .map(idea => [idea.text, idea.searchVolume])
+      );
+
+      console.log({relevantIdeas});
+
+      status.innerHTML = `Generating clusters of <strong> ${ideasData.length} keyword ideas </strong> related to: ${seedKeywords.join(',')} ...`;
+
+      const promptTemplate = document.getElementById('promptTemplate').value;
+      console.log("promptTemplate:", promptTemplate);
+
+      try {
+        const clusters = await googleScriptRun.getClusters(relevantIdeas, promptTemplate);
+        console.log({clusters});
+        showClustersChart(clusters);
+      } catch (clusterError) {
+        console.log("Error during clustering", clusterError.message);
+        console.log(clusterError);
+      }
+
+      status.innerHTML = 'Generating insights...';
+      const insights = await googleScriptRun.getInsights(relevantIdeas, seedKeywords);
+      setInnerHtml('insights', insights);
+
+      status.innerHTML = 'Generating campaign suggestions...';
+      const campaigns = await googleScriptRun.getCampaigns(insights);
+      setInnerHtml('campaigns', campaigns + '<br><br>')
+      status.innerHTML = '';
+
+    }
+    catch (e) {
+      alert(e.message);
+    }
+  }
+
+</script>
