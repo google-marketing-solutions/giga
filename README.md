@@ -30,7 +30,7 @@ To get started with GIGA:
 
 1. Make a copy of the Google Sheets
    [spreadsheet template](https://docs.google.com/spreadsheets/d/1iWP-yfSULrx9D7_8NGpAHK5fsQX8Gys9sASgNA4w_lA/copy)
-1. Follow the instructions detailed in the `Getting Started` worksheet
+1. Follow the instructions detailed in the `Getting Started` sheet
 
 ## Challenge Addressed
 
