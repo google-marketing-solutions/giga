@@ -24,6 +24,14 @@ By applying Gemini's AI capabilities, GIGA can cluster and intelligently
 interpret keyword data. This provides clients with actionable, strategic
 insights for making marketing decisions.
 
+## Get Started
+
+To get started with GIGA:
+
+1. Make a copy of the Google Sheets
+   [spreadsheet template](https://docs.google.com/spreadsheets/d/1iWP-yfSULrx9D7_8NGpAHK5fsQX8Gys9sASgNA4w_lA/copy)
+1. Follow the instructions detailed in the `Getting Started` sheet
+
 ## Challenge Addressed
 
 Clients want to stay ahead of current search/keyword trends and capitalize on them quickly. Up-to-date insights into search trends are crucial for optimizing ad campaigns and driving sales in key product categories.
