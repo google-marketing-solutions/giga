@@ -29,7 +29,8 @@ insights for making marketing decisions.
 To get started with GIGA:
 
 1. Make a copy of the Google Sheets
-   [spreadsheet template](https://docs.google.com/spreadsheets/d/1iWP-yfSULrx9D7_8NGpAHK5fsQX8Gys9sASgNA4w_lA/copy)
+   <a href="https://docs.google.com/spreadsheets/d/1iWP-yfSULrx9D7_8NGpAHK5fsQX8Gys9sASgNA4w_lA/copy" target="_blank" rel="noopener noreferrer">spreadsheet template</a>
+
 1. Follow the instructions detailed in the `Getting Started` sheet
 
 ## Challenge Addressed
