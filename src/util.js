@@ -14,23 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-const isNonEmptyRow = (row) => row.join("").length > 0;
+const isNonEmptyRow = row => row.join('').length > 0;
 
-const partition = (array, condition) =>
-  array.reduce(
-    (partitions, item) => {
-      partitions[condition(item) ? 0 : 1].push(item);
-      return partitions;
-    },
-    [[], []]
-  );
-
-const objectToLowerCaseKeys = (obj) =>
-  Object.fromEntries(
-    Object.entries(obj).map(([key, value]) => [key.toLowerCase(), value])
-  );
-
-const getNonEmptyRows = (sheet) =>
+const getNonEmptyRows = sheet =>
   sheet.getDataRange().getValues().filter(isNonEmptyRow);
 
 const truncateRows = (sheet, headerRows) => {
@@ -55,7 +41,7 @@ const writeRowsToSheet = (sheet, data, headerRows) => {
   appendRows(sheet, data, 1 + headerRows);
 };
 
-const getScriptProperties = (key) =>
+const getScriptProperties = key =>
   PropertiesService.getScriptProperties().getProperty(key);
 
 const setScriptProperties = (key, value) =>
@@ -69,7 +55,7 @@ function* generateCartesianProduct(a, b) {
   }
 }
 
-const trying = (func) => {
+const trying = func => {
   try {
     return func();
   } catch (e) {
@@ -77,7 +63,7 @@ const trying = (func) => {
   }
 };
 
-const columnWiseSum = (matrix) => {
+const columnWiseSum = matrix => {
   const numRows = matrix.length;
   const numCols = matrix[0].length;
   const result = new Array(numCols).fill(0);
@@ -89,7 +75,7 @@ const columnWiseSum = (matrix) => {
   return result;
 };
 
-const alert = (prompt) => {
+const alert = prompt => {
   console.log(prompt);
   trying(() => SpreadsheetApp.getUi())?.alert(prompt);
 };
@@ -104,13 +90,12 @@ const chunk = (arr, len) => {
   return chunks;
 };
 
-const getConfigVariable = (id) =>
+const getConfigVariable = id =>
   SpreadsheetApp.getActiveSpreadsheet()
     .getRangeByName(`config!${id}`)
     .getValue();
 
 const fetchJson = (url, params) => {
-  console.log(url);
   const text = UrlFetchApp.fetch(url, params).getContentText();
   let res = undefined;
   try {
@@ -126,6 +111,27 @@ const fetchJson = (url, params) => {
   return res;
 };
 
-const sum = (array) => array.reduce((sum, x) => sum + x, 0);
+const sum = array => array.reduce((sum, x) => sum + x, 0);
 
 const zip = (a, b) => a.map((item, index) => [item, b[index]]);
+
+const deduplicate = array => [...new Set(array)];
+
+const groupBy = (items, getKey, transform) => {
+  return items.reduce((mapping, item) => {
+    const key = getKey(item);
+    const newItem = transform ? transform(item) : item;
+    (mapping[key] = mapping[key] || []).push(newItem);
+    return mapping;
+  }, {});
+};
+
+const keepKeys = (obj, keysToKeep) =>
+  Object.fromEntries(
+    Object.entries(obj).filter(([key]) => keysToKeep.includes(key))
+  );
+
+const getDateWithDeltaDays = days => {
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  return new Date(Date.now() + days * MS_PER_DAY);
+};
