@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <header>
-    <link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -14,471 +14,926 @@
         margin: 1em auto;
       }
 
-    button {
-      margin-top: 10px;
-      background-color: #027ad6;
-      font-weight: bold;
-      border-radius: 2px;
-      outline: none;
-      border: 1px solid #027ad6;
-      color: white;
-      transition: background-color 150ms linear;
-      cursor: pointer;
-    }
+      button {
+        margin-top: 10px;
+        background-color: #027ad6;
+        font-weight: bold;
+        border-radius: 2px;
+        outline: none;
+        border: 1px solid #027ad6;
+        color: white;
+        transition: background-color 150ms linear;
+        cursor: pointer;
+      }
 
-    button:not(.flat-button) {
-      padding: 15px;
-    }
+      button:not(.flat-button) {
+        padding: 15px;
+      }
 
-    button:hover:not(:disabled),
-    button.back {
-      background-color: white;
-      border: 1px solid #027ad6;
-      color: #027ad6;
-    }
+      button:hover:not(:disabled),
+      button.back {
+        background-color: white;
+        border: 1px solid #027ad6;
+        color: #027ad6;
+      }
 
-    button.back:hover {
-      background-color: #027ad6;
-      border: 1px solid #027ad6;
-      color: white;
-    }
+      button.back:hover {
+        background-color: #027ad6;
+        border: 1px solid #027ad6;
+        color: white;
+      }
 
-    button:disabled,
-    button[disabled] {
-      cursor: auto;
-      background-color: #ccc !important;
-      border-color: #bbb !important;
-      color: white !important;
-    }
+      button:disabled,
+      button[disabled] {
+        cursor: auto;
+        background-color: #ccc !important;
+        border-color: #bbb !important;
+        color: white !important;
+      }
 
-    #advanced-config {
-      background-color: lavender;
-      border-radius: 1em;
-      margin: 0.5em;
-      padding: 1em;
-    }
+      #advanced-config {
+        background-color: lavender;
+        border-radius: 1em;
+        margin: 0.5em;
+        padding: 1em;
+      }
+
+      .tab {
+        overflow: hidden;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+      }
+
+      .tab button {
+        background-color: rgb(5 122 215);
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 17px;
+      }
+
+      .tab button:hover {
+        background-color: #ddd;
+      }
+
+      .tab button.active {
+        background-color: #ccc;
+      }
+
+      .tabcontent {
+        display: none;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-top: none;
+      }
     </style>
-
   </header>
+
   <body id="appsScriptWebAppBody">
     <h1>GIGA - Gemini Insights Generation Analysis</h1>
-    <br>
-    <div><strong>Keywords</strong></div>
-    <div>Comma separated, up to 20</div>
-    <input type="text" value="" id="topics" size="50">
 
-    <br>
-    <br>
+    <div class="tab">
+      <button class="tablinks" onclick="openCity(event, 'Explore-Tab')">
+        Explore
+      </button>
+      <button class="tablinks" onclick="openCity(event, 'Insights-Tab')">
+        Insights
+      </button>
+      <button class="tablinks" onclick="openCity(event, 'Campaigns-Tab')">
+        Campaign Suggestions
+      </button>
+      <button
+        class="tablinks"
+        onclick="openCity(event, 'CampaignCreation-Tab')"
+      >
+        Campaign Creation
+      </button>
+    </div>
 
-    <div><strong>Language</strong></div>
-    <div>Language of generated keyword ideas</div>
-    <div>To add a custom language please see
-      <a href="https://developers.google.com/google-ads/api/data/codes-formats#languages" target="_blank" rel="noopener noreferrer">Codes and formats </a>
-      for details</div>
+    <div id="Explore-Tab" class="tabcontent">
+      <br /><br /><br />
+      <div><strong>Keywords</strong></div>
+      <div>Comma separated, up to 20</div>
+      <input type="text" value="" id="topics" size="50" />
 
-    <select id="language" onchange="addOption(this, 'Please enter your numeric ID for the language of the keyword Ideas (e.g. 1000 for English or 1001 for German, please see see https://developers.google.com/google-ads/api/data/codes-formats#languages for the correct ID):')">
-<option value="1000">English</option> 
-<option value="1001">German</option> 
-<option value="1002">French</option> 
-<option value="1003">Spanish</option> 
-<option value="1004">Italian</option> 
-<option value="1009">Danish</option> 
-<option value="1010">Dutch</option> 
-<option value="1011">Finnish</option> 
-<option value="1015">Swedish</option> 
-<option value="1020">Bulgarian</option> 
-<option value="1021">Czech</option> 
-<option value="1022">Greek</option> 
-<option value="1024">Hungarian</option> 
-<option value="1028">Latvian</option> 
-<option value="1029">Lithuanian</option> 
-<option value="1030">Polish</option> 
-<option value="1031">Russian</option> 
-<option value="1032">Romanian</option> 
-<option value="1033">Slovak</option> 
-<option value="1034">Slovenian</option> 
-<option value="1036">Ukrainian</option> 
-<option value="1038">Catalan</option> 
-<option value="1039">Croatian</option> 
-<option value="1043">Estonian</option> 
-<option value="1064">Persian</option>
-<option value="">Enter custom ID...</option>
-    </select>
+      <br />
+      <br />
 
-    <br>
-    <br>
+      <div><strong>Language</strong></div>
+      <div>Language of generated keyword ideas</div>
+      <div>
+        To add a custom language please see
+        <a
+          href="https://developers.google.com/google-ads/api/data/codes-formats#languages"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Codes and formats
+        </a>
+        for details
+      </div>
 
-    <div><strong>Location</strong></div>
-    <div>Where the search was issued</div>
-    <div>To add custom country please see <a href="https://developers.google.com/google-ads/api/data/geotargets" target="_blank" rel="noopener noreferrer">Geo targets</a> for details</div>
-    <select id="country" onchange="addOption(this, 'Please enter your numeric ID for your target (e.g. 2276 for Germany or 2826 for UK, please see see https://developers.google.com/google-ads/api/data/geotargets for the correct ID):')">
-      <option value="">Worldwide</option>
+      <select
+        id="language"
+        onchange="addOption(this, 'Please enter your numeric ID for the language of the keyword Ideas (e.g. 1000 for English or 1001 for German, please see see https://developers.google.com/google-ads/api/data/codes-formats#languages for the correct ID):')"
+      >
+        <option value="1000">English</option>
+        <option value="1001">German</option>
+        <option value="1002">French</option>
+        <option value="1003">Spanish</option>
+        <option value="1004">Italian</option>
+        <option value="1009">Danish</option>
+        <option value="1010">Dutch</option>
+        <option value="1011">Finnish</option>
+        <option value="1015">Swedish</option>
+        <option value="1020">Bulgarian</option>
+        <option value="1021">Czech</option>
+        <option value="1022">Greek</option>
+        <option value="1024">Hungarian</option>
+        <option value="1028">Latvian</option>
+        <option value="1029">Lithuanian</option>
+        <option value="1030">Polish</option>
+        <option value="1031">Russian</option>
+        <option value="1032">Romanian</option>
+        <option value="1033">Slovak</option>
+        <option value="1034">Slovenian</option>
+        <option value="1036">Ukrainian</option>
+        <option value="1038">Catalan</option>
+        <option value="1039">Croatian</option>
+        <option value="1043">Estonian</option>
+        <option value="1064">Persian</option>
+        <option value="">Enter custom ID...</option>
+      </select>
 
+      <br />
+      <br />
 
-<option value="2276">Germany</option> 
-<option value="2756">Switzerland</option> 
-<option value="2826">UK</option>
-<option value="2250">France</option> 
-<option value="2380">Italy</option> 
-<option value="2724">Spain</option> 
-<option value="2616">Poland</option> 
-<option value="2642">Romania</option> 
-<option value="2528">Netherlands</option> 
-<option value="2056">Belgium</option> 
-<option value="2203">Czechia</option> 
-<option value="2300">Greece</option> 
-<option value="2620">Portugal</option> 
-<option value="2752">Sweden</option> 
-<option value="2348">Hungary</option> 
-<option value="2040">Austria</option> 
-<option value="2100">Bulgaria</option> 
-<option value="2208">Denmark</option> 
-<option value="2703">Slovakia</option> 
-<option value="2246">Finland</option> 
-<option value="2372">Ireland</option> 
-<option value="2191">Croatia</option> 
-<option value="2440">Lithuania</option> 
-<option value="2705">Slovenia</option> 
-<option value="2428">Latvia</option> 
-<option value="2233">Estonia</option> 
-<option value="2196">Cyprus</option> 
-<option value="2442">Luxembourg</option> 
-<option value="2470">Malta</option> 
-      <option value="">Enter custom ID...</option>
-    </select>
+      <div><strong>Location</strong></div>
+      <div>Where the search was issued</div>
+      <div>
+        To add custom country please see
+        <a
+          href="https://developers.google.com/google-ads/api/data/geotargets"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Geo targets</a
+        >
+        for details
+      </div>
+      <select
+        id="country"
+        onchange="addOption(this, 'Please enter your numeric ID for your target (e.g. 2276 for Germany or 2826 for UK, please see see https://developers.google.com/google-ads/api/data/geotargets for the correct ID):')"
+      >
+        <option value="">Worldwide</option>
 
-    <br>
-    <br>
+        <option value="2276">Germany</option>
+        <option value="2826">UK</option>
+        <option value="2250">France</option>
+        <option value="2380">Italy</option>
+        <option value="2756">Switzerland</option>
+        <option value="2724">Spain</option>
+        <option value="2616">Poland</option>
+        <option value="2642">Romania</option>
+        <option value="2528">Netherlands</option>
+        <option value="2056">Belgium</option>
+        <option value="2203">Czechia</option>
+        <option value="2300">Greece</option>
+        <option value="2620">Portugal</option>
+        <option value="2752">Sweden</option>
+        <option value="2348">Hungary</option>
+        <option value="2040">Austria</option>
+        <option value="2100">Bulgaria</option>
+        <option value="2208">Denmark</option>
+        <option value="2703">Slovakia</option>
+        <option value="2246">Finland</option>
+        <option value="2372">Ireland</option>
+        <option value="2191">Croatia</option>
+        <option value="2440">Lithuania</option>
+        <option value="2705">Slovenia</option>
+        <option value="2428">Latvia</option>
+        <option value="2233">Estonia</option>
+        <option value="2196">Cyprus</option>
+        <option value="2442">Luxembourg</option>
+        <option value="2470">Malta</option>
+        <option value="">Enter custom ID...</option>
+      </select>
 
-    <script>
-      function addOption(select, text) {
-        if (select.value === "") {
-          let id = prompt(text);
-          if (!id) {
-            select.selectedIndex = 0;
-          } else if (isNaN(Number(id))) {
-            alert("Only Number IDs are allowed.");
-            select.selectedIndex = 0;
-          } else {
-            select.add(new Option(id, id));
-            select.value = id;
+      <br />
+      <br />
+
+      <script>
+        function addOption(select, text) {
+          if (select.value === '') {
+            let id = prompt(text);
+            if (!id) {
+              select.selectedIndex = 0;
+            } else if (isNaN(Number(id))) {
+              alert('Only Number IDs are allowed.');
+              select.selectedIndex = 0;
+            } else {
+              select.add(new Option(id, id));
+              select.value = id;
+            }
           }
         }
-      }
-    </script>
+      </script>
 
-    <section id='config_section'>
-      <details>
-        <summary>Advanced Config</summary>
-        <div id="advanced-config">
-
-          <div><strong>Clustering prompt</strong></div>
-          <textarea id="promptTemplate" rows="8" cols="80">
+      <section id="config_section">
+        <details>
+          <summary>Advanced Config</summary>
+          <div id="advanced-config">
+            <div><strong>Clustering prompt</strong></div>
+            <textarea id="promptTemplate" rows="8" cols="80">
 You are given a list of Google Ads keyword ideas.
 Your task is to create 10 clusters. For each cluster use only up to 20 keywords that are most representative of that cluster.
-Make sure to only assign only the keywords provided to the cluster and do not invent new keywords.
+Make sure to only assign the keywords provided to the cluster and do not invent new keywords.
 All keywords assigned to a cluster must be exactly the same (e.g. same case, same spacing, same accents).
 
 The Google Ads keyword ideas are:
 
-          </textarea>
-        <!-- </p> -->
-        </div>
-      </details>
-    </section>
+          </textarea
+            >
+            <!-- </p> -->
+          </div>
+        </details>
+      </section>
 
-    <span><button id='run-button' onclick="run()">Start</button>
+      <button id="run-button" onclick="run()">Start</button>
 
-    <div>
-      <canvas id="ideasChart" style="display: none; width:100%;"></canvas>
+      <div>
+        <canvas
+          id="ideasChart"
+          style="display: none; width: 100%; max-width: 1440px"
+        ></canvas>
+      </div>
+
+      <br />
+
+      <div id="clusters">
+        <canvas
+          id="clustersChart"
+          style="display: none; width: 100%; max-width: 1440px"
+        ></canvas>
+      </div>
+
+      <div>
+        <canvas
+          id="clusterChart"
+          style="display: none; width: 100%; max-width: 1440px"
+        ></canvas>
+      </div>
+
+      <div>
+        <canvas
+          id="cluserKeywordsChart"
+          style="display: none; width: 100%; max-width: 1440px"
+        ></canvas>
+      </div>
+      <div id="explore-status"></div>
     </div>
 
-    <br>
-
-    <div id='clusters'>
-      <canvas id="clustersChart" style="display: none; width:100%;"></canvas>
+    <div id="Insights-Tab" class="tabcontent">
+      <br /><br /><br />
+      <div id="insights"></div>
+      <br />
+      <br /><button id="generateInsights-button" onclick="generateInsights()">
+        Generate Insights
+      </button>
+      <div id="insights-status"></div>
     </div>
 
-    <div>
-      <canvas id="clusterChart" style="display: none; width:100%;"></canvas>
+    <div id="Campaigns-Tab" class="tabcontent">
+      <br /><br /><br />
+      <div id="campaigns"></div>
+      <br />
+      <br /><button
+        id="generateCampaigns-button"
+        onclick="generateCampaignSuggestions()"
+      >
+        Generate Campaigns
+      </button>
+      <div id="campaign-status"></div>
     </div>
 
-    <div>
-      <canvas id="cluserKeywordsChart" style="display: none; width:100%;"></canvas>
+    <div id="CampaignCreation-Tab" class="tabcontent">
+      <br /><br /><br />
+      <div><strong>Google Ads Account ID</strong></div>
+      <div>ID for the Google Ads Account</div>
+      <input
+        type="text"
+        value="111-222-3333"
+        id="google-ads-account-id"
+        size="15"
+      />
+      <br /><br /><br />
+
+      <textarea id="newCampaignpromptTemplate" rows="8" cols="80"> </textarea>
+      <br />
+
+      <br /><button
+        id="generateNewCampaignsPrompt-button"
+        onclick="generateNewCampaignsPrompt()"
+      >
+        Generate Pre-Prompt for best performing ads
+      </button>
+      <br /><br /><br />
+
+      <div><strong>Style guide for creating ads</strong></div>
+      <textarea id="adCreationStyleGuideDefault" rows="10" cols="80">
+
+**Furniture Land - Google Search Ads Copy Style Guide**
+
+**1. Objective**
+
+This guide provides instructions and best practices for writing compelling and effective Google Search Ad copy (headlines and descriptions) for Furniture Land. The goal is to maintain brand consistency, maximize ad performance through relevance and variety, and drive qualified traffic to our website, ultimately leading to sales. This guide is intended for copywriters creating new ad sets for various keyword groups.
+
+**2. Brand Voice & Tone**
+
+Furniture Land's voice in ad copy should be:
+
+*   **Helpful & Informative:** Clearly state what we offer and guide users towards solutions (e.g., "Find the perfect piece," "Storage Solutions").
+*   **Modern & Stylish:** Emphasize contemporary design and aesthetic appeal (e.g., "Modern Accent Design," "Stylish Coffee Tables").
+*   **Value-Conscious:** Highlight sales, deals, and selection (e.g., "Accent Furniture Sale," "Huge selection available," "Shop now and save!").
+*   **Quality & Comfort Focused:** Mention aspects like comfort, durability, and suitability (e.g., "Comfortable Mattresses," "Durable Patio Furniture").
+*   **Aspirational:** Inspire customers to improve their living spaces (e.g., "Upgrade Your Decor," "Create an outdoor oasis," "Add a touch of style").
+*   **Direct & Action-Oriented:** Use clear calls to action (e.g., "Shop Now," "Browse Our Selection").
+
+**3. Core Brand Elements**
+
+*   **Brand Name:** "Furniture Land"
+    *   Use consistently where appropriate, especially in branded campaigns or as a differentiator (e.g., "Furniture Land Bedroom," "Furniture Land Outdoor").
+*   **Key Selling Propositions (Implicit in examples):**
+    *   Wide Selection ("Huge selection available")
+    *   Modern & Stylish Designs
+    *   Solutions for Different Needs (Small Spaces, Storage)
+    *   Value (Sales, Deals)
+    *   Inspiration for Home Improvement
+*   **Strong Phrases & Slogans (Variations to use/adapt):**
+    *   "Find the perfect [piece/bed/patio set/etc.]"
+    *   "Upgrade Your [Decor/Bedroom/Patio/etc.]"
+    *   "Create a [relaxing bedroom/outdoor oasis/stylish space/etc.]"
+    *   "Add a touch of style."
+    *   "[Category] Inspiration"
+    *   "[Category/Item] for Small Spaces"
+    *   "[Category] Storage Solutions"
+    *   "Shop now and save!"
+
+**4. Ad Copy Structure (Responsive Search Ads - RSAs)**
+
+Google Ads combines multiple headlines and descriptions to create various ad permutations. Our goal is to provide a diverse set of high-quality headlines and descriptions (assets) that:
+
+*   Are relevant to the keywords in the ad group.
+*   Can be combined logically and compellingly.
+*   Highlight different benefits, features, and calls to action.
+*   Allow Google's algorithm to test and optimize for the best-performing combinations.
+
+**5. Headline Guidelines**
+
+*   **Purpose:** Grab attention, match search intent, highlight key benefits/offers quickly.
+*   **Quantity:** Provide *at least* 10-15 unique headlines per ad group.
+*   **Length:** Keep headlines concise (max 30 characters).
+*   **Capitalization:** Use **Title Case** (e.g., "Shop Modern Bedroom Furniture").
+*   **Variety - Include a Mix Of:**
+    *   **Keyword Relevance:** Directly incorporate primary keywords (e.g., "Shop Accent Furniture," "Comfortable Mattresses").
+    *   **Benefit Oriented:** Focus on what the customer gains (e.g., "Upgrade Your Patio," "Comfortable Accent Chairs," "Create a Relaxing Bedroom").
+    *   **Feature Oriented:** Highlight specific attributes (e.g., "Modern End Tables," "Durable Patio Furniture," "Weather-Resistant Furniture").
+    *   **Problem/Solution:** Address specific needs (e.g., "Accent Chairs for Small Spaces," "Extra Storage Solutions").
+    *   **Offer/Value:** Mention sales or deals (e.g., "Bedroom Furniture Sale," "Outdoor Furniture Deals").
+    *   **Brand Inclusion:** Include the brand name (e.g., "Furniture Land Accent").
+    *   **Call to Action / Intent:** Encourage action or state intent (e.g., "Find The Perfect Bed," "Shop Bedroom Furniture").
+    *   **Aspirational:** Tap into lifestyle goals (e.g., "Accent Furniture Inspiration," "Create An Outdoor Oasis").
+*   **Uniqueness:** Ensure headlines offer distinct messages. Avoid slight variations of the same core phrase. For example, instead of "Shop Furniture," "Go Shopping For Furniture," use "Shop Furniture," "Furniture Sale," "Modern Furniture Styles."
+
+**6. Description Guidelines**
+
+*   **Purpose:** Provide more detail, reinforce value propositions, include a clear call to action.
+*   **Quantity:** Provide *at least* 2-4 unique descriptions per ad group.
+*   **Length:** Utilize the available space (max 90 characters) but remain clear and concise.
+*   **Capitalization:** Use **Sentence case.** (e.g., "Browse our huge selection of modern bedroom furniture and save.").
+*   **Variety - Include a Mix Of:**
+    *   **Selection/Breadth:** Mention the range of products (e.g., "Huge selection available," "Huge selection of beds.").
+    *   **Offers/Incentives:** State specific, current offers clearly (e.g., "Free shipping on select items," "Free shipping on orders over $999," "Free shipping on mattresses."). *Ensure offer details are accurate and kept up-to-date.*
+    *   **Call to Action:** Include a clear instruction (e.g., "Shop now and save!", "Browse our accent furniture," "Browse our patio furniture.").
+    *   **Benefit Reinforcement:** Briefly reiterate key benefits like style, savings, or solutions.
+*   **Clarity:** Ensure descriptions make sense independently and when potentially combined with various headlines.
+
+**7. Keyword Integration**
+
+*   Ensure headlines and descriptions are highly relevant to the keywords within their specific ad group.
+*   Include primary keywords naturally within the copy, especially in headlines.
+*   Avoid "keyword stuffing" – prioritize readability and user experience. The copy should sound natural.
+
+**8. Calls to Action (CTAs)**
+
+*   Use strong, clear CTAs.
+*   Embed CTAs within both headlines (e.g., "Shop Now," "Find Yours") and descriptions (e.g., "Shop now and save!", "Browse our selection").
+*   Examples: Shop, Browse, Find, Discover, Save, Upgrade, Create, Explore.
+
+**9. Offers & Promotions**
+
+*   Clearly state any sales, deals, or shipping offers.
+*   Use headline patterns like "[Category] Sale," "[Category] Deals."
+*   Specify shipping thresholds or conditions accurately in descriptions (e.g., "on select items," "over $X," "on mattresses").
+*   **Crucially:** Ensure all promotional copy is current and reflects active offers. Update ad copy promptly when offers change.
+
+**10. Do's and Don'ts**
+
+*   **Do:**
+    *   Use Title Case for Headlines.
+    *   Use Sentence case for Descriptions.
+    *   Include relevant keywords naturally.
+    *   Highlight unique selling points (selection, style, value, solutions).
+    *   Focus on benefits for the customer.
+    *   Include clear Calls to Action.
+    *   Provide a wide variety of distinct headlines and descriptions.
+    *   Use the brand name "Furniture Land" strategically.
+    *   Ensure ad copy accurately reflects landing page content.
+    *   Proofread carefully for spelling and grammar.
+*   **Don't:**
+    *   Use excessive punctuation (!!!) or ALL CAPS.
+    *   Make claims you can't substantiate (e.g., "Lowest Prices Guaranteed" unless true and verifiable).
+    *   Use generic phrases that don't add value.
+    *   Create headlines or descriptions that wouldn't make sense when combined randomly.
+    *   Stuff keywords unnaturally.
+    *   Forget to update promotional copy when offers expire.
+
+**11. Ensuring Variety for Ad Performance**
+
+The foundation of successful Responsive Search Ads is **variety**. When writing copy:
+
+*   Think about different angles: Price, Selection, Style, Features, Benefits, Problems Solved, Actions.
+*   Ensure your headlines cover several of these angles.
+*   Ensure your descriptions offer different supporting points or CTAs.
+*   Review the full list of headlines and descriptions together – do they offer sufficient unique combinations for Google to test?
+
+**12. Review & Updates**
+
+*   Ad copy performance should be reviewed regularly using Google Ads data.
+*   Underperforming assets should be paused or replaced.
+*   New copy variations should be tested continually.
+*   This style guide should be reviewed periodically and updated as the brand evolves or new best practices emerge.
+
+---
+
+By following this guide, copywriters can create effective, consistent, and high-performing Google Search Ads that reflect the Furniture Land brand and drive business results.
+    </textarea
+      >
+      <br /><br /><br />
+
+      <div><strong>Additional instructions (optional)</strong></div>
+      <textarea id="adCreationStyleGuideUser" rows="4" cols="80">
+    Created ads must be in German.
+    </textarea
+      >
+
+      <br /><br /><br />
+      <div><strong>Campaign Keywords</strong></div>
+      <div>
+        Based on those keywords a new campaign will be created. Input them comma
+        separated.
+      </div>
+      <input type="text" value="" id="campaign-keywords" size="100" />
+      <br /><br /><br />
+
+      <pre id="campaigns-creation-result"></pre>
+      <br /><button
+        id="generateNewCampaigns-button"
+        onclick="generateNewCampaigns()"
+      >
+        Generate
+      </button>
+      <div id="campaign-status"></div>
     </div>
-
-    <div id='insights'></div><br>
-    <div id='campaigns'></div><br>
-    <div id='youtube'></div><br>
-
-    <br>
-    <div id='status'></div>
+    <br />
   </body>
-
 </html>
 
 <script>
-  const googleScriptRun = new Proxy({}, {
-    get: (target, prop, receiver) => (...args) => {
-      console.log(`Running ${prop} in AppsScript backend...`);
-      if (prop in google.script.run) {
-        return new Promise((resolve, reject) =>
-          google.script.run
-            .withSuccessHandler(res => resolve(res))
-            .withFailureHandler(err => { throw err })[prop](...args))
-      } else {
-        throw new Error(`No function in AppScript named '${prop}'`);
-      }
+  const googleScriptRun = new Proxy(
+    {},
+    {
+      get:
+        (target, prop, receiver) =>
+        (...args) => {
+          console.log(`Running ${prop} in AppsScript backend...`);
+          if (prop in google.script.run) {
+            return new Promise((resolve, reject) =>
+              google.script.run
+                .withSuccessHandler(res => resolve(res))
+                .withFailureHandler(err => {
+                  throw err;
+                })
+                [prop](...args)
+            );
+          } else {
+            throw new Error(`No function in AppScript named '${prop}'`);
+          }
+        },
     }
-  });
+  );
 
   const containsStringIgnoreCase = (array, str) => {
     const lowerStr = str.toLowerCase();
     return array.some(item => item.toLowerCase() === lowerStr);
-  }
+  };
 
   const setInnerHtml = (elementId, text) =>
-    document.getElementById(elementId).innerHTML = text;
+    (document.getElementById(elementId).innerHTML = text);
 
   const rgbaToRgb = rgba => {
-    const [_, r,g,b] = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*([0-9.]+)?\)/);
+    const [_, r, g, b] = rgba.match(
+      /rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*([0-9.]+)?\)/
+    );
     return `rgb(${r}, ${g}, ${b})`;
-  }
+  };
 
-  const zip = (a, b) =>
-    a.map((item, index) => [item, b[index]]);
+  const zip = (a, b) => a.map((item, index) => [item, b[index]]);
 </script>
 
 <script>
-    const reset = () => {
-      ['cluserKeywordsChart', 'clustersChart', 'ideasChart']
-        .forEach(id => document.getElementById(id).style.display = 'none');
-      ['campaigns', 'insights'].forEach(id => setInnerHtml(id, ''));
-    }
+  const reset = () => {
+    [
+      'cluserKeywordsChart',
+      'clustersChart',
+      'clusterChart',
+      'ideasChart',
+    ].forEach(id => (document.getElementById(id).style.display = 'none'));
+    ['campaigns', 'insights'].forEach(id => setInnerHtml(id, ''));
+  };
 
-    const showClusterKeywordsChart = cluster => {
-      const element = document.getElementById('cluserKeywordsChart');
-      // remove previous chart
-      Chart.getChart(element)?.destroy();
-      element.style.display = '';
+  const showClusterKeywordsChart = cluster => {
+    const element = document.getElementById('cluserKeywordsChart');
+    // remove previous chart
+    Chart.getChart(element)?.destroy();
+    element.style.display = '';
 
-      const datasets =  zip(cluster.keywords, cluster.searchVolumes).map(([keywordText, searchVolume]) => ({
+    const datasets = zip(cluster.keywords, cluster.searchVolumes).map(
+      ([keywordText, searchVolume]) => ({
         label: keywordText,
         data: searchVolume,
-      }));
-      new Chart(
-        element, {
-          type: 'line',
-          data:  {
-            labels: ideasChart.data.labels,
-            datasets
-          },
-          options: {
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'Search Volume'
-                }
-              }
+      })
+    );
+    new Chart(element, {
+      type: 'line',
+      data: {
+        labels: ideasChart.data.labels,
+        datasets,
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Search Volume',
             },
-            plugins: {
-              legend: {
-                  display: true,
-                  labels: {
-                      color: 'rgb(255, 99, 132)'
-                  }
-              }
-            }
-          }
-      });
-    }
+          },
+        },
+        plugins: {
+          legend: {
+            display: true,
+            labels: {
+              color: 'rgb(255, 99, 132)',
+            },
+          },
+        },
+      },
+    });
+  };
 
-    const showClustersChart = clusters => {
-      const element = document.getElementById('clustersChart');
-      // remove previous chart
-      Chart.getChart(element)?.destroy();
-      element.style.display = '';
+  const showClustersChart = clusters => {
+    const element = document.getElementById('clustersChart');
+    // remove previous chart
+    Chart.getChart(element)?.destroy();
+    element.style.display = '';
 
-      const maxSearchVolume = clusters.reduce((max, cluster) => Math.max(max, cluster.searchVolume), 0);
-      const maxRadiusPixels = 50;
-      const minRadiusPixel = 5;
-      const datasets = clusters.map(cluster => ({
-        label: cluster.topic,
-        data: [{
+    const maxSearchVolume = clusters.reduce(
+      (max, cluster) => Math.max(max, cluster.searchVolume),
+      0
+    );
+    const maxRadiusPixels = 50;
+    const minRadiusPixel = 5;
+    const datasets = clusters.map(cluster => ({
+      label: cluster.topic,
+      data: [
+        {
           x: cluster.searchVolume,
           y: cluster.yearOverYearGrowth,
-          r: minRadiusPixel + (cluster.searchVolume / maxSearchVolume) * (maxRadiusPixels - minRadiusPixel),
-          label: cluster.topic
-        }]
-      }));
+          r:
+            minRadiusPixel +
+            (cluster.searchVolume / maxSearchVolume) *
+              (maxRadiusPixels - minRadiusPixel),
+          label: cluster.topic,
+        },
+      ],
+    }));
 
-      const chart = new Chart(
-        element, {
-          type: 'bubble',
-          data:  {
-            labels: clusters.map(cluster => cluster.searchVolume),
-            datasets
-          },
-          options: {
-            onClick: function (evt) {
-              const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-              if (points.length > 0) {
-                  const datasetIndex = points[0].datasetIndex;
-                  const cluster = clusters[datasetIndex];
-                  const color = chart.data.datasets[datasetIndex].backgroundColor;
+    const chart = new Chart(element, {
+      type: 'bubble',
+      data: {
+        labels: clusters.map(cluster => cluster.searchVolume),
+        datasets,
+      },
+      options: {
+        onClick: function (evt) {
+          const points = chart.getElementsAtEventForMode(
+            evt,
+            'nearest',
+            { intersect: true },
+            false
+          );
+          if (points.length > 0) {
+            const datasetIndex = points[0].datasetIndex;
+            const cluster = clusters[datasetIndex];
+            const color = chart.data.datasets[datasetIndex].backgroundColor;
 
-                  showIdeasChart([{
-                    text: cluster.topic,
-                    searchVolume: cluster.searchVolumeHistory,
-                    months: ideasChart.data.labels
-                  }], 'clusterChart', rgbaToRgb(color))
+            showIdeasChart(
+              [
+                {
+                  text: cluster.topic,
+                  searchVolume: cluster.searchVolumeHistory,
+                  months: ideasChart.data.labels,
+                },
+              ],
+              'clusterChart',
+              rgbaToRgb(color)
+            );
 
-
-                  showClusterKeywordsChart(cluster);
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'YoY Growth'
-                }
-              },
-              x: {
-                title: {
-                  display: true,
-                  text: 'Search Volume'
-                }
-              }
-
-            }
+            showClusterKeywordsChart(cluster);
           }
-      });
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'YoY Growth',
+            },
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Search Volume',
+            },
+          },
+        },
+      },
+    });
+  };
+
+  var ideasChart;
+
+  const showIdeasChart = (ideas, elementId, color) => {
+    const element = document.getElementById(elementId);
+    // remove previous chart
+    Chart.getChart(element)?.destroy();
+    element.style.display = '';
+
+    const datasets = ideas.map(idea => ({
+      label: idea.text,
+      data: idea.searchVolume,
+      backgroundColor: color,
+    }));
+    ideasChart = new Chart(element, {
+      type: 'line',
+      data: {
+        labels: ideas[0].months,
+        datasets,
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Search Volume',
+            },
+          },
+        },
+      },
+    });
+  };
+
+  const getSelectedLanguage = () => {
+    var select = document.getElementById('language');
+    return select.options[select.selectedIndex].text;
+  };
+
+  const getSeedKeywords = () => {
+    const seedKeywordsUserInput = document.getElementById('topics').value;
+    if (seedKeywordsUserInput === '') {
+      alert(`Please enter at least one seed keyword (Explore Tab).`);
+      return [];
+    }
+    return seedKeywordsUserInput.split(', ').map(k => k.trim());
+  };
+
+  const generateNewCampaignsPrompt = async () => {
+    const status = document.getElementById('newCampaignpromptTemplate');
+    status.value = 'Generating prompt...';
+    const adsAccountID = document
+      .getElementById('google-ads-account-id')
+      .value.replaceAll('-', '')
+      .trim();
+    const topN = 10;
+    const prompt = await googleScriptRun.getTopPerformingAdsPrompt(
+      adsAccountID,
+      topN
+    );
+    status.value = prompt;
+  };
+
+  const generateNewCampaigns = async () => {
+    const campaignKeywords = document
+      .getElementById('campaign-keywords')
+      .value.split(',')
+      .map(keyword => keyword.trim());
+    const status = document.getElementById('campaigns-creation-result');
+    status.innerHTML = 'generating ad...';
+    const promptTemplate = document.getElementById(
+      'newCampaignpromptTemplate'
+    ).value;
+
+    const adCreationStyleGuideDefault = document.getElementById(
+      'adCreationStyleGuideDefault'
+    ).value;
+    const adCreationStyleGuideUser = document.getElementById(
+      'adCreationStyleGuideUser'
+    ).value;
+
+    const prompt = `${adCreationStyleGuideDefault}
+      ${adCreationStyleGuideUser}
+      ${promptTemplate}`;
+
+    console.log(prompt);
+
+    const newCampaign = await googleScriptRun.getTopPerformingAds(
+      prompt,
+      campaignKeywords
+    );
+    console.log(newCampaign);
+    status.innerHTML = JSON.stringify(newCampaign, null, 2);
+  };
+
+  const generateCampaignSuggestions = async () => {
+    if (insights.length === 0) {
+      alert('Please first generate Insights.');
+      return;
     }
 
-    var ideasChart;
+    document.getElementById('generateCampaigns-button').disabled = true;
 
-    const showIdeasChart = (ideas, elementId, color) => {
-      const element = document.getElementById(elementId);
-      // remove previous chart
-      Chart.getChart(element)?.destroy();
-      element.style.display = '';
+    // todo check if relevant ideas is empty
+    const status = document.getElementById('campaign-status');
+    status.innerHTML = 'Generating campaign suggestions...';
+    const languageSelector = document.getElementById('language');
+    const language =
+      languageSelector.options[languageSelector.selectedIndex].text;
 
-      const datasets = ideas.map(idea => ({
-        label: idea.text,
-        data: idea.searchVolume,
-        backgroundColor: color
-      }));
-      ideasChart = new Chart(
-        element, {
-          type: 'line',
-          data:  {
-            labels: ideas[0].months,
-            datasets
-          },
-          options: {
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'Search Volume'
-                }
-              }
-            },
+    const campaigns = await googleScriptRun.getCampaigns(insights, language);
+    setInnerHtml('campaigns', campaigns + '<br><br>');
+    status.innerHTML = '';
+    document.getElementById('generateCampaigns-button').disabled = false;
+  };
 
-          }
-      });
+  const generateInsights = async () => {
+    if (relevantIdeas.length === 0) {
+      alert(
+        'Please first enter seed keywords in the Explore Tab and hit the start button.'
+      );
+      return;
     }
+
+    document.getElementById('generateInsights-button').disabled = true;
+
+    // todo check if relevant ideas is empty
+    const status = document.getElementById('insights-status');
+    status.innerHTML = 'Generating insights...';
+    insights = await googleScriptRun.getInsights(
+      relevantIdeas,
+      getSeedKeywords()
+    );
+    setInnerHtml('insights', insights);
+    document.getElementById('generateInsights-button').disabled = false;
+    status.innerHTML = '';
+  };
+
+  let relevantIdeas = [];
+  let insights = '';
 
   const run = async () => {
-
     reset();
 
     try {
-      const status = document.getElementById("status");
+      const status = document.getElementById('explore-status');
       status.innerHTML = 'Get keyword ideas...';
 
       const MAX_SEED_KEYWORDS = 20;
 
-      const seedKeywordsUserInput = document.getElementById('topics').value;
-      if (seedKeywordsUserInput === '') {
-        alert(`Please enter at least one keyword.`);
-        return;
-      }
-
-
-      const seedKeywords = seedKeywordsUserInput.split(', ').map(k => k.trim());
-      console.log({seedKeywords});
+      const seedKeywords = getSeedKeywords();
+      console.log({ seedKeywords });
+      if (seedKeywords.length === 0) return;
 
       if (seedKeywords.length > MAX_SEED_KEYWORDS) {
         alert(`Please enter a maximum of ${MAX_SEED_KEYWORDS} keywords only.`);
         return;
       }
 
-      const geoID = document.getElementById('country').value || undefined ;
+      document.getElementById('run-button').disabled = true;
+
+      const geoID = document.getElementById('country').value || undefined;
       const languageID = document.getElementById('language').value || undefined;
-      console.log("geoID:", geoID, "languageID", languageID);
+      console.log('geoID:', geoID, 'languageID', languageID);
 
       const MAX_IDEAS = 5000;
       const MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH = 0;
 
-      const ideas = (await googleScriptRun.generateKeywordIdeas(seedKeywords, geoID, languageID, MAX_IDEAS))
-        .filter(res => res.keywordIdeaMetrics !== undefined);
+      const ideas = (
+        await googleScriptRun.generateKeywordIdeas(
+          seedKeywords,
+          geoID,
+          languageID,
+          MAX_IDEAS
+        )
+      ).filter(res => res.keywordIdeaMetrics !== undefined);
 
       const expandIdeaWithCloseVariants = idea =>
-        (idea.closeVariants || []).concat(idea.text).map(keyword => [keyword, idea]);
+        (idea.closeVariants || [])
+          .concat(idea.text)
+          .map(keyword => [keyword, idea]);
 
-      const ideasData = ideas.flatMap(expandIdeaWithCloseVariants)
+      const ideasData = ideas
+        .flatMap(expandIdeaWithCloseVariants)
         .map(([keyword, res]) => ({
-            text: keyword,
-            searchVolume: res.keywordIdeaMetrics.monthlySearchVolumes.map(item => Number(item.monthlySearches)),
-            months: res.keywordIdeaMetrics.monthlySearchVolumes.map(item => `${item.month} ${item.year}`)
+          text: keyword,
+          searchVolume: res.keywordIdeaMetrics.monthlySearchVolumes.map(item =>
+            Number(item.monthlySearches)
+          ),
+          months: res.keywordIdeaMetrics.monthlySearchVolumes.map(
+            item => `${item.month} ${item.year}`
+          ),
         }));
 
       console.log(ideasData);
 
-      const seedKeywordsChartData = ideasData.filter(res => seedKeywords.map(k => k.toLowerCase()).includes(res.text));
-      console.log({seedKeywordsChartData});
+      const seedKeywordsChartData = ideasData.filter(res =>
+        seedKeywords.map(k => k.toLowerCase()).includes(res.text)
+      );
+      console.log({ seedKeywordsChartData });
       showIdeasChart(seedKeywordsChartData, 'ideasChart');
 
-      const relevantIdeas = Object.fromEntries(ideasData
-        .filter(idea => idea.searchVolume.at(-1) > MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH)
-        .map(idea => [idea.text, idea.searchVolume])
+      relevantIdeas = Object.fromEntries(
+        ideasData
+          .filter(
+            idea =>
+              idea.searchVolume.at(-1) >
+              MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH
+          )
+          .map(idea => [idea.text, idea.searchVolume])
       );
 
-      console.log({relevantIdeas});
+      console.log({ relevantIdeas });
 
       status.innerHTML = `Generating clusters of <strong> ${ideasData.length} keyword ideas </strong> related to: ${seedKeywords.join(',')} ...`;
 
       const promptTemplate = document.getElementById('promptTemplate').value;
-      console.log("promptTemplate:", promptTemplate);
+      console.log('promptTemplate:', promptTemplate);
 
       try {
-        const clusters = await googleScriptRun.getClusters(relevantIdeas, promptTemplate);
-        console.log({clusters});
+        const clusters = await googleScriptRun.getClusters(
+          relevantIdeas,
+          promptTemplate
+        );
+        console.log({ clusters });
         showClustersChart(clusters);
       } catch (clusterError) {
-        console.log("Error during clustering", clusterError.message);
+        console.log('Error during clustering', clusterError.message);
         console.log(clusterError);
       }
 
-      status.innerHTML = 'Generating insights...';
-      const insights = await googleScriptRun.getInsights(relevantIdeas, seedKeywords);
-      setInnerHtml('insights', insights);
-
-      status.innerHTML = 'Generating campaign suggestions...';
-      const campaigns = await googleScriptRun.getCampaigns(insights);
-      setInnerHtml('campaigns', campaigns + '<br><br>')
-      status.innerHTML = '';
-
-    }
-    catch (e) {
+      status.innerHTML = `Done. Clustered <strong> ${ideasData.length} keyword ideas </strong> related to: ${seedKeywords.join(',')}.`;
+    } catch (e) {
       alert(e.message);
+    } finally {
+      document.getElementById('run-button').disabled = false;
     }
-  }
+  };
+</script>
 
+<script>
+  function openCity(evt, cityName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName('tabcontent');
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = 'none';
+    }
+    tablinks = document.getElementsByClassName('tablinks');
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(' active', '');
+    }
+    document.getElementById(cityName).style.display = 'block';
+    evt.currentTarget.className += ' active';
+  }
 </script>
