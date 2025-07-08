@@ -16,22 +16,22 @@ limitations under the License.
 
 const MAX_COUNTRIES = 25;
 
-const getGeoTargetConstantSuggestions = (names) =>
-  post("geoTargetConstants:suggest", {
-    locale: "en",
+const getGeoTargetConstantSuggestions = names =>
+  post('geoTargetConstants:suggest', {
+    locale: 'en',
     locationNames: { names: names },
   }).geoTargetConstantSuggestions;
 
-const getCriterionIDs = (names) => {
+const getCriterionIDs = names => {
   const suggestions = chunk(names, MAX_COUNTRIES)
     .flatMap(getGeoTargetConstantSuggestions)
     .filter(
-      (suggestion) => suggestion.geoTargetConstant.targetType === "Country"
+      suggestion => suggestion.geoTargetConstant.targetType === 'Country'
     );
 
-  const geo = names.map((country) => [
+  const geo = names.map(country => [
     country.toLowerCase(),
-    suggestions.find((s) => s.searchTerm === country).geoTargetConstant.id,
+    suggestions.find(s => s.searchTerm === country).geoTargetConstant.id,
   ]);
   return Object.fromEntries(geo);
 };
