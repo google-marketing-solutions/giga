@@ -255,8 +255,6 @@ const getCampaigns = (insights, language) => {
   Create the Campaings in ${language}.
   Please style the Ad examples so that they look like text ads shown on google.com
 
-  ${NO_BRANDS_PRE_PROMPT}
-
   Insights:
 
   ${insights}

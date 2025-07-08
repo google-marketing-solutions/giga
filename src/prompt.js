@@ -96,3 +96,28 @@ OUTPUT:
 ${JSON.stringify(data, null, 2)}
 </DATA>`;
 };
+
+const DEFAULT_STYLE_GUIDE = `### Styleguide and Technical Specifications Google Search Ads
+
+**Headlines**
+*   **Quantity:** Provide up to 15 headlines.
+*   **Character Limit:** Each headline has a maximum length of 30 characters.
+
+**Descriptions**
+*   **Quantity:** Provide up to 4 descriptions.
+*   **Character Limit:** Each description has a maximum length of 90 characters.
+
+### Headline Best Practices
+
+*   **Create Unique Headlines:** Each headline should offer something different and be able to stand on its own. Avoid overly similar phrases as this limits the number of combinations Google can test.
+*   **Incorporate Keywords:** Include your primary keywords in some of the headlines to improve relevance to user searches.
+*   **Use Action-Oriented Language:** Start headlines with verbs like "Get," "Shop," or "Discover" to encourage clicks.
+*   **Showcase Unique Value:** Highlight what makes your offer stand out, such as special promotions, guarantees, or exclusive features.
+
+### Description Best Practices
+
+*   **Write for Modularity:** Descriptions are paired with various headlines, so ensure each description is written to make sense independently and in combination with any headline.
+*   **Focus on Benefits:** Clearly state the advantages and solutions your product or service provides to the customer.
+*   **Include a Clear Call to Action (CTA):** Tell users what you want them to do next, for example, "Shop Now," "Request a Quote," or "Sign Up Today." Short and straightforward CTAs are effective.
+*   **Highlight Promotions:** If you have special offers, discounts, or limited-time deals, feature them in your descriptions to create a sense of urgency and value.
+`;
