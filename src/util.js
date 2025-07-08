@@ -135,3 +135,17 @@ const getDateWithDeltaDays = days => {
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
   return new Date(Date.now() + days * MS_PER_DAY);
 };
+
+const partition = (array, condition) =>
+  array.reduce(
+    (partitions, item) => {
+      partitions[condition(item) ? 0 : 1].push(item);
+      return partitions;
+    },
+    [[], []]
+  );
+
+const objectToLowerCaseKeys = obj =>
+  Object.fromEntries(
+    Object.entries(obj).map(([key, value]) => [key.toLowerCase(), value])
+  );

@@ -19,39 +19,41 @@ const MIN_YEAR_OVER_YEAR_GROWTH = 0.1;
 
 const onOpen = () => {
   SpreadsheetApp.getUi()
-    .createMenu("💡 GIGA 💡")
-    .addItem("Update Ideas", updateIdeas.name)
-    .addItem("Update Clusters", updateClusters.name)
-    .addItem("Update Insights", updateInsights.name)
-    .addItem("Update Campaigns", updateCampaigns.name)
+    .createMenu('💡 GIGA 💡')
+    .addItem('Update Ideas', updateIdeas.name)
+    .addItem('Update Clusters', updateClusters.name)
+    .addItem('Update Insights', updateInsights.name)
+    .addItem('Update Campaigns', updateCampaigns.name)
     .addToUi();
 };
 
-const getSheet = (name) => SpreadsheetApp.getActive().getSheetByName(name);
+const getSheet = name => SpreadsheetApp.getActive().getSheetByName(name);
+``;
 
-const getConfigSheet = () => getSheet("config");
-const getIdeaSheet = () => getSheet("ideas");
-const getClusterSheet = () => getSheet("clusters");
-const getInsightsSheet = () => getSheet("insights");
-const getCamaignsSheet = () => getSheet("campaigns");
+const getConfigSheet = () => getSheet('config');
+const getIdeaSheet = () => getSheet('ideas');
+const getClusterSheet = () => getSheet('clusters');
+const getInsightsSheet = () => getSheet('insights');
+const getCamaignsSheet = () => getSheet('campaigns');
 
 const MAX_SEED_KEYWORDS = 20;
 
 const getSeedKeywords = () =>
   SpreadsheetApp.getActive()
-    .getRangeByName("SEED_KEYWORDS")
+    .getRangeByName('SEED_KEYWORDS')
     .getValue()
-    .split(",")
-    .map((keyword) => keyword.trim());
+    .split(',')
+    .map(keyword => keyword.trim());
 
-const convertIdeasToRows = (ideas) =>
+// TODO remove MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH and let frontend handle this?
+const convertIdeasToRows = ideas =>
   ideas
     .filter(
-      (res) =>
+      res =>
         res.keywordIdeaMetrics?.monthlySearchVolumes?.at(-1).monthlySearches >
         MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH
     )
-    .map((result) => [
+    .map(result => [
       result.text,
       `${result.keywordIdeaMetrics?.avgMonthlySearches || 0}`,
       ...getSearchVolumeRow(result),
@@ -66,22 +68,22 @@ const getIdeas = (keywords, geoID, language, maxIdeas) => {
 };
 
 const updateIdeas = () => {
-  const geoID = SpreadsheetApp.getActive().getRangeByName("COUNTRY").getValue();
+  const geoID = SpreadsheetApp.getActive().getRangeByName('COUNTRY').getValue();
   const languageID = SpreadsheetApp.getActive()
-    .getRangeByName("LANGUAGE")
+    .getRangeByName('LANGUAGE')
     .getValue();
   const keywords = getSeedKeywords();
   const overflowKeywords = keywords.splice(MAX_SEED_KEYWORDS);
   if (overflowKeywords.length > 0) {
     alert(`Please enter a maximum of ${MAX_SEED_KEYWORDS} keywords only.
-    Ignoring the overflow keywords: ${overflowKeywords.join(", ")} `);
+    Ignoring the overflow keywords: ${overflowKeywords.join(', ')} `);
   }
   const maxIdeas = 10000;
   const ideaRows = getIdeas(keywords, geoID, languageID, maxIdeas);
   writeRowsToSheet(getIdeaSheet(), ideaRows, 1);
 };
 
-const getYoYGroth = (searchVolumes) => {
+const getYoYGroth = searchVolumes => {
   const latestIndex = -1;
   const previousYearIndex = latestIndex - 12;
   const latestVolume = searchVolumes.at(latestIndex);
@@ -89,29 +91,42 @@ const getYoYGroth = (searchVolumes) => {
   return latestVolume / previousYearVolume - 1;
 };
 
+const removeHTLMTicks = html => {
+  const prefix = '```html';
+  const suffix = '```';
+  let cleanedHtml = html;
+  if (cleanedHtml.startsWith(prefix)) {
+    cleanedHtml = cleanedHtml.substring(prefix.length);
+  }
+  if (cleanedHtml.endsWith(suffix)) {
+    cleanedHtml = cleanedHtml.substring(0, cleanedHtml.length - suffix.length);
+  }
+  return cleanedHtml;
+};
+
 const getInsights = (ideas, seedKeywords) => {
   const relevantIdeas = Object.entries(ideas)
     .map(([idea, searchVolume]) => [idea, getYoYGroth(searchVolume)])
     .filter(([_, yoyGroth]) => yoyGroth > MIN_YEAR_OVER_YEAR_GROWTH);
-  console.log("relevantIdeas: ", relevantIdeas);
+  console.log('relevantIdeas: ', relevantIdeas);
   const insightsPrompt = getInsightsPrompt(relevantIdeas, seedKeywords);
   console.log(insightsPrompt.slice(insightsPrompt.length - 1000));
-  const responseType = "text/plain";
+  const responseType = 'text/plain';
   const config = getGeminiConfig(responseType);
-  return gemini(config)(insightsPrompt);
+  return removeHTLMTicks(gemini(config)(insightsPrompt));
 };
 
 const updateInsights = () => {
   const ideas = getIdeasFromSheet();
   const keywords = getSeedKeywords();
   const insights = getInsights(ideas, keywords);
-  getInsightsSheet().getRange("A1").setValue(insights);
+  getInsightsSheet().getRange('A1').setValue(insights);
   console.log(insights);
 };
 
-const getSearchVolumeRow = (res) => {
+const getSearchVolumeRow = res => {
   const volumes = res.keywordIdeaMetrics.monthlySearchVolumes.map(
-    (m) => m.monthlySearches
+    m => m.monthlySearches
   );
   const latestIndex = -1;
   const previousMonthIndex = latestIndex - 1;
@@ -131,61 +146,59 @@ const getSearchVolumeRow = (res) => {
 const getIdeasFromSheet = () =>
   Object.fromEntries(
     SpreadsheetApp.getActive()
-      .getRange("IDEAS")
+      .getRange('IDEAS')
       .getValues()
       .filter(isNonEmptyRow)
-      .map((row) => [row[0], row.slice(4)])
-  ); // at 4 search volume starts, before avg and yoy are calculated
+      .map(row => [row[0], row.slice(4)])
+  ); // at 4 search volume starts, bevore avg and yoy are calculated
 
 /**
  * @return {GeminiConfig} config
  */
-const getGeminiConfig = (responseType) => {
+const getGeminiConfig = responseType => {
   const temperature = Number(
-    SpreadsheetApp.getActive().getRangeByName("GEMINI_TEMPERATURE").getValue()
+    SpreadsheetApp.getActive().getRangeByName('GEMINI_TEMPERATURE').getValue()
   );
   const topP = Number(
-    SpreadsheetApp.getActive().getRangeByName("GEMINI_TOP_P").getValue()
+    SpreadsheetApp.getActive().getRangeByName('GEMINI_TOP_P').getValue()
   );
   return {
-    modelId: getGeminiModelId(),
+    modelID: getGeminiModelID(),
     projectID: getGCPProjectID(),
-    location: "us-central1",
-    temperature,
+    location: 'us-central1',
+    temperature, // Default for gemini-1.5-pro: 1.0, higher temperatures can lead to more diverse or creative results, range [0.0, 2.0]
     topP,
-    responseType,
+    responseType, // see https://cloud.google.com/vertex-ai/generative-ai/docs/reference/java/latest/com.google.cloud.vertexai.api.GenerationConfig
   };
 };
 
 const getClusters = (ideas, promptTemplate) => {
   ideas = objectToLowerCaseKeys(ideas);
-  const keywords = Object.keys(ideas).join(", ");
+  const keywords = Object.keys(ideas).join(', ');
   console.log(
-    `Starting to cluster ${Object.keys(ideas).length} ideas (${
-      keywords.length
-    } characters)`
+    `Starting to cluster ${Object.keys(ideas).length} ideas (${keywords.length} characters)`
   );
   const prompt = `${promptTemplate}\n${keywords}\n${PROMPT_DATA_FORMAT_SUFFIX}`;
-  const config = getGeminiConfig("application/json");
-  const clusters = gemini(config)(prompt).map((cluster) => {
+  const config = getGeminiConfig('application/json');
+  const clusters = gemini(config)(prompt).map(cluster => {
+    // TODO lookup all keywords again in keyword planner since gemini could have combined keywords into more generic broad match keywords that did not show up in ideas
+    // remove keywords not found in ideas (hallucinations)
     const [keywwordIdeas, hallucinations] = partition(
       cluster.keywords,
-      (keyword) => keyword.toLowerCase() in ideas
+      keyword => keyword.toLowerCase() in ideas
     );
     cluster.keywords = keywwordIdeas;
 
     // check hallucinations
     if (hallucinations.length > 0) {
       console.log(
-        `WARNING: Gemini Clustering produced the following keywords for cluster ${
-          cluster.topic
-        } which could not be found in ideas: ${hallucinations.join(", ")}`
+        `WARNING: Gemini Clustering produced the following keywords for cluster ${cluster.topic} which could not be found in ideas: ${hallucinations.join(', ')}`
       );
     }
 
     // add search volume stats
-    cluster.searchVolumes = cluster.keywords.map((k) => ideas[k]);
-    cluster.latestSearchVolumes = cluster.searchVolumes.map((v) => v.at(-1));
+    cluster.searchVolumes = cluster.keywords.map(k => ideas[k]);
+    cluster.latestSearchVolumes = cluster.searchVolumes.map(v => v.at(-1));
 
     // add sum of all keywords over time
     cluster.searchVolumeHistory = columnWiseSum(cluster.searchVolumes);
@@ -195,7 +208,7 @@ const getClusters = (ideas, promptTemplate) => {
 
     // get yearOverYearGrowth
     const latestIndex = -1;
-    const previousYearVolumes = cluster.searchVolumes.map((v) =>
+    const previousYearVolumes = cluster.searchVolumes.map(v =>
       v.at(latestIndex - 12)
     );
     cluster.yearOverYearGrowth =
@@ -223,34 +236,41 @@ const PROMPT_DATA_FORMAT_SUFFIX = `
 const updateClusters = () => {
   const ideas = getIdeasFromSheet();
   const promptTemplate = SpreadsheetApp.getActive()
-    .getRangeByName("PROMPT_TEMPLATE")
+    .getRangeByName('PROMPT_TEMPLATE')
     .getValue();
   const clusters = getClusters(ideas, promptTemplate);
-  const clusterRows = clusters.map((cluster) => [
+  const clusterRows = clusters.map(cluster => [
     cluster.topic,
-    cluster.keywords.join(", "),
+    cluster.keywords.join(', '),
     cluster.searchVolumes,
   ]);
   writeRowsToSheet(getClusterSheet(), clusterRows, 1);
 };
 
-const getCampaigns = (insights) => {
+const getCampaigns = (insights, language) => {
   const prompt = ` I am a SEA manager and I want to crate new Google Ads search campaigns based on the following input.
   For each cluster in the **Cluster Insights & Marketing Takeaways:** section, generate a ready-to-use text ad campaign.
   Output as HTML with standard HTML elements like <h1> and <ul> for captions or lists
+
+  Create the Campaings in ${language}.
+  Please style the Ad examples so that they look like text ads shown on google.com
+
+  ${NO_BRANDS_PRE_PROMPT}
+
   Insights:
 
   ${insights}
+
   `;
-  return gemini(getGeminiConfig("text/plain"))(prompt);
+  return removeHTLMTicks(gemini(getGeminiConfig('text/plain'))(prompt));
 };
 
 const updateCampaigns = () => {
-  const insights = getInsightsSheet().getRange("A1").getValue();
+  const insights = getInsightsSheet().getRange('A1').getValue();
   const campaings = getCampaigns(insights);
-  getCamaignsSheet().getRange("A1").setValue(campaings);
+  getCamaignsSheet().getRange('A1').setValue(campaings);
 };
 
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile("webApp");
+  return HtmlService.createHtmlOutputFromFile('webApp');
 }

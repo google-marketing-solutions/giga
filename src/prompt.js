@@ -15,12 +15,12 @@ limitations under the License.
 */
 
 const getInsightsPrompt = (ideaRows, keywords) => {
-  const data = ideaRows.map((row) => {
+  const data = ideaRows.map(row => {
     return `${row[0]}, ${(row[1] * 100).toFixed(1)}%`;
   });
 
   return `You are a marketing and strategy analyst and you want to find interesting insights based on the topic(s) [${keywords.join(
-    ", "
+    ', '
   )}] related list provided in the <DATA> section. Cluster this comma-separated list of search terms and YoY search growth and identify overall trends. Also, consider the list is sorted descending by growth rate.
 
   Output as HTML with standard HTML elements like <h1> and <ul> for captions or lists.
