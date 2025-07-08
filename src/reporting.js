@@ -86,11 +86,6 @@ const getSearchTerms = (
 
 const getDateSegment = (startDaysAgo, endDaysAgo = 0) => {
   const now = new Date();
-  // const start = new Date(now);
-  // start.setDate(now.getDate() - newDuringLastDays - compareDuration);
-  // const end = new Date(now);
-  // const endSegment = end.toISOString().slice(0, 10);
-  // const startSegment = start.toISOString().slice(0, 10);
   const startSegment = getDateWithDeltaDays(-startDaysAgo)
     .toISOString()
     .slice(0, 10);

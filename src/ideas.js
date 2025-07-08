@@ -16,6 +16,8 @@ limitations under the License.
 
 const MAX_KEYWORDS_PER_REQUEST = 10000; // See https://developers.google.com/google-ads/api/rest/reference/rest/v15/customers/generateKeywordHistoricalMetrics for details
 const LOOKBACK_YEARS = 2;
+// https://developers.google.com/google-ads/api/rest/reference/rest/v18/customers/generateKeywordIdeas
+const MAX_NUMBER_OF_KEYWORD_SEED_IDEAS = 20;
 
 const getDeveloperToken = () => getScriptProperties('DEVELOPER_TOKEN');
 const getCustomerId = () =>
@@ -101,8 +103,6 @@ function getSearchVolume(keywords, criteriaId, lookbackYears = LOOKBACK_YEARS) {
   return results.flatMap(res => res.results);
 }
 
-// https://developers.google.com/google-ads/api/rest/reference/rest/v18/customers/generateKeywordIdeas
-const MAX_NUMBER_OF_KEYWORD_SEED_IDEAS = 20;
 const generateKeywordIdeas = (
   seedKeywords,
   geoCriteriaID,
