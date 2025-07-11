@@ -1,23 +1,37 @@
-/*
-Copyright 2024 Google LLC
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+import { getCriterionIDs } from './geo';
+import { generateKeywordIdeas } from './ideas';
+import { getInsightsPrompt } from './prompt';
+import {
+  alert,
+  columnWiseSum,
+  isNonEmptyRow,
+  objectToLowerCaseKeys,
+  partition,
+  sum,
+  writeRowsToSheet,
+} from './util';
+import { gemini, getGCPProjectID, getGeminiModelID } from './vertex';
 
 const MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH = 100;
 const MIN_YEAR_OVER_YEAR_GROWTH = 0.1;
 
-const onOpen = () => {
+export const onOpen = () => {
   SpreadsheetApp.getUi()
     .createMenu('💡 GIGA 💡')
     .addItem('Update Ideas', updateIdeas.name)
@@ -27,18 +41,17 @@ const onOpen = () => {
     .addToUi();
 };
 
-const getSheet = name => SpreadsheetApp.getActive().getSheetByName(name);
-``;
+export const getSheet = name => SpreadsheetApp.getActive().getSheetByName(name);
 
-const getConfigSheet = () => getSheet('config');
-const getIdeaSheet = () => getSheet('ideas');
-const getClusterSheet = () => getSheet('clusters');
-const getInsightsSheet = () => getSheet('insights');
-const getCamaignsSheet = () => getSheet('campaigns');
+export const getConfigSheet = () => getSheet('config');
+export const getIdeaSheet = () => getSheet('ideas');
+export const getClusterSheet = () => getSheet('clusters');
+export const getInsightsSheet = () => getSheet('insights');
+export const getCamaignsSheet = () => getSheet('campaigns');
 
 const MAX_SEED_KEYWORDS = 20;
 
-const getSeedKeywords = () =>
+export const getSeedKeywords = () =>
   SpreadsheetApp.getActive()
     .getRangeByName('SEED_KEYWORDS')
     .getValue()
@@ -46,7 +59,7 @@ const getSeedKeywords = () =>
     .map(keyword => keyword.trim());
 
 // TODO remove MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH and let frontend handle this?
-const convertIdeasToRows = ideas =>
+export const convertIdeasToRows = ideas =>
   ideas
     .filter(
       res =>
@@ -59,15 +72,15 @@ const convertIdeasToRows = ideas =>
       ...getSearchVolumeRow(result),
     ]);
 
-const getIdeas = (keywords, geoID, language, maxIdeas) => {
-  const languageID = isNaN(new Number(language))
+export const getIdeas = (keywords, geoID, language, maxIdeas) => {
+  const languageID = isNaN(Number(language))
     ? getCriterionIDs([language])[0]
     : language;
   const ideas = generateKeywordIdeas(keywords, geoID, languageID, maxIdeas);
   return convertIdeasToRows(ideas);
 };
 
-const updateIdeas = () => {
+export const updateIdeas = () => {
   const geoID = SpreadsheetApp.getActive().getRangeByName('COUNTRY').getValue();
   const languageID = SpreadsheetApp.getActive()
     .getRangeByName('LANGUAGE')
@@ -83,7 +96,7 @@ const updateIdeas = () => {
   writeRowsToSheet(getIdeaSheet(), ideaRows, 1);
 };
 
-const getYoYGroth = searchVolumes => {
+export const getYoYGroth = searchVolumes => {
   const latestIndex = -1;
   const previousYearIndex = latestIndex - 12;
   const latestVolume = searchVolumes.at(latestIndex);
@@ -91,7 +104,7 @@ const getYoYGroth = searchVolumes => {
   return latestVolume / previousYearVolume - 1;
 };
 
-const removeHTLMTicks = html => {
+export const removeHTLMTicks = html => {
   const prefix = '```html';
   const suffix = '```';
   let cleanedHtml = html;
@@ -104,10 +117,12 @@ const removeHTLMTicks = html => {
   return cleanedHtml;
 };
 
-const getInsights = (ideas, seedKeywords) => {
+export const getInsights = (ideas, seedKeywords) => {
   const relevantIdeas = Object.entries(ideas)
     .map(([idea, searchVolume]) => [idea, getYoYGroth(searchVolume)])
-    .filter(([_, yoyGroth]) => yoyGroth > MIN_YEAR_OVER_YEAR_GROWTH);
+    .filter(
+      ([_, yoyGroth]) => (yoyGroth as number) > MIN_YEAR_OVER_YEAR_GROWTH
+    );
   console.log('relevantIdeas: ', relevantIdeas);
   const insightsPrompt = getInsightsPrompt(relevantIdeas, seedKeywords);
   console.log(insightsPrompt.slice(insightsPrompt.length - 1000));
@@ -155,7 +170,7 @@ const getIdeasFromSheet = () =>
 /**
  * @return {GeminiConfig} config
  */
-const getGeminiConfig = responseType => {
+export const getGeminiConfig = responseType => {
   const temperature = Number(
     SpreadsheetApp.getActive().getRangeByName('GEMINI_TEMPERATURE').getValue()
   );
@@ -265,10 +280,12 @@ const getCampaigns = (insights, language) => {
 
 const updateCampaigns = () => {
   const insights = getInsightsSheet().getRange('A1').getValue();
-  const campaings = getCampaigns(insights);
+  // TODO use language from frontend
+  const campaings = getCampaigns(insights, 'English');
   getCamaignsSheet().getRange('A1').setValue(campaings);
 };
 
-function doGet() {
-  return HtmlService.createHtmlOutputFromFile('webApp');
-}
+export const doGet = () =>
+  HtmlService.createTemplateFromFile('webApp').evaluate();
+
+export const main = null;
