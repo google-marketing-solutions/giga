@@ -4,3 +4,6 @@ build/
 .clasp*.json
 *.tgz
 .vscode
+dist/
+.vscode/
+.env

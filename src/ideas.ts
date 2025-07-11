@@ -1,30 +1,37 @@
-/*
-Copyright 2024 Google LLC
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+import {
+  chunk,
+  fetchJson,
+  getConfigVariable,
+  getScriptProperties,
+} from './util';
 
-      http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
-const MAX_KEYWORDS_PER_REQUEST = 10000; // See https://developers.google.com/google-ads/api/rest/reference/rest/v15/customers/generateKeywordHistoricalMetrics for details
-const LOOKBACK_YEARS = 2;
+export const MAX_KEYWORDS_PER_REQUEST = 10000; // See https://developers.google.com/google-ads/api/rest/reference/rest/v15/customers/generateKeywordHistoricalMetrics for details
+export const LOOKBACK_YEARS = 2;
 // https://developers.google.com/google-ads/api/rest/reference/rest/v18/customers/generateKeywordIdeas
-const MAX_NUMBER_OF_KEYWORD_SEED_IDEAS = 20;
+export const MAX_NUMBER_OF_KEYWORD_SEED_IDEAS = 20;
 
-const getDeveloperToken = () => getScriptProperties('DEVELOPER_TOKEN');
-const getCustomerId = () =>
+export const getDeveloperToken = () => getScriptProperties('DEVELOPER_TOKEN');
+export const getCustomerId = () =>
   getConfigVariable('ADS_ACCOUNT_ID').toString().replaceAll('-', '').trim();
-const ADS_ENPOINT = 'https://googleads.googleapis.com/v20/';
+export const ADS_ENPOINT = 'https://googleads.googleapis.com/v20/';
 
-const addGoogleAdsAuth = params =>
+export const addGoogleAdsAuth = params =>
   Object.assign(
     { payload: JSON.stringify(params) },
     {
@@ -39,7 +46,7 @@ const addGoogleAdsAuth = params =>
     }
   );
 
-const post = (url, params) => {
+export const post = (url, params) => {
   console.log(url, '-->', JSON.stringify(params, null, 2));
   return fetchJson(ADS_ENPOINT + url, addGoogleAdsAuth(params));
 };
@@ -65,7 +72,7 @@ const getMonth = (offset = 0) => {
 };
 const getYear = (offset = 0) => new Date().getFullYear() + offset;
 
-const getHistoricalMetricsOptions = lookbackYears => ({
+export const getHistoricalMetricsOptions = lookbackYears => ({
   includeAverageCpc: true,
   yearMonthRange: {
     start: {
@@ -79,7 +86,11 @@ const getHistoricalMetricsOptions = lookbackYears => ({
   },
 });
 
-function getSearchVolume(keywords, criteriaId, lookbackYears = LOOKBACK_YEARS) {
+export function getSearchVolume(
+  keywords,
+  criteriaId,
+  lookbackYears = LOOKBACK_YEARS
+) {
   const results = chunk(keywords, MAX_KEYWORDS_PER_REQUEST).map(
     (keywords, batchIndex) => {
       console.log(
@@ -103,7 +114,7 @@ function getSearchVolume(keywords, criteriaId, lookbackYears = LOOKBACK_YEARS) {
   return results.flatMap(res => res.results);
 }
 
-const generateKeywordIdeas = (
+export const generateKeywordIdeas = (
   seedKeywords,
   geoCriteriaID,
   languageCriteriaID,

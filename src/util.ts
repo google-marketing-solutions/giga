@@ -1,27 +1,27 @@
-/*
-Copyright 2024 Google LLC
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+export const isNonEmptyRow = row => row.join('').length > 0;
 
-      http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
-const isNonEmptyRow = row => row.join('').length > 0;
-
-const getNonEmptyRows = sheet =>
+export const getNonEmptyRows = sheet =>
   sheet.getDataRange().getValues().filter(isNonEmptyRow);
 
-const truncateRows = (sheet, headerRows) => {
-  var lastRow = sheet.getLastRow();
-  var lastColumn = sheet.getLastColumn();
+export const truncateRows = (sheet, headerRows) => {
+  const lastRow = sheet.getLastRow();
+  const lastColumn = sheet.getLastColumn();
 
   if (lastRow > headerRows) {
     sheet
@@ -29,33 +29,26 @@ const truncateRows = (sheet, headerRows) => {
       .clearContent();
   }
 };
-const appendRows = (sheet, data, startRow = 1) => {
-  var numRows = data.length;
-  var numColumns = data[0].length;
-  var range = sheet.getRange(startRow, 1, numRows, numColumns);
+
+export const appendRows = (sheet, data, startRow = 1) => {
+  const numRows = data.length;
+  const numColumns = data[0].length;
+  const range = sheet.getRange(startRow, 1, numRows, numColumns);
   range.setValues(data);
 };
 
-const writeRowsToSheet = (sheet, data, headerRows) => {
+export const writeRowsToSheet = (sheet, data, headerRows) => {
   truncateRows(sheet, headerRows);
   appendRows(sheet, data, 1 + headerRows);
 };
 
-const getScriptProperties = key =>
+export const getScriptProperties = key =>
   PropertiesService.getScriptProperties().getProperty(key);
 
-const setScriptProperties = (key, value) =>
+export const setScriptProperties = (key, value) =>
   PropertiesService.getScriptProperties().setProperty(key, value);
 
-function* generateCartesianProduct(a, b) {
-  for (const rowA of a) {
-    for (const rowB of b) {
-      yield [...rowA, ...rowB];
-    }
-  }
-}
-
-const trying = func => {
+export const trying = func => {
   try {
     return func();
   } catch (e) {
@@ -63,7 +56,7 @@ const trying = func => {
   }
 };
 
-const columnWiseSum = matrix => {
+export const columnWiseSum = matrix => {
   const numRows = matrix.length;
   const numCols = matrix[0].length;
   const result = new Array(numCols).fill(0);
@@ -75,12 +68,12 @@ const columnWiseSum = matrix => {
   return result;
 };
 
-const alert = prompt => {
+export const alert = prompt => {
   console.log(prompt);
   trying(() => SpreadsheetApp.getUi())?.alert(prompt);
 };
 
-const chunk = (arr, len) => {
+export const chunk = (arr, len) => {
   const chunks = [];
   const n = arr.length;
   let i = 0;
@@ -90,12 +83,12 @@ const chunk = (arr, len) => {
   return chunks;
 };
 
-const getConfigVariable = id =>
+export const getConfigVariable = id =>
   SpreadsheetApp.getActiveSpreadsheet()
     .getRangeByName(`config!${id}`)
     .getValue();
 
-const fetchJson = (url, params) => {
+export const fetchJson = (url, params) => {
   const text = UrlFetchApp.fetch(url, params).getContentText();
   let res = undefined;
   try {
@@ -111,13 +104,13 @@ const fetchJson = (url, params) => {
   return res;
 };
 
-const sum = array => array.reduce((sum, x) => sum + x, 0);
+export const sum = array => array.reduce((sum, x) => sum + x, 0);
 
-const zip = (a, b) => a.map((item, index) => [item, b[index]]);
+export const zip = (a, b) => a.map((item, index) => [item, b[index]]);
 
-const deduplicate = array => [...new Set(array)];
+export const deduplicate = array => [...new Set(array)];
 
-const groupBy = (items, getKey, transform) => {
+export const groupBy = (items, getKey, transform) => {
   return items.reduce((mapping, item) => {
     const key = getKey(item);
     const newItem = transform ? transform(item) : item;
@@ -126,17 +119,17 @@ const groupBy = (items, getKey, transform) => {
   }, {});
 };
 
-const keepKeys = (obj, keysToKeep) =>
+export const keepKeys = (obj, keysToKeep) =>
   Object.fromEntries(
     Object.entries(obj).filter(([key]) => keysToKeep.includes(key))
   );
 
-const getDateWithDeltaDays = days => {
+export const getDateWithDeltaDays = days => {
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
   return new Date(Date.now() + days * MS_PER_DAY);
 };
 
-const partition = (array, condition) =>
+export const partition = (array, condition) =>
   array.reduce(
     (partitions, item) => {
       partitions[condition(item) ? 0 : 1].push(item);
@@ -145,7 +138,7 @@ const partition = (array, condition) =>
     [[], []]
   );
 
-const objectToLowerCaseKeys = obj =>
+export const objectToLowerCaseKeys = obj =>
   Object.fromEntries(
     Object.entries(obj).map(([key, value]) => [key.toLowerCase(), value])
   );
