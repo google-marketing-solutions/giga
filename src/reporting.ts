@@ -58,8 +58,6 @@ export const getNewSearchTermsClusters = (
 export const runQuery = (customerId, query) => {
   const results = [];
   const request = { customerId, query, pageToken: undefined };
-  const version = 'v17';
-
   do {
     const response = post(`customers/${customerId}/googleAds:search`, request);
     const error = response.error || response.errors;
@@ -196,7 +194,7 @@ const getKeywords = (cid, adGroupIds, durationClause) => {
   return mapping;
 };
 
-export const getTopPerformingAdsPrompt = (cid, topN) => {
+export const getTopPerformingAdsAndKeywords = (cid, topN) => {
   const durationClause = `segments.date DURING LAST_30_DAYS`;
   const topAdsQuery = `
   SELECT
@@ -226,16 +224,18 @@ export const getTopPerformingAdsPrompt = (cid, topN) => {
 
   const adGroupIds = deduplicate(bestAds.map(ad => ad.adGroupId));
   const keywords = getKeywords(cid, adGroupIds, durationClause);
-  const adsWithKeywords = bestAds.map(ad =>
+  return bestAds.map(ad =>
     Object.assign(ad, { keywords: keywords[ad.adGroupId] })
   );
-
+};
+export const getTopPerformingAdsPrompt = (cid, topN) => {
+  const adsWithKeywords = getTopPerformingAdsAndKeywords(cid, topN);
   const prompt = getPromptTemplate(adsWithKeywords);
   console.log(prompt);
   return prompt;
 };
 
-export const getTopPerformingAds = (prompt, userKeywords) => {
+export const createAdSuggestion = (prompt, userKeywords) => {
   const config = getGeminiConfig('application/json');
   return gemini(config)(
     `${prompt}\n${getPromptKeywordsTemplate(userKeywords)}`
