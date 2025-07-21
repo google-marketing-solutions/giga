@@ -47,7 +47,6 @@ export const addGoogleAdsAuth = payload =>
     }
   );
 
-// TODO use auth request
 export const post = (service, params) => {
   console.log(service, '-->', JSON.stringify(params, null, 2));
   return fetchJson(
