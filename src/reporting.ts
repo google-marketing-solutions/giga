@@ -1,4 +1,4 @@
-import { post } from './ideas';
+import { addGoogleAdsAuth, ADS_ENPOINT, ADS_VERSION } from './ideas';
 import { getGeminiConfig } from './main';
 import { deduplicate, getDateWithDeltaDays, groupBy, keepKeys } from './util';
 import { gemini } from './vertex';
@@ -55,11 +55,31 @@ export const getNewSearchTermsClusters = (
   return clusters;
 };
 
+const authorizedGoogleAdsRequest = (customerId, service, request) => {
+  const params: object = addGoogleAdsAuth(request);
+  const url = `${ADS_ENPOINT}/customers/${customerId}${service}`;
+  return UrlFetchApp.fetch(url, params).getContentText();
+};
+
+class AdsApp {
+  static search = (payload, config) =>
+    authorizedGoogleAdsRequest(config.customerId, '/googleAds:search', payload);
+}
+
 export const runQuery = (customerId, query) => {
+  const request = {
+    customerId,
+    query,
+    pageToken: undefined,
+  };
+
   const results = [];
-  const request = { customerId, query, pageToken: undefined };
   do {
-    const response = post(`customers/${customerId}/googleAds:search`, request);
+    // preparing payload
+    const config = { customerId, version: ADS_VERSION };
+    const payload = JSON.stringify(request);
+    const response = JSON.parse(AdsApp.search(payload, config));
+
     const error = response.error || response.errors;
     if (error) {
       const message = JSON.stringify(error, null, 2);

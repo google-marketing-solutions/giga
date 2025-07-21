@@ -679,16 +679,20 @@ The Google Ads keyword ideas are:
     const languageSelector = document.getElementById('language');
     const language =
       languageSelector.options[languageSelector.selectedIndex].text;
-    const adsAccountID = document.getElementById('ads-account-id').value;
+    const adsAccountID = document
+      .getElementById('ads-account-id')
+      .value.replaceAll('-', '')
+      .trim();
 
     const topN = 10;
     const adsWithKeywords =
       await googleScriptRun.getTopPerformingAdsAndKeywords(adsAccountID, topN);
 
-    const brandName = document.getElementById('brand-name').value;
+    const adExamples = adsWithKeywords.map(ad => JSON.stringify(ad)).join('\n');
+    console.log(adExamples);
 
-    // TODO build from adsWithKeywords
-    const adExamples = '';
+    const brandName = document.getElementById('brand-name').value;
+    console.log({ adsWithKeywords });
 
     const campaigns = await googleScriptRun.getCampaigns(
       insights,

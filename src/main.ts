@@ -120,6 +120,7 @@ export const getInsights = (ideas, seedKeywords) => {
   const relevantIdeas = Object.entries(ideas)
     .map(([idea, searchVolume]) => [idea, getYoYGroth(searchVolume)])
     .filter(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       ([_, yoyGroth]) => (yoyGroth as number) > MIN_YEAR_OVER_YEAR_GROWTH
     );
   console.log('relevantIdeas: ', relevantIdeas);
