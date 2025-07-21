@@ -111,19 +111,16 @@ limitations under the License.
     <h1>GIGA - Gemini Insights Generation Analysis</h1>
 
     <div class="tab">
-      <button class="tablinks" onclick="openCity(event, 'Explore-Tab')">
+      <button class="tablinks" onclick="openTab(event, 'Explore-Tab')">
         Explore
       </button>
-      <button class="tablinks" onclick="openCity(event, 'Insights-Tab')">
+      <button class="tablinks" onclick="openTab(event, 'Insights-Tab')">
         Insights
       </button>
-      <button class="tablinks" onclick="openCity(event, 'Campaigns-Tab')">
+      <button class="tablinks" onclick="openTab(event, 'Campaigns-Tab')">
         Campaign Suggestions
       </button>
-      <button
-        class="tablinks"
-        onclick="openCity(event, 'CampaignCreation-Tab')"
-      >
+      <button class="tablinks" onclick="openTab(event, 'CampaignCreation-Tab')">
         Campaign Creation
       </button>
     </div>
@@ -321,6 +318,18 @@ The Google Ads keyword ideas are:
 
     <div id="Campaigns-Tab" class="tabcontent">
       <br /><br /><br />
+
+      <div><strong>Tailor ads to account style</strong></div>
+      <div>ID for the Google Ads account</div>
+      <input type="text" value="" id="ads-account-id" size="15" />
+      <br />
+
+      <div>Brand name</div>
+      <input type="text" value="" id="brand-name" size="15" />
+      <br />
+
+      <br /><br /><br />
+
       <div id="campaigns"></div>
       <br />
       <br /><button
@@ -648,7 +657,7 @@ The Google Ads keyword ideas are:
 
     console.log(prompt);
 
-    const newCampaign = await googleScriptRun.getTopPerformingAds(
+    const newCampaign = await googleScriptRun.createAdSuggestion(
       prompt,
       campaignKeywords
     );
@@ -670,8 +679,27 @@ The Google Ads keyword ideas are:
     const languageSelector = document.getElementById('language');
     const language =
       languageSelector.options[languageSelector.selectedIndex].text;
+    const adsAccountID = document
+      .getElementById('ads-account-id')
+      .value.replaceAll('-', '')
+      .trim();
 
-    const campaigns = await googleScriptRun.getCampaigns(insights, language);
+    const topN = 10;
+    const adsWithKeywords =
+      await googleScriptRun.getTopPerformingAdsAndKeywords(adsAccountID, topN);
+
+    const adExamples = adsWithKeywords.map(ad => JSON.stringify(ad)).join('\n');
+    console.log(adExamples);
+
+    const brandName = document.getElementById('brand-name').value;
+    console.log({ adsWithKeywords });
+
+    const campaigns = await googleScriptRun.getCampaigns(
+      insights,
+      language,
+      brandName,
+      adExamples
+    );
     setInnerHtml('campaigns', campaigns + '<br><br>');
     status.innerHTML = '';
     document.getElementById('generateCampaigns-button').disabled = false;
@@ -802,7 +830,7 @@ The Google Ads keyword ideas are:
 </script>
 
 <script>
-  function openCity(evt, cityName) {
+  function openTab(evt, tabName) {
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName('tabcontent');
     for (i = 0; i < tabcontent.length; i++) {
@@ -812,7 +840,7 @@ The Google Ads keyword ideas are:
     for (i = 0; i < tablinks.length; i++) {
       tablinks[i].className = tablinks[i].className.replace(' active', '');
     }
-    document.getElementById(cityName).style.display = 'block';
+    document.getElementById(tabName).style.display = 'block';
     evt.currentTarget.className += ' active';
   }
 </script>

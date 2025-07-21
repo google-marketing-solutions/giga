@@ -29,11 +29,12 @@ export const MAX_NUMBER_OF_KEYWORD_SEED_IDEAS = 20;
 export const getDeveloperToken = () => getScriptProperties('DEVELOPER_TOKEN');
 export const getCustomerId = () =>
   getConfigVariable('ADS_ACCOUNT_ID').toString().replaceAll('-', '').trim();
-export const ADS_ENPOINT = 'https://googleads.googleapis.com/v20/';
+export const ADS_VERSION = 'v20';
+export const ADS_ENPOINT = `https://googleads.googleapis.com/${ADS_VERSION}`;
 
-export const addGoogleAdsAuth = params =>
+export const addGoogleAdsAuth = payload =>
   Object.assign(
-    { payload: JSON.stringify(params) },
+    { payload },
     {
       method: 'POST',
       contentType: 'application/json',
@@ -46,9 +47,12 @@ export const addGoogleAdsAuth = params =>
     }
   );
 
-export const post = (url, params) => {
-  console.log(url, '-->', JSON.stringify(params, null, 2));
-  return fetchJson(ADS_ENPOINT + url, addGoogleAdsAuth(params));
+export const post = (service, params) => {
+  console.log(service, '-->', JSON.stringify(params, null, 2));
+  return fetchJson(
+    `${ADS_ENPOINT}/${service}`,
+    addGoogleAdsAuth(JSON.stringify(params))
+  );
 };
 
 const monthsOfYear = [

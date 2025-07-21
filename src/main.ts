@@ -37,7 +37,6 @@ export const onOpen = () => {
     .addItem('Update Ideas', updateIdeas.name)
     .addItem('Update Clusters', updateClusters.name)
     .addItem('Update Insights', updateInsights.name)
-    .addItem('Update Campaigns', updateCampaigns.name)
     .addToUi();
 };
 
@@ -121,7 +120,8 @@ export const getInsights = (ideas, seedKeywords) => {
   const relevantIdeas = Object.entries(ideas)
     .map(([idea, searchVolume]) => [idea, getYoYGroth(searchVolume)])
     .filter(
-      ([_, yoyGroth]) => (yoyGroth as number) > MIN_YEAR_OVER_YEAR_GROWTH
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      ([_, yoyGrowth]) => (yoyGrowth as number) > MIN_YEAR_OVER_YEAR_GROWTH
     );
   console.log('relevantIdeas: ', relevantIdeas);
   const insightsPrompt = getInsightsPrompt(relevantIdeas, seedKeywords);
@@ -262,9 +262,13 @@ const updateClusters = () => {
   writeRowsToSheet(getClusterSheet(), clusterRows, 1);
 };
 
-const getCampaigns = (insights, language) => {
-  const prompt = ` I am a SEA manager and I want to crate new Google Ads search campaigns based on the following input.
+export const getCampaigns = (insights, language, brandName, adExamples) => {
+  const prompt = ` I am a SEA manager working for ${brandName} and I want to crate new Google Ads search campaigns based on the following input.
   For each cluster in the **Cluster Insights & Marketing Takeaways:** section, generate a ready-to-use text ad campaign.
+
+  Ensure the new created ads are following the style, wording, tonality of the following ad examples:
+  ${adExamples}
+
   Output as HTML with standard HTML elements like <h1> and <ul> for captions or lists
 
   Create the Campaings in ${language}.
@@ -276,13 +280,6 @@ const getCampaigns = (insights, language) => {
 
   `;
   return removeHTLMTicks(gemini(getGeminiConfig('text/plain'))(prompt));
-};
-
-const updateCampaigns = () => {
-  const insights = getInsightsSheet().getRange('A1').getValue();
-  // TODO use language from frontend
-  const campaings = getCampaigns(insights, 'English');
-  getCamaignsSheet().getRange('A1').setValue(campaings);
 };
 
 export const doGet = () =>
