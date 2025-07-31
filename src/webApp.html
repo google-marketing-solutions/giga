@@ -684,12 +684,19 @@ The Google Ads keyword ideas are:
       .value.replaceAll('-', '')
       .trim();
 
-    const topN = 10;
-    const adsWithKeywords =
-      await googleScriptRun.getTopPerformingAdsAndKeywords(adsAccountID, topN);
+    let adExamples = '';
 
-    const adExamples = adsWithKeywords.map(ad => JSON.stringify(ad)).join('\n');
-    console.log(adExamples);
+    if (adsAccountID) {
+      const topN = 10;
+      const adsWithKeywords =
+        await googleScriptRun.getTopPerformingAdsAndKeywords(
+          adsAccountID,
+          topN
+        );
+
+      adExamples = adsWithKeywords.map(ad => JSON.stringify(ad)).join('\n');
+      console.log(adExamples);
+    }
 
     const brandName = document.getElementById('brand-name').value;
     console.log({ adsWithKeywords });
