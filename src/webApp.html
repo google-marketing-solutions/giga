@@ -615,7 +615,10 @@ The Google Ads keyword ideas are:
       alert(`Please enter at least one seed keyword (Explore Tab).`);
       return [];
     }
-    return seedKeywordsUserInput.split(', ').map(k => k.trim());
+    return seedKeywordsUserInput
+      .split(', ')
+      .map(k => k.trim())
+      .filter(Boolean); // filter out empty keywords in case a trailing comma is present;
   };
 
   const generateNewCampaignsPrompt = async () => {
@@ -637,7 +640,8 @@ The Google Ads keyword ideas are:
     const campaignKeywords = document
       .getElementById('campaign-keywords')
       .value.split(',')
-      .map(keyword => keyword.trim());
+      .map(keyword => keyword.trim())
+      .filter(Boolean); // filter out empty keywords in case a trailling comma is present;
     const status = document.getElementById('campaigns-creation-result');
     status.innerHTML = 'generating ad...';
     const promptTemplate = document.getElementById(
@@ -684,12 +688,19 @@ The Google Ads keyword ideas are:
       .value.replaceAll('-', '')
       .trim();
 
-    const topN = 10;
-    const adsWithKeywords =
-      await googleScriptRun.getTopPerformingAdsAndKeywords(adsAccountID, topN);
+    let adExamples = '';
 
-    const adExamples = adsWithKeywords.map(ad => JSON.stringify(ad)).join('\n');
-    console.log(adExamples);
+    if (adsAccountID) {
+      const topN = 10;
+      const adsWithKeywords =
+        await googleScriptRun.getTopPerformingAdsAndKeywords(
+          adsAccountID,
+          topN
+        );
+
+      adExamples = adsWithKeywords.map(ad => JSON.stringify(ad)).join('\n');
+      console.log(adExamples);
+    }
 
     const brandName = document.getElementById('brand-name').value;
     console.log({ adsWithKeywords });

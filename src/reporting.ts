@@ -28,7 +28,7 @@ export const getNewSearchTermsClusters = (
   // See https://ai.google.dev/gemini-api/docs/models/experimental-models#available-models
   const config = {
     modelID: 'gemini-2.5-flash',
-    projectID: 'palmtrix',
+    projectID: 'cloud-project-here',
     responseType: 'application/json',
   };
 

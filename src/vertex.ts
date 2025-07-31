@@ -107,6 +107,9 @@ const getGeminiRequest = (config, prompt, payloadKey = 'payload') => {
       top_p: config.topP,
       max_output_tokens: config.maxOutputTokens,
       response_mime_type: config.responseType,
+      thinkingConfig: {
+        thinkingBudget: 1024,
+      },
     },
   };
 
