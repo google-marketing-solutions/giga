@@ -55,7 +55,8 @@ export const getSeedKeywords = () =>
     .getRangeByName('SEED_KEYWORDS')
     .getValue()
     .split(',')
-    .map(keyword => keyword.trim());
+    .map(keyword => keyword.trim())
+    .filter(Boolean); // filter out empty keywords in case a trailing comma is present
 
 // TODO remove MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH and let frontend handle this?
 export const convertIdeasToRows = ideas =>
