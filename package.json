@@ -12,7 +12,8 @@
     "build": "npm run clean && npm run bundle && ncp appsscript.json dist/appsscript.json && ncp src/webApp.html dist/webApp.html",
     "license": "license-check-and-add add -f license-config.json",
     "test": "jest test/ --passWithNoTests --detectOpenHandles",
-    "deploy": "npm run lint && npm run test && npm run build && ncp .clasp-dev.json .clasp.json && clasp push -f",
+    "pre-deploy": "npm run lint && npm run test && npm run build && ncp .clasp-dev.json .clasp.json",
+    "deploy": "npm run pre-depl && clasp push -f",
     "deploy:prod": "npm run lint && npm run test && npm run build && ncp .clasp-prod.json .clasp.json && clasp push"
   },
   "engines": {
