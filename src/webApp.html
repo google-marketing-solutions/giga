@@ -415,7 +415,7 @@ The Google Ads keyword ideas are:
 
       // --- Main App ---
 
-      const App = () => {
+      const GigaApp = ({ onReset }) => {
         const [activeTab, setActiveTab] = useStickyState('explore', 'giga_activeTab');
 
         // Explore State
@@ -464,7 +464,7 @@ The Google Ads keyword ideas are:
         const clearCache = () => {
           if (confirm('Are you sure you want to clear all cached data? This will reset the application state.')) {
             localStorage.clear();
-            window.location.reload();
+            onReset();
           }
         };
 
@@ -1020,6 +1020,12 @@ The Google Ads keyword ideas are:
             {locationModal}
           </div>
         );
+      };
+
+      const App = () => {
+        const [resetKey, setResetKey] = useState(0);
+        const handleReset = () => setResetKey(prev => prev + 1);
+        return <GigaApp key={resetKey} onReset={handleReset} />;
       };
 
       const root = ReactDOM.createRoot(document.getElementById('root'));
