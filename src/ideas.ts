@@ -29,7 +29,7 @@ export const MAX_NUMBER_OF_KEYWORD_SEED_IDEAS = 20;
 export const getDeveloperToken = () => getScriptProperties('DEVELOPER_TOKEN');
 export const getCustomerId = () =>
   getConfigVariable('ADS_ACCOUNT_ID').toString().replaceAll('-', '').trim();
-export const ADS_VERSION = 'v20';
+export const ADS_VERSION = 'v22';
 export const ADS_ENDPOINT = `https://googleads.googleapis.com/${ADS_VERSION}`;
 
 export const addGoogleAdsAuth = payload =>
