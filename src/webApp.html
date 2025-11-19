@@ -98,7 +98,7 @@ limitations under the License.
         color: var(--text-main);
       }
 
-      h1 { font-size: 2rem; letter-spacing: -0.025em; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem; }
+      h1 { font-size: 3rem; letter-spacing: -0.025em; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem; }
       h2 { font-size: 1.5rem; margin-bottom: 1rem; }
       h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-secondary); }
 
@@ -235,6 +235,27 @@ limitations under the License.
         width: 100%;
         margin-top: 20px;
       }
+      .modal-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        display: flex; justify-content: center; align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.2s ease-out;
+      }
+      .modal-content {
+        background: var(--surface-color);
+        padding: 2rem;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        width: 90%; max-width: 400px;
+        animation: slideUp 0.2s ease-out;
+      }
+      .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+      .modal-header h3 { margin: 0; font-size: 1.25rem; }
+      .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
+      @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
   </head>
   <body>
@@ -317,6 +338,21 @@ The Google Ads keyword ideas are:
           {helpText && <div className="text-sm text-muted mt-1">{helpText}</div>}
         </div>
       );
+
+      const Modal = ({ isOpen, onClose, title, children }) => {
+        if (!isOpen) return null;
+        return (
+          <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>{title}</h3>
+                <button className="btn" onClick={onClose} style={{padding: '4px 8px'}}>&times;</button>
+              </div>
+              {children}
+            </div>
+          </div>
+        );
+      };
 
       const SelectField = ({ label, value, onChange, options, onCustomOption }) => {
         const handleChange = (e) => {
@@ -426,20 +462,24 @@ The Google Ads keyword ideas are:
         };
 
         // Handlers
+        const [modalConfig, setModalConfig] = useState({ isOpen: false, type: '', value: '' });
+
         const handleCustomOption = (type) => {
-          const text = type === 'language'
-            ? 'Enter numeric ID for language (e.g. 1000 for English):'
-            : 'Enter numeric ID for location (e.g. 2276 for Germany):';
-          const id = prompt(text);
-          if (id && !isNaN(Number(id))) {
+          setModalConfig({ isOpen: true, type, value: '' });
+        };
+
+        const submitModal = () => {
+          const { type, value } = modalConfig;
+          if (value && !isNaN(Number(value))) {
             if (type === 'language') {
-              setCustomLanguages([...customLanguages, { id, name: id }]);
-              setLanguage(id);
+              setCustomLanguages([...customLanguages, { id: value, name: value }]);
+              setLanguage(value);
             } else {
-              setCustomCountries([...customCountries, { id, name: id }]);
-              setCountry(id);
+              setCustomCountries([...customCountries, { id: value, name: value }]);
+              setCountry(value);
             }
-          } else if (id) {
+            setModalConfig({ isOpen: false, type: '', value: '' });
+          } else {
             alert('Only Number IDs are allowed.');
           }
         };
@@ -578,9 +618,9 @@ The Google Ads keyword ideas are:
             datasets: clusters.map(c => ({
               label: c.topic,
               data: [{
-                x: c.searchVolume,
-                y: c.yearOverYearGrowth,
-                r: 5 + (c.searchVolume / maxVol) * 45
+                x: c.searchVolume || 0,
+                y: c.yearOverYearGrowth || 0,
+                r: 5 + ((c.searchVolume || 0) / maxVol) * 45
               }],
               backgroundColor: `rgba(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, 0.6)`
             }))
@@ -633,6 +673,62 @@ The Google Ads keyword ideas are:
             })
           };
         }, [ideasData, keywords, chartLabels]);
+
+        const languageModal = (
+          <Modal
+            isOpen={modalConfig.isOpen && modalConfig.type === 'language'}
+            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+            title="Add Custom Language"
+          >
+            <div>
+              <InputField
+                label="Numeric ID"
+                value={modalConfig.value}
+                onChange={v => setModalConfig({ ...modalConfig, value: v })}
+                placeholder="e.g. 1000"
+                onKeyDown={(e) => e.key === 'Enter' && submitModal()}
+              />
+              <div className="mt-4 text-sm text-muted" style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                <span className="material-icons-round" style={{fontSize: '16px'}}>info</span>
+                <a href="https://developers.google.com/google-ads/api/data/codes-formats#languages" target="_blank" rel="noopener noreferrer" style={{color: 'var(--primary)', textDecoration: 'none'}}>
+                  View Language Codes
+                </a>
+              </div>
+              <div className="modal-actions">
+                <button className="btn" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>Cancel</button>
+                <button className="btn btn-primary" onClick={submitModal}>Add</button>
+              </div>
+            </div>
+          </Modal>
+        );
+
+        const locationModal = (
+          <Modal
+            isOpen={modalConfig.isOpen && modalConfig.type === 'country'}
+            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+            title="Add Custom Location"
+          >
+            <div>
+              <InputField
+                label="Numeric ID"
+                value={modalConfig.value}
+                onChange={v => setModalConfig({ ...modalConfig, value: v })}
+                placeholder="e.g. 2276"
+                onKeyDown={(e) => e.key === 'Enter' && submitModal()}
+              />
+              <div className="mt-4 text-sm text-muted" style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                <span className="material-icons-round" style={{fontSize: '16px'}}>info</span>
+                <a href="https://developers.google.com/google-ads/api/data/geotargets" target="_blank" rel="noopener noreferrer" style={{color: 'var(--primary)', textDecoration: 'none'}}>
+                  View Location Codes
+                </a>
+              </div>
+              <div className="modal-actions">
+                <button className="btn" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>Cancel</button>
+                <button className="btn btn-primary" onClick={submitModal}>Add</button>
+              </div>
+            </div>
+          </Modal>
+        );
 
         return (
           <div className="app">
@@ -893,6 +989,9 @@ The Google Ads keyword ideas are:
                 )}
               </div>
             )}
+
+            {languageModal}
+            {locationModal}
           </div>
         );
       };
