@@ -321,12 +321,14 @@ The Google Ads keyword ideas are:
 
       // --- Components ---
 
+      // eslint-disable-next-line no-unused-vars
       const TabButton = ({ active, onClick, children }) => (
         <button className={`tab-btn ${active ? 'active' : ''}`} onClick={onClick}>
           {children}
         </button>
       );
 
+      // eslint-disable-next-line no-unused-vars
       const InputField = ({ label, type = "text", value, onChange, placeholder, rows, helpText, onKeyDown }) => (
         <div className="input-group">
           <label>{label}</label>
@@ -339,6 +341,7 @@ The Google Ads keyword ideas are:
         </div>
       );
 
+      // eslint-disable-next-line no-unused-vars
       const Modal = ({ isOpen, onClose, title, children }) => {
         if (!isOpen) return null;
         return (
@@ -354,6 +357,7 @@ The Google Ads keyword ideas are:
         );
       };
 
+      // eslint-disable-next-line no-unused-vars
       const SelectField = ({ label, value, onChange, options, onCustomOption }) => {
         const handleChange = (e) => {
           if (e.target.value === 'custom') {
@@ -377,6 +381,7 @@ The Google Ads keyword ideas are:
         );
       };
 
+      // eslint-disable-next-line no-unused-vars
       const ChartComponent = ({ type, data, options }) => {
         const canvasRef = useRef(null);
         const chartRef = useRef(null);
@@ -415,6 +420,7 @@ The Google Ads keyword ideas are:
 
       // --- Main App ---
 
+      // eslint-disable-next-line no-unused-vars
       const GigaApp = ({ onReset }) => {
         const [activeTab, setActiveTab] = useStickyState('explore', 'giga_activeTab');
 
@@ -1022,6 +1028,7 @@ The Google Ads keyword ideas are:
         );
       };
 
+      // eslint-disable-next-line no-unused-vars
       const App = () => {
         const [resetKey, setResetKey] = useState(0);
         const handleReset = () => setResetKey(prev => prev + 1);
