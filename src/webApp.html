@@ -451,8 +451,15 @@ The Google Ads keyword ideas are:
         const [creationStyleGuide, setCreationStyleGuide] = useStickyState('<?= DEFAULT_STYLE_GUIDE ?>', 'giga_creationStyleGuide');
         const [creationInstructions, setCreationInstructions] = useStickyState('Created ads must be in German.', 'giga_creationInstructions');
         const [creationKeywords, setCreationKeywords] = useStickyState('', 'giga_creationKeywords');
+        const [growthMetric, setGrowthMetric] = useStickyState('yoy', 'growthMetric');
         const [creationResult, setCreationResult] = useStickyState('', 'giga_creationResult');
         const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
+
+        const GROWTH_METRICS = [
+          { id: 'yoy', name: 'Year over Year' },
+          { id: 'mom', name: 'Month over Month' },
+          { id: 'latest_vs_avg', name: 'Latest vs Average' }
+        ];
 
         const clearCache = () => {
           if (confirm('Are you sure you want to clear all cached data? This will reset the application state.')) {
@@ -533,7 +540,7 @@ The Google Ads keyword ideas are:
 
             setExploreStatus(`Clustering ${processedIdeas.length} keywords...`);
 
-            const clusterResult = await googleScriptRun.getClusters(relevant, promptTemplate);
+            const clusterResult = await googleScriptRun.getClusters(relevant, promptTemplate, growthMetric);
             setClusters(clusterResult);
             setExploreStatus(`Done. Clustered ${processedIdeas.length} keywords.`);
 
@@ -555,7 +562,7 @@ The Google Ads keyword ideas are:
           setInsightsStatus('Generating insights...');
           try {
             const seedKeywords = keywords.split(',').map(k => k.trim()).filter(Boolean);
-            const result = await googleScriptRun.getInsights(relevantIdeas, seedKeywords);
+            const result = await googleScriptRun.getInsights(relevantIdeas, seedKeywords, growthMetric);
             setInsights(result);
             setInsightsStatus('');
           } catch (e) {
@@ -614,18 +621,31 @@ The Google Ads keyword ideas are:
         const clustersChartData = useMemo(() => {
           if (!clusters) return null;
           const maxVol = Math.max(...clusters.map(c => c.searchVolume), 1);
+
           return {
-            datasets: clusters.map(c => ({
-              label: c.topic,
-              data: [{
-                x: c.searchVolume || 0,
-                y: c.yearOverYearGrowth || 0,
-                r: 5 + ((c.searchVolume || 0) / maxVol) * 45
-              }],
-              backgroundColor: `rgba(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, 0.6)`
-            }))
+            datasets: clusters.map(c => {
+              let yValue = 0;
+
+              if (growthMetric === 'yoy') {
+                yValue = c.growthYoY || c.yearOverYearGrowth || 0;
+              } else if (growthMetric === 'mom') {
+                yValue = c.growthMoM || 0;
+              } else if (growthMetric === 'latest_vs_avg') {
+                yValue = c.growthLatestVsAvg || 0;
+              }
+
+              return {
+                label: c.topic,
+                data: [{
+                  x: c.searchVolume || 0,
+                  y: yValue,
+                  r: 5 + ((c.searchVolume || 0) / maxVol) * 45
+                }],
+                backgroundColor: `rgba(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, 0.6)`
+              };
+            })
           };
-        }, [clusters]);
+        }, [clusters, growthMetric]);
 
         const selectedClusterChartData = useMemo(() => {
           if (!selectedCluster || !chartLabels.length) return null;
@@ -776,6 +796,12 @@ The Google Ads keyword ideas are:
                     onChange={setCountry}
                     options={[...COUNTRIES, ...customCountries]}
                     onCustomOption={() => handleCustomOption('country')}
+                  />
+                  <SelectField
+                    label="Growth Metric"
+                    value={growthMetric}
+                    onChange={setGrowthMetric}
+                    options={GROWTH_METRICS}
                   />
                 </div>
 

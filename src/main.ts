@@ -63,8 +63,9 @@ export const convertIdeasToRows = ideas =>
   ideas
     .filter(
       res =>
-        res.keywordIdeaMetrics?.monthlySearchVolumes?.at(-1).monthlySearches >
-        MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH
+        res.keywordIdeaMetrics?.monthlySearchVolumes?.[
+          res.keywordIdeaMetrics.monthlySearchVolumes.length - 1
+        ].monthlySearches > MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH
     )
     .map(result => [
       result.text,
@@ -97,10 +98,8 @@ export const updateIdeas = () => {
 };
 
 export const getYoYGrowth = searchVolumes => {
-  const latestIndex = -1;
-  const previousYearIndex = latestIndex - 12;
-  const latestVolume = searchVolumes.at(latestIndex);
-  const previousYearVolume = searchVolumes.at(previousYearIndex);
+  const latestVolume = searchVolumes[searchVolumes.length - 1];
+  const previousYearVolume = searchVolumes[searchVolumes.length - 13];
   return latestVolume / previousYearVolume - 1;
 };
 
@@ -117,15 +116,44 @@ export const removeHTMLTicks = html => {
   return cleanedHtml;
 };
 
-export const getInsights = (ideas, seedKeywords) => {
+export const getInsights = (ideas, seedKeywords, growthMetric = 'yoy') => {
   const relevantIdeas = Object.entries(ideas)
-    .map(([idea, searchVolume]) => [idea, getYoYGrowth(searchVolume)])
+    .map(([idea, searchVolume]) => {
+      const history = searchVolume as number[];
+      const latest = history[history.length - 1] || 0;
+      const prevMonth = history[history.length - 2] || 0;
+      const prevYear = history[history.length - 13] || 0;
+
+      let growth = 0;
+      if (growthMetric === 'yoy') {
+        growth = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+      } else if (growthMetric === 'mom') {
+        growth = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+      } else if (growthMetric === 'latest_vs_avg') {
+        const totalSum = history.reduce((a, b) => a + b, 0);
+        const avg = history.length > 0 ? totalSum / history.length : 0;
+        growth = avg !== 0 ? (latest - avg) / avg : 0;
+      }
+      return [idea, growth];
+    })
     .filter(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ([_, yoyGrowth]) => (yoyGrowth as number) > MIN_YEAR_OVER_YEAR_GROWTH
+      ([_, growth]) => (growth as number) > MIN_YEAR_OVER_YEAR_GROWTH
     );
   console.log('relevantIdeas: ', relevantIdeas);
-  const insightsPrompt = getInsightsPrompt(relevantIdeas, seedKeywords);
+
+  const metricNames = {
+    yoy: 'YoY',
+    mom: 'MoM',
+    latest_vs_avg: 'Latest vs Average',
+  };
+  const metricName = metricNames[growthMetric] || 'YoY';
+
+  const insightsPrompt = getInsightsPrompt(
+    relevantIdeas,
+    seedKeywords,
+    metricName
+  );
   console.log(insightsPrompt.slice(insightsPrompt.length - 1000));
   const responseType = 'text/plain';
   const config = getGeminiConfig(responseType);
@@ -144,13 +172,10 @@ const getSearchVolumeRow = res => {
   const volumes = res.keywordIdeaMetrics.monthlySearchVolumes.map(
     m => m.monthlySearches
   );
-  const latestIndex = -1;
-  const previousMonthIndex = latestIndex - 1;
-  const previousYearIndex = latestIndex - 12;
 
-  const latestVolume = volumes.at(latestIndex);
-  const previousMonthVolume = volumes.at(previousMonthIndex);
-  const previousYearVolume = volumes.at(previousYearIndex);
+  const latestVolume = volumes[volumes.length - 1];
+  const previousMonthVolume = volumes[volumes.length - 2];
+  const previousYearVolume = volumes[volumes.length - 13];
 
   return [
     latestVolume / previousMonthVolume - 1,
@@ -188,7 +213,7 @@ export const getGeminiConfig = responseType => {
   };
 };
 
-const getClusters = (ideas, promptTemplate) => {
+export const getClusters = (ideas, promptTemplate) => {
   ideas = objectToLowerCaseKeys(ideas);
   const keywords = Object.keys(ideas).join(', ');
   console.log(
@@ -214,7 +239,9 @@ const getClusters = (ideas, promptTemplate) => {
 
     // add search volume stats
     cluster.searchVolumes = cluster.keywords.map(k => ideas[k]);
-    cluster.latestSearchVolumes = cluster.searchVolumes.map(v => v.at(-1));
+    cluster.latestSearchVolumes = cluster.searchVolumes.map(
+      v => v[v.length - 1]
+    );
 
     // add sum of all keywords over time
     cluster.searchVolumeHistory = columnWiseSum(cluster.searchVolumes);
@@ -222,13 +249,25 @@ const getClusters = (ideas, promptTemplate) => {
     // get latest search volume sum of cluster
     cluster.searchVolume = sum(cluster.latestSearchVolumes);
 
-    // get yearOverYearGrowth
-    const latestIndex = -1;
-    const previousYearVolumes = cluster.searchVolumes.map(v =>
-      v.at(latestIndex - 12)
-    );
-    cluster.yearOverYearGrowth =
-      cluster.searchVolume / sum(previousYearVolumes) - 1;
+    // Calculate Growth Metrics
+    const history = cluster.searchVolumeHistory;
+    const latest = history[history.length - 1] || 0;
+    const prevMonth = history[history.length - 2] || 0;
+    const prevYear = history[history.length - 13] || 0; // 12 months ago
+
+    // Year over Year
+    // Note: Original logic used sum of previousYearVolumes for individual keywords, which is mathematically equivalent to history.at(-13) if history is sum.
+    // However, let's stick to the history array for consistency.
+    cluster.growthYoY = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+    cluster.yearOverYearGrowth = cluster.growthYoY; // Keep for backward compatibility
+
+    // Month over Month
+    cluster.growthMoM = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+
+    // Latest vs Average
+    const totalSum = history.reduce((a, b) => a + b, 0);
+    const avg = history.length > 0 ? totalSum / history.length : 0;
+    cluster.growthLatestVsAvg = avg !== 0 ? (latest - avg) / avg : 0;
 
     return cluster;
   });
