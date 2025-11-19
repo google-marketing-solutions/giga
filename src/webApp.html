@@ -98,7 +98,7 @@ limitations under the License.
         color: var(--text-main);
       }
 
-      h1 { font-size: 3rem; letter-spacing: -0.025em; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem; }
+      h1 { font-size: 3rem; letter-spacing: -0.025em; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem; }
       h2 { font-size: 1.5rem; margin-bottom: 1rem; }
       h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-secondary); }
 
@@ -248,14 +248,26 @@ limitations under the License.
         padding: 2rem;
         border-radius: 16px;
         border: 1px solid var(--border-color);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        width: 90%; max-width: 400px;
+        box-shadow: var(--shadow-lg);
+        width: 90%; max-width: 500px;
         animation: slideUp 0.2s ease-out;
       }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+      /* Spinner */
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
       .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
       .modal-header h3 { margin: 0; font-size: 1.25rem; }
       .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
-      @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
   </head>
   <body>
@@ -438,6 +450,7 @@ The Google Ads keyword ideas are:
         const [relevantIdeas, setRelevantIdeas] = useStickyState({}, 'giga_relevantIdeas');
         const [selectedCluster, setSelectedCluster] = useState(null);
         const [chartLabels, setChartLabels] = useStickyState([], 'giga_chartLabels');
+        const [minSearchVolume, setMinSearchVolume] = useStickyState(100, 'giga_minSearchVolume');
 
         // Insights State
         const [insights, setInsights] = useStickyState('', 'giga_insights');
@@ -464,7 +477,8 @@ The Google Ads keyword ideas are:
         const GROWTH_METRICS = [
           { id: 'yoy', name: 'Year over Year' },
           { id: 'mom', name: 'Month over Month' },
-          { id: 'latest_vs_avg', name: 'Latest vs Average' }
+          { id: 'latest_vs_avg', name: 'Latest vs Average' },
+          { id: 'latest_vs_max', name: 'Last Month vs Max' }
         ];
 
         const clearCache = () => {
@@ -538,13 +552,13 @@ The Google Ads keyword ideas are:
             // Filter relevant ideas
             const relevant = {};
             processedIdeas.forEach(idea => {
-              if (idea.searchVolume.at(0) > 0) { // Check latest (index 0 usually)
+              if (idea.searchVolume.at(0) >= minSearchVolume) { // Check latest (index 0 usually)
                 relevant[idea.text] = idea.searchVolume;
               }
             });
             setRelevantIdeas(relevant);
 
-            setExploreStatus(`Clustering ${processedIdeas.length} keywords...`);
+            setExploreStatus(`Clustering ${processedIdeas.length} ideas...`);
 
             const clusterResult = await googleScriptRun.getClusters(relevant, promptTemplate, growthMetric);
             setClusters(clusterResult);
@@ -604,8 +618,22 @@ The Google Ads keyword ideas are:
 
         const generatePrompt = async () => {
            const id = creationAccountId.replaceAll('-', '').trim();
-           const prompt = await googleScriptRun.getTopPerformingAdsPrompt(id, 10);
-           setCreationPromptTemplate(prompt);
+           if (!id) {
+             alert('Please enter a Google Ads Account ID.');
+             return;
+           }
+           setIsCreatingCampaign(true);
+           setCreationResult('Generating prompt...');
+           try {
+             const result = await googleScriptRun.createCampaignPrompt(
+               id, creationPromptTemplate, creationStyleGuide, creationInstructions, creationKeywords
+             );
+             setCreationResult(result);
+           } catch (e) {
+             setCreationResult(`Error: ${e.message}`);
+           } finally {
+             setIsCreatingCampaign(false);
+           }
         };
 
         const generateNewCampaigns = async () => {
@@ -638,6 +666,8 @@ The Google Ads keyword ideas are:
                 yValue = c.growthMoM || 0;
               } else if (growthMetric === 'latest_vs_avg') {
                 yValue = c.growthLatestVsAvg || 0;
+              } else if (growthMetric === 'latest_vs_max') {
+                yValue = c.growthLatestVsMax || 0;
               }
 
               return {
@@ -683,42 +713,78 @@ The Google Ads keyword ideas are:
 
           return {
             labels: chartLabels,
-            datasets: seedIdeas.map((idea, i) => {
-              // First keyword blue, others dynamic
-              const color = i === 0 ? 'rgb(37, 99, 235)' : `hsl(${ ((i + 1) * 60) % 360 }, 70%, 50%)`;
+            datasets: seedIdeas.map((idea, index) => {
+              // Use blue for the first keyword, other colors for the rest
+              const color = index === 0 ? 'rgb(37, 99, 235)' : `hsl(${ (index * 360 / seedIdeas.length) % 360 }, 70%, 50%)`;
+
               return {
                 label: idea.text,
-                data: idea.searchVolume.slice(),
+                data: idea.searchVolume, // Already in correct order? Check runExplore. Yes, processedIdeas maps monthlySearchVolumes.
                 borderColor: color,
-                backgroundColor: color,
-                fill: false,
+                backgroundColor: color, // Same as border for legend
+                fill: false, // No fill
                 tension: 0.3,
-                pointRadius: 2,
-                pointHoverRadius: 5
+                pointRadius: 3,
+                pointHoverRadius: 6
               };
             })
           };
         }, [ideasData, keywords, chartLabels]);
 
+        const bubbleChartOptions = useMemo(() => ({
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'Search Volume' } },
+            y: {
+              title: { display: true, text: GROWTH_METRICS.find(m => m.id === growthMetric)?.name || 'Growth' },
+              ticks: {
+                callback: (value) => (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%'
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`
+              }
+            }
+          },
+          onClick: (evt, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].datasetIndex;
+              // We need to access the current clusters state here.
+              // Since this function is inside useMemo, it will capture 'clusters' from the dependency array.
+              if (clusters && clusters[index]) {
+                 setSelectedCluster(clusters[index]);
+                 setTimeout(() => {
+                     document.getElementById('cluster-details')?.scrollIntoView({ behavior: 'smooth' });
+                 }, 100);
+              }
+            }
+          }
+        }), [growthMetric, clusters]);
+
+        // --- Render ---
+
         const languageModal = (
-          <Modal
-            isOpen={modalConfig.isOpen && modalConfig.type === 'language'}
-            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
-            title="Add Custom Language"
-          >
-            <div>
-              <InputField
-                label="Numeric ID"
-                value={modalConfig.value}
-                onChange={v => setModalConfig({ ...modalConfig, value: v })}
-                placeholder="e.g. 1000"
-                onKeyDown={(e) => e.key === 'Enter' && submitModal()}
-              />
-              <div className="mt-4 text-sm text-muted" style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                <span className="material-icons-round" style={{fontSize: '16px'}}>info</span>
-                <a href="https://developers.google.com/google-ads/api/data/codes-formats#languages" target="_blank" rel="noopener noreferrer" style={{color: 'var(--primary)', textDecoration: 'none'}}>
-                  View Language Codes
+          <Modal isOpen={modalConfig.isOpen && modalConfig.type === 'language'} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} title="Add Custom Language">
+            <div className="modal-body">
+              <p className="text-sm text-muted mb-4">
+                Enter the numeric Language ID from Google Ads API.
+                <a href="https://developers.google.com/google-ads/api/reference/data/codes-formats#languages" target="_blank" rel="noopener noreferrer" style={{marginLeft: '4px', verticalAlign: 'middle'}}>
+                  <span className="material-icons-round" style={{fontSize: '16px'}}>info</span>
                 </a>
+              </p>
+              <div className="input-group">
+                <label>Language ID</label>
+                <input
+                  type="text"
+                  value={modalConfig.value}
+                  onChange={e => setModalConfig({ ...modalConfig, value: e.target.value })}
+                  placeholder="e.g. 1000"
+                  autoFocus
+                />
               </div>
               <div className="modal-actions">
                 <button className="btn" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>Cancel</button>
@@ -729,24 +795,23 @@ The Google Ads keyword ideas are:
         );
 
         const locationModal = (
-          <Modal
-            isOpen={modalConfig.isOpen && modalConfig.type === 'country'}
-            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
-            title="Add Custom Location"
-          >
-            <div>
-              <InputField
-                label="Numeric ID"
-                value={modalConfig.value}
-                onChange={v => setModalConfig({ ...modalConfig, value: v })}
-                placeholder="e.g. 2276"
-                onKeyDown={(e) => e.key === 'Enter' && submitModal()}
-              />
-              <div className="mt-4 text-sm text-muted" style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                <span className="material-icons-round" style={{fontSize: '16px'}}>info</span>
-                <a href="https://developers.google.com/google-ads/api/data/geotargets" target="_blank" rel="noopener noreferrer" style={{color: 'var(--primary)', textDecoration: 'none'}}>
-                  View Location Codes
+          <Modal isOpen={modalConfig.isOpen && modalConfig.type === 'country'} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} title="Add Custom Location">
+            <div className="modal-body">
+              <p className="text-sm text-muted mb-4">
+                Enter the numeric Location ID from Google Ads API.
+                <a href="https://developers.google.com/google-ads/api/reference/data/geotargets" target="_blank" rel="noopener noreferrer" style={{marginLeft: '4px', verticalAlign: 'middle'}}>
+                  <span className="material-icons-round" style={{fontSize: '16px'}}>info</span>
                 </a>
+              </p>
+              <div className="input-group">
+                <label>Location ID</label>
+                <input
+                  type="text"
+                  value={modalConfig.value}
+                  onChange={e => setModalConfig({ ...modalConfig, value: e.target.value })}
+                  placeholder="e.g. 2840"
+                  autoFocus
+                />
               </div>
               <div className="modal-actions">
                 <button className="btn" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>Cancel</button>
@@ -814,16 +879,22 @@ The Google Ads keyword ideas are:
                 <details className="mb-4">
                   <summary className="cursor-pointer text-sm font-medium text-primary">Advanced Config</summary>
                   <div className="mt-4">
-                    <InputField type="textarea" label="Clustering Prompt" value={promptTemplate} onChange={setPromptTemplate} rows={6} />
+                    <InputField
+                      label="Min Search Volume"
+                      type="number"
+                      value={minSearchVolume}
+                      onChange={setMinSearchVolume}
+                      placeholder="100"
+                    />
+                    <div className="mt-4">
+                      <InputField type="textarea" label="Clustering Prompt" value={promptTemplate} onChange={setPromptTemplate} rows={6} />
+                    </div>
                   </div>
                 </details>
 
                 <button className="btn btn-primary" onClick={runExplore} disabled={isExploring}>
-                  {isExploring ? 'Running...' : 'Start Exploration'}
-                  <span className="material-icons-round">rocket_launch</span>
+                  {isExploring ? <><div className="spinner"></div> {exploreStatus || 'Running...'}</> : <><span className="material-icons-round">rocket_launch</span> Start Exploration</>}
                 </button>
-
-                {exploreStatus && <div className="status-msg">{exploreStatus}</div>}
 
                 {seedChartData && (
                   <div className="mt-4 card" style={{border: '1px solid var(--primary)'}}>
@@ -860,31 +931,7 @@ The Google Ads keyword ideas are:
                     <ChartComponent
                       type="bubble"
                       data={clustersChartData}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                          x: { title: { display: true, text: 'Search Volume' } },
-                          y: { title: { display: true, text: 'YoY Growth' } }
-                        },
-                        plugins: {
-                          tooltip: {
-                            callbacks: {
-                              label: (ctx) => `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y * 100).toFixed(1)}%`
-                            }
-                          }
-                        },
-                        onClick: (evt, elements) => {
-                          if (elements.length > 0) {
-                            const index = elements[0].datasetIndex;
-                            setSelectedCluster(clusters[index]);
-                            // Scroll to details if needed
-                            setTimeout(() => {
-                               document.getElementById('cluster-details')?.scrollIntoView({ behavior: 'smooth' });
-                            }, 100);
-                          }
-                        }
-                      }}
+                      options={bubbleChartOptions}
                     />
                   </div>
                 )}
@@ -900,7 +947,16 @@ The Google Ads keyword ideas are:
                           <strong>Total Volume:</strong> {selectedCluster.searchVolume.toLocaleString()}
                        </div>
                        <div>
-                          <strong>YoY Growth:</strong> {(selectedCluster.yearOverYearGrowth * 100).toFixed(1)}%
+                          <strong>{GROWTH_METRICS.find(m => m.id === growthMetric)?.name || 'Growth'}:</strong> {
+                            (() => {
+                              let val = 0;
+                              if (growthMetric === 'yoy') val = selectedCluster.growthYoY || selectedCluster.yearOverYearGrowth || 0;
+                              else if (growthMetric === 'mom') val = selectedCluster.growthMoM || 0;
+                              else if (growthMetric === 'latest_vs_avg') val = selectedCluster.growthLatestVsAvg || 0;
+                              else if (growthMetric === 'latest_vs_max') val = selectedCluster.growthLatestVsMax || 0;
+                              return (val * 100).toFixed(1);
+                            })()
+                          }%
                        </div>
                     </div>
                     <div className="mt-4">
@@ -968,8 +1024,7 @@ The Google Ads keyword ideas are:
                 <h2>Insights</h2>
                 <div className="mb-4" dangerouslySetInnerHTML={{ __html: insights }} />
                 <button className="btn btn-primary" onClick={generateInsights} disabled={isGeneratingInsights}>
-                  {isGeneratingInsights ? 'Generating...' : 'Generate Insights'}
-                  <span className="material-icons-round">lightbulb</span>
+                  {isGeneratingInsights ? <><div className="spinner"></div> Generating...</> : <><span className="material-icons-round">lightbulb</span> Generate Insights</>}
                 </button>
                 {insightsStatus && <div className="status-msg">{insightsStatus}</div>}
               </div>
@@ -984,8 +1039,7 @@ The Google Ads keyword ideas are:
                 </div>
                 <div className="mb-4 mt-4" dangerouslySetInnerHTML={{ __html: campaignSuggestions }} />
                 <button className="btn btn-primary" onClick={generateCampaignSuggestions} disabled={isGeneratingCampaigns}>
-                  {isGeneratingCampaigns ? 'Generating...' : 'Generate Campaigns'}
-                  <span className="material-icons-round">campaign</span>
+                  {isGeneratingCampaigns ? <><div className="spinner"></div> Generating...</> : <><span className="material-icons-round">campaign</span> Generate Suggestions</>}
                 </button>
                 {campaignStatus && <div className="status-msg">{campaignStatus}</div>}
               </div>

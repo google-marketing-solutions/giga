@@ -133,6 +133,9 @@ export const getInsights = (ideas, seedKeywords, growthMetric = 'yoy') => {
         const totalSum = history.reduce((a, b) => a + b, 0);
         const avg = history.length > 0 ? totalSum / history.length : 0;
         growth = avg !== 0 ? (latest - avg) / avg : 0;
+      } else if (growthMetric === 'latest_vs_max') {
+        const max = Math.max(...history);
+        growth = max !== 0 ? (latest - max) / max : 0;
       }
       return [idea, growth];
     })
@@ -146,6 +149,7 @@ export const getInsights = (ideas, seedKeywords, growthMetric = 'yoy') => {
     yoy: 'YoY',
     mom: 'MoM',
     latest_vs_avg: 'Latest vs Average',
+    latest_vs_max: 'Last Month vs Max',
   };
   const metricName = metricNames[growthMetric] || 'YoY';
 
@@ -268,6 +272,10 @@ export const getClusters = (ideas, promptTemplate) => {
     const totalSum = history.reduce((a, b) => a + b, 0);
     const avg = history.length > 0 ? totalSum / history.length : 0;
     cluster.growthLatestVsAvg = avg !== 0 ? (latest - avg) / avg : 0;
+
+    // Latest vs Max
+    const max = Math.max(...history);
+    cluster.growthLatestVsMax = max !== 0 ? (latest - max) / max : 0;
 
     return cluster;
   });
