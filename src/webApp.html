@@ -16,6 +16,7 @@ limitations under the License.
 <!doctype html>
 <html>
   <header>
+    <title>GIGA</title>
     <link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -111,7 +112,11 @@ limitations under the License.
     <h1>GIGA - Gemini Insights Generation Analysis</h1>
 
     <div class="tab">
-      <button class="tablinks" onclick="openTab(event, 'Explore-Tab')">
+      <button
+        id="defaultOpen"
+        class="tablinks active"
+        onclick="openTab(event, 'Explore-Tab')"
+      >
         Explore
       </button>
       <button class="tablinks" onclick="openTab(event, 'Insights-Tab')">
@@ -125,7 +130,7 @@ limitations under the License.
       </button>
     </div>
 
-    <div id="Explore-Tab" class="tabcontent">
+    <div id="Explore-Tab" class="tabcontent" style="display: block;">
       <br /><br /><br />
       <div><strong>Keywords</strong></div>
       <div>Comma separated, up to 20</div>
@@ -299,7 +304,7 @@ The Google Ads keyword ideas are:
 
       <div>
         <canvas
-          id="cluserKeywordsChart"
+          id="clusterKeywordsChart"
           style="display: none; width: 100%; max-width: 1440px"
         ></canvas>
       </div>
@@ -443,7 +448,7 @@ The Google Ads keyword ideas are:
 <script>
   const reset = () => {
     [
-      'cluserKeywordsChart',
+      'clusterKeywordsChart',
       'clustersChart',
       'clusterChart',
       'ideasChart',
@@ -452,7 +457,7 @@ The Google Ads keyword ideas are:
   };
 
   const showClusterKeywordsChart = cluster => {
-    const element = document.getElementById('cluserKeywordsChart');
+    const element = document.getElementById('clusterKeywordsChart');
     // remove previous chart
     Chart.getChart(element)?.destroy();
     element.style.display = '';
@@ -641,7 +646,7 @@ The Google Ads keyword ideas are:
       .getElementById('campaign-keywords')
       .value.split(',')
       .map(keyword => keyword.trim())
-      .filter(Boolean); // filter out empty keywords in case a trailling comma is present;
+      .filter(Boolean); // filter out empty keywords in case a trailing comma is present;
     const status = document.getElementById('campaigns-creation-result');
     status.innerHTML = 'generating ad...';
     const promptTemplate = document.getElementById(
@@ -766,7 +771,7 @@ The Google Ads keyword ideas are:
       console.log('geoID:', geoID, 'languageID', languageID);
 
       const MAX_IDEAS = 5000;
-      const MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH = 0;
+      const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 0;
 
       const ideas = (
         await googleScriptRun.generateKeywordIdeas(
@@ -807,7 +812,7 @@ The Google Ads keyword ideas are:
           .filter(
             idea =>
               idea.searchVolume.at(-1) >
-              MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH
+              MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH
           )
           .map(idea => [idea.text, idea.searchVolume])
       );
@@ -852,6 +857,16 @@ The Google Ads keyword ideas are:
       tablinks[i].className = tablinks[i].className.replace(' active', '');
     }
     document.getElementById(tabName).style.display = 'block';
-    evt.currentTarget.className += ' active';
+    if (evt) {
+      evt.currentTarget.className += ' active';
+    } else {
+      // If called without event (e.g. on load), manually set active class on the button
+      const btn = document.querySelector(`button[onclick*="'${tabName}'"]`);
+      if (btn) btn.className += ' active';
+    }
   }
+
+  // Get the element with id="defaultOpen" and click on it
+  document.getElementById("defaultOpen").click();
+
 </script>

@@ -19,7 +19,7 @@ import { main } from './main';
 import { DEFAULT_STYLE_GUIDE } from './prompt';
 import { getTopPerformingAdsPrompt } from './reporting';
 
-// include references to prevent tree shaking due to methods beeing called in
+// include references to prevent tree shaking due to methods being called in
 //  webApp.html with google script run dynamically
 main;
 getTopPerformingAdsPrompt;

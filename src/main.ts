@@ -28,7 +28,7 @@ import {
 } from './util';
 import { gemini, getGCPProjectID, getGeminiModelID } from './vertex';
 
-const MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH = 100;
+const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 100;
 const MIN_YEAR_OVER_YEAR_GROWTH = 0.1;
 
 export const onOpen = () => {
@@ -46,7 +46,7 @@ export const getConfigSheet = () => getSheet('config');
 export const getIdeaSheet = () => getSheet('ideas');
 export const getClusterSheet = () => getSheet('clusters');
 export const getInsightsSheet = () => getSheet('insights');
-export const getCamaignsSheet = () => getSheet('campaigns');
+export const getCampaignsSheet = () => getSheet('campaigns');
 
 const MAX_SEED_KEYWORDS = 20;
 
@@ -58,13 +58,13 @@ export const getSeedKeywords = () =>
     .map(keyword => keyword.trim())
     .filter(Boolean); // filter out empty keywords in case a trailing comma is present
 
-// TODO remove MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH and let frontend handle this?
+// TODO remove MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH and let frontend handle this?
 export const convertIdeasToRows = ideas =>
   ideas
     .filter(
       res =>
         res.keywordIdeaMetrics?.monthlySearchVolumes?.at(-1).monthlySearches >
-        MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH
+        MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH
     )
     .map(result => [
       result.text,
@@ -96,7 +96,7 @@ export const updateIdeas = () => {
   writeRowsToSheet(getIdeaSheet(), ideaRows, 1);
 };
 
-export const getYoYGroth = searchVolumes => {
+export const getYoYGrowth = searchVolumes => {
   const latestIndex = -1;
   const previousYearIndex = latestIndex - 12;
   const latestVolume = searchVolumes.at(latestIndex);
@@ -104,7 +104,7 @@ export const getYoYGroth = searchVolumes => {
   return latestVolume / previousYearVolume - 1;
 };
 
-export const removeHTLMTicks = html => {
+export const removeHTMLTicks = html => {
   const prefix = '```html';
   const suffix = '```';
   let cleanedHtml = html;
@@ -119,7 +119,7 @@ export const removeHTLMTicks = html => {
 
 export const getInsights = (ideas, seedKeywords) => {
   const relevantIdeas = Object.entries(ideas)
-    .map(([idea, searchVolume]) => [idea, getYoYGroth(searchVolume)])
+    .map(([idea, searchVolume]) => [idea, getYoYGrowth(searchVolume)])
     .filter(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       ([_, yoyGrowth]) => (yoyGrowth as number) > MIN_YEAR_OVER_YEAR_GROWTH
@@ -129,7 +129,7 @@ export const getInsights = (ideas, seedKeywords) => {
   console.log(insightsPrompt.slice(insightsPrompt.length - 1000));
   const responseType = 'text/plain';
   const config = getGeminiConfig(responseType);
-  return removeHTLMTicks(gemini(config)(insightsPrompt));
+  return removeHTMLTicks(gemini(config)(insightsPrompt));
 };
 
 const updateInsights = () => {
@@ -166,7 +166,7 @@ const getIdeasFromSheet = () =>
       .getValues()
       .filter(isNonEmptyRow)
       .map(row => [row[0], row.slice(4)])
-  ); // at 4 search volume starts, bevore avg and yoy are calculated
+  ); // at 4 search volume starts, before avg and yoy are calculated
 
 /**
  * @return {GeminiConfig} config
@@ -199,11 +199,11 @@ const getClusters = (ideas, promptTemplate) => {
   const clusters = gemini(config)(prompt).map(cluster => {
     // TODO lookup all keywords again in keyword planner since gemini could have combined keywords into more generic broad match keywords that did not show up in ideas
     // remove keywords not found in ideas (hallucinations)
-    const [keywwordIdeas, hallucinations] = partition(
+    const [keywordIdeas, hallucinations] = partition(
       cluster.keywords,
       keyword => keyword.toLowerCase() in ideas
     );
-    cluster.keywords = keywwordIdeas;
+    cluster.keywords = keywordIdeas;
 
     // check hallucinations
     if (hallucinations.length > 0) {
@@ -239,11 +239,11 @@ const PROMPT_DATA_FORMAT_SUFFIX = `
   Output as a list of topics where each topic has a name and up to 10 keywords as JSON with this format:
     [
       {
-        "topic": "A decriptive name of topic 1",
+        "topic": "A descriptive name of topic 1",
         "keywords": ["a1", "b1", "c1"]
       },
       {
-        "topic": "A decriptive name of topic 2",
+        "topic": "A descriptive name of topic 2",
         "keywords": ["a2", "b2", "c2"]
       }
     ]
@@ -264,7 +264,7 @@ const updateClusters = () => {
 };
 
 export const getCampaigns = (insights, language, brandName, adExamples) => {
-  const prompt = ` I am a SEA manager working for ${brandName} and I want to crate new Google Ads search campaigns based on the following input.
+  const prompt = ` I am a SEA manager working for ${brandName} and I want to create new Google Ads search campaigns based on the following input.
   For each cluster in the **Cluster Insights & Marketing Takeaways:** section, generate a ready-to-use text ad campaign.
 
   Ensure the new created ads are following the style, wording, tonality of the following ad examples:
@@ -272,7 +272,7 @@ export const getCampaigns = (insights, language, brandName, adExamples) => {
 
   Output as HTML with standard HTML elements like <h1> and <ul> for captions or lists
 
-  Create the Campaings in ${language}.
+  Create the Campaigns in ${language}.
   Please style the Ad examples so that they look like text ads shown on google.com
 
   Insights:
@@ -280,7 +280,7 @@ export const getCampaigns = (insights, language, brandName, adExamples) => {
   ${insights}
 
   `;
-  return removeHTLMTicks(gemini(getGeminiConfig('text/plain'))(prompt));
+  return removeHTMLTicks(gemini(getGeminiConfig('text/plain'))(prompt));
 };
 
 export const doGet = () =>
