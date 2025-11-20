@@ -493,7 +493,7 @@ All keywords assigned to a cluster must be exactly the same (e.g. same case, sam
 The Google Ads keyword ideas are:
 `;
 
-      const DEFAULT_TRENDS_PROMPT = `Provide an extensive list of ~100 trends regarding the topics/keywords mentioned below.`;
+      const DEFAULT_TRENDS_PROMPT = `Provide an extensive list of around 100 trends regarding the topics/keywords mentioned below.`;
 
       const LANGUAGE_INFO_URL =
         'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
@@ -549,7 +549,7 @@ The Google Ads keyword ideas are:
       );
 
       // eslint-disable-next-line no-unused-vars
-      const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
+      const Modal = ({ isOpen, onClose, title, children, className = '', showCloseButton = true }) => {
         if (!isOpen) return null;
         return (
           <div className="modal-overlay" onClick={onClose}>
@@ -559,9 +559,11 @@ The Google Ads keyword ideas are:
             >
               <div className="modal-header">
                 <h2>{title}</h2>
-                <button className="close-btn" onClick={onClose}>
-                  <span className="material-icons-round">close</span>
-                </button>
+                {showCloseButton && (
+                  <button className="close-btn" onClick={onClose}>
+                    <span className="material-icons-round">close</span>
+                  </button>
+                )}
               </div>
               {children}
             </div>
@@ -695,6 +697,312 @@ The Google Ads keyword ideas are:
         return [value, setValue];
       }
 
+      // eslint-disable-next-line no-unused-vars
+      const SettingsModal = ({
+        isOpen,
+        onClose,
+        modalConfig,
+        geminiConfig,
+        minSearchVolume,
+        configStatus,
+        onSave,
+        onClearCache
+      }) => {
+        const [localGeminiConfig, setLocalGeminiConfig] = useState(geminiConfig);
+        const [localMinSearchVolume, setLocalMinSearchVolume] = useState(minSearchVolume);
+        const [localAdsId, setLocalAdsId] = useState(configStatus.adsAccountId || '');
+        const [localDevToken, setLocalDevToken] = useState('');
+        const [isSaving, setIsSaving] = useState(false);
+        const adsInputRef = useRef(null);
+
+        // Sync with props when modal opens
+        useEffect(() => {
+          if (isOpen) {
+            setLocalGeminiConfig(geminiConfig);
+            setLocalMinSearchVolume(minSearchVolume);
+            setLocalAdsId(configStatus.adsAccountId || '');
+            setLocalDevToken('');
+          }
+        }, [isOpen, geminiConfig, minSearchVolume, configStatus]);
+
+        // Focus Ads Account ID if highlighted
+        useEffect(() => {
+          if (isOpen && (modalConfig.highlight === 'ADS_ACCOUNT_ID' || modalConfig.highlight === 'BOTH') && adsInputRef.current) {
+            setTimeout(() => {
+              adsInputRef.current.focus();
+            }, 100);
+          }
+        }, [isOpen, modalConfig.highlight]);
+
+        const handleSave = async () => {
+          setIsSaving(true);
+          try {
+            await onSave({
+              geminiConfig: localGeminiConfig,
+              minSearchVolume: localMinSearchVolume,
+              adsAccountId: localAdsId,
+              devToken: localDevToken
+            });
+          } catch (error) {
+            console.error("Failed to save settings", error);
+          } finally {
+            setIsSaving(false);
+          }
+        };
+
+        return (
+          <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Settings"
+            showCloseButton={false}
+          >
+            <div className="modal-body">
+              {modalConfig.message && (
+                <div
+                  className="alert alert-warning mb-4"
+                  style={{
+                    color: '#dc2626',
+                    background: '#fee2e2',
+                    padding: '10px',
+                    borderRadius: '6px',
+                    fontSize: '0.9rem',
+                    border: '1px solid #fca5a5',
+                  }}
+                >
+                  {modalConfig.message}
+                </div>
+              )}
+              <div className="input-group">
+                <label>Gemini Model</label>
+                <div className="select-wrapper">
+                  <select
+                    value={localGeminiConfig.modelId}
+                    onChange={e =>
+                      setLocalGeminiConfig({ ...localGeminiConfig, modelId: e.target.value })
+                    }
+                  >
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="input-group">
+                  <label>Temperature: {localGeminiConfig.temperature}</label>
+                  <input
+                    type="range"
+                    step="0.1"
+                    min="0"
+                    max="2"
+                    value={localGeminiConfig.temperature}
+                    onChange={e =>
+                      setLocalGeminiConfig({
+                        ...localGeminiConfig,
+                        temperature: parseFloat(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Top P: {localGeminiConfig.topP}</label>
+                  <input
+                    type="range"
+                    step="0.1"
+                    min="0"
+                    max="1"
+                    value={localGeminiConfig.topP}
+                    onChange={e =>
+                      setLocalGeminiConfig({
+                        ...localGeminiConfig,
+                        topP: parseFloat(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+              <div className="input-group">
+                <label>Min Search Volume</label>
+                <input
+                  type="number"
+                  value={localMinSearchVolume}
+                  onChange={e => setLocalMinSearchVolume(Number(e.target.value))}
+                  placeholder="100"
+                />
+              </div>
+
+              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+              <div className="input-group">
+                <label>Application Data</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    className="btn"
+                    onClick={() => {
+                      onClearCache();
+                      onClose();
+                    }}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#f3f4f6',
+                      color: '#4b5563',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      flexShrink: 0,
+                    }}
+                    title="Clear Cache"
+                  >
+                    <span
+                      className="material-icons-round"
+                      style={{ fontSize: '1.2rem' }}
+                    >
+                      delete_outline
+                    </span>
+                  </button>
+                  <div className="text-sm text-muted">
+                    Removes all locally saved data and resets the application state.
+                  </div>
+                </div>
+              </div>
+
+              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+
+              <details
+                className="advanced-settings"
+                open={!!modalConfig.highlight}
+                style={{
+                  background: '#f8fafc',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
+                <summary
+                  style={{
+                    color: '#475569',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '1rem',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  <span className="material-icons-round" style={{ fontSize: '1.2rem' }}>expand_more</span>
+                  <span className="material-icons-round" style={{ fontSize: '1.2rem' }}>settings</span>
+                  Advanced Settings
+                </summary>
+                <div className="mt-4">
+                  <div className="input-group">
+                    <label>Ads Account ID</label>
+                    <div
+                      style={
+                        modalConfig.highlight === 'ADS_ACCOUNT_ID' || modalConfig.highlight === 'BOTH'
+                          ? {
+                              border: '2px solid #dc2626',
+                              borderRadius: '8px',
+                              padding: '4px',
+                              position: 'relative',
+                            }
+                          : {}
+                      }
+                    >
+                      <input
+                        ref={adsInputRef}
+                        type="text"
+                        value={localAdsId}
+                        onChange={e => setLocalAdsId(e.target.value)}
+                        placeholder="e.g. 123-456-7890"
+                        style={{ width: '100%', boxSizing: 'border-box' }}
+                      />
+                      { (modalConfig.highlight === 'ADS_ACCOUNT_ID' || modalConfig.highlight === 'BOTH') && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            right: '-40px',
+                            top: '50%',
+                            color: '#dc2626',
+                            fontSize: '32px',
+                            fontWeight: 'bold',
+                            animation: 'bounceHorizontal 1s infinite ease-in-out',
+                          }}
+                        >
+                          ←
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label>Developer Token</label>
+                    <div
+                      style={
+                        modalConfig.highlight === 'DEVELOPER_TOKEN' || modalConfig.highlight === 'BOTH'
+                          ? {
+                              border: '2px solid #dc2626',
+                              borderRadius: '8px',
+                              padding: '4px',
+                              position: 'relative',
+                            }
+                          : {}
+                      }
+                    >
+                      <input
+                        type="text"
+                        value={localDevToken}
+                        onChange={e => setLocalDevToken(e.target.value)}
+                        placeholder={
+                          configStatus.hasDeveloperToken
+                            ? 'Token is set (hidden for safety). Type to update.'
+                            : 'Enter Developer Token'
+                        }
+                        style={{ width: '100%', boxSizing: 'border-box' }}
+                      />
+                      { (modalConfig.highlight === 'DEVELOPER_TOKEN' || modalConfig.highlight === 'BOTH') && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            right: '-40px',
+                            top: '50%',
+                            color: '#dc2626',
+                            fontSize: '32px',
+                            fontWeight: 'bold',
+                            animation: 'bounceHorizontal 1s infinite ease-in-out',
+                          }}
+                        >
+                          ←
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </details>
+              <div className="modal-actions">
+                <button
+                  className="btn"
+                  onClick={onClose}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                >
+                  {isSaving ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </Modal>
+        );
+      };
+
       // --- Main App ---
 
       // eslint-disable-next-line no-unused-vars
@@ -813,22 +1121,6 @@ The Google Ads keyword ideas are:
           checked: false,
         });
 
-        const adsInputRef = useRef(null);
-
-        useEffect(() => {
-          if (
-            modalConfig &&
-            modalConfig.isOpen &&
-            modalConfig.highlight === 'ADS_ACCOUNT_ID' &&
-            adsInputRef.current
-          ) {
-            setTimeout(() => {
-              adsInputRef.current.focus();
-              // adsInputRef.current.select(); // Optional: select all text
-            }, 100);
-          }
-        }, [modalConfig && modalConfig.isOpen, modalConfig && modalConfig.highlight]);
-
         useEffect(() => {
           googleScriptRun
             .checkScriptProperties()
@@ -854,7 +1146,7 @@ The Google Ads keyword ideas are:
         const [geminiConfig, setGeminiConfig] = useStickyState(
           {
             projectId: '',
-            modelId: 'gemini-2.5-flash',
+            modelId: 'gemini-2.5-pro',
             temperature: 0.7,
             topP: 0.9,
           },
@@ -884,6 +1176,8 @@ The Google Ads keyword ideas are:
           'giga_creationResult'
         );
         const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
+        const [pendingAction, setPendingAction] = useState(null);
+        const [devTokenInput, setDevTokenInput] = useState('*****');
 
         const GROWTH_METRICS = [
           { id: 'yoy', name: 'Year over Year' },
@@ -902,7 +1196,17 @@ The Google Ads keyword ideas are:
           isOpen: false,
           type: '',
           value: '',
+          message: '',
         });
+
+        const showAlert = (message) => {
+          setModalConfig({
+            isOpen: true,
+            type: 'alert',
+            message: message,
+            value: ''
+          });
+        };
 
         const handleCustomOption = type => {
           setModalConfig({ isOpen: true, type, value: '' });
@@ -926,11 +1230,33 @@ The Google Ads keyword ideas are:
             }
             setModalConfig({ isOpen: false, type: '', value: '' });
           } else {
-            alert('Only Number IDs are allowed.');
+            showAlert('Only Number IDs are allowed.');
           }
         };
 
+        useEffect(() => {
+          if (configStatus.checked) {
+            setDevTokenInput('');
+          }
+        }, [configStatus]);
+
         const runExplore = async () => {
+          if (!keywords.trim()) {
+            showAlert('Please enter at least one seed keyword.');
+            return;
+          }
+          const seedKeywords = keywords
+            .split(',')
+            .map(k => k.trim())
+            .filter(Boolean);
+          if (seedKeywords.length > 20) {
+            showAlert('Maximum 20 keywords allowed.');
+            return;
+          }
+
+          setIsExploring(true);
+          setExploreStatus('Verifying configuration...');
+
           // Check properties on demand
           let currentStatus = configStatus;
           try {
@@ -944,13 +1270,28 @@ The Google Ads keyword ideas are:
             console.error('Failed to check script properties:', e);
             // If we haven't checked successfully yet, we can't trust configStatus
             if (!configStatus.checked) {
-              alert('Failed to verify configuration. Please check your connection and try again.');
+              setIsExploring(false);
+              showAlert('Failed to verify configuration. Please check your connection and try again.');
               return;
             }
             // If we have checked before, we use the cached status (currentStatus)
           }
 
+          if (!currentStatus.hasDeveloperToken && !currentStatus.adsAccountId) {
+            setIsExploring(false);
+            setPendingAction(() => runExplore);
+            setModalConfig({
+              isOpen: true,
+              type: 'settings',
+              highlight: 'BOTH',
+              message: 'Please configure your Developer Token and Ads Account ID to proceed.',
+            });
+            return;
+          }
+
           if (!currentStatus.hasDeveloperToken) {
+            setIsExploring(false);
+            setPendingAction(() => runExplore);
             setModalConfig({
               isOpen: true,
               type: 'settings',
@@ -960,6 +1301,8 @@ The Google Ads keyword ideas are:
             return;
           }
           if (!currentStatus.adsAccountId) {
+            setIsExploring(false);
+            setPendingAction(() => runExplore);
             setModalConfig({
               isOpen: true,
               type: 'settings',
@@ -968,20 +1311,7 @@ The Google Ads keyword ideas are:
             });
             return;
           }
-          if (!keywords.trim()) {
-            alert('Please enter at least one seed keyword.');
-            return;
-          }
-          const seedKeywords = keywords
-            .split(',')
-            .map(k => k.trim())
-            .filter(Boolean);
-          if (seedKeywords.length > 20) {
-            alert('Maximum 20 keywords allowed.');
-            return;
-          }
 
-          setIsExploring(true);
           setExploreStatus('Getting keyword ideas...');
           setIdeasData(null);
           setClusters(null);
@@ -1051,7 +1381,7 @@ The Google Ads keyword ideas are:
 
         const runTrends = async () => {
           if (!trendsKeywords.trim()) {
-            alert('Please enter at least one seed keyword.');
+            showAlert('Please enter at least one seed keyword.');
             return;
           }
           setIsTrendsRunning(true);
@@ -1079,11 +1409,12 @@ The Google Ads keyword ideas are:
 
         const generateInsights = async () => {
           if (Object.keys(relevantIdeas).length === 0) {
-            alert('Please generate keywords in Explore tab first.');
+            showAlert('Please generate keywords in Explore tab first.');
             return;
           }
           setIsGeneratingInsights(true);
-          setInsightsStatus('Generating insights...');
+          setIsGeneratingInsights(true);
+          setInsightsStatus('');
           try {
             const seedKeywords = keywords
               .split(',')
@@ -1107,7 +1438,7 @@ The Google Ads keyword ideas are:
 
         const generateCampaignSuggestions = async () => {
           if (!insights) {
-            alert('Please generate insights first.');
+            showAlert('Please generate insights first.');
             return;
           }
           setIsGeneratingCampaigns(true);
@@ -1144,7 +1475,7 @@ The Google Ads keyword ideas are:
         const generatePrompt = async () => {
           const id = creationAccountId.replaceAll('-', '').trim();
           if (!id) {
-            alert('Please enter a Google Ads Account ID.');
+            showAlert('Please enter a Google Ads Account ID.');
             return;
           }
           setIsCreatingCampaign(true);
@@ -1323,266 +1654,28 @@ The Google Ads keyword ideas are:
 
         // --- Render ---
 
-        const settingsModal = (
-          <Modal
-            isOpen={modalConfig.isOpen && modalConfig.type === 'settings'}
-            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
-            title="Settings"
-          >
-            <div className="modal-body">
-              {modalConfig.message && (
-                <div
-                  className="alert alert-warning mb-4"
-                  style={{
-                    color: '#dc2626',
-                    background: '#fee2e2',
-                    padding: '10px',
-                    borderRadius: '6px',
-                    fontSize: '0.9rem',
-                    border: '1px solid #fca5a5',
-                  }}
-                >
-                  {modalConfig.message}
-                </div>
-              )}
-              <div className="input-group">
-                <label>Gemini Model</label>
-                <div className="select-wrapper">
-                  <select
-                    value={geminiConfig.modelId}
-                    onChange={e =>
-                      setGeminiConfig({ ...geminiConfig, modelId: e.target.value })
-                    }
-                  >
-                    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid-2">
-                <div className="input-group">
-                  <label>Temperature: {geminiConfig.temperature}</label>
-                  <input
-                    type="range"
-                    step="0.1"
-                    min="0"
-                    max="2"
-                    value={geminiConfig.temperature}
-                    onChange={e =>
-                      setGeminiConfig({
-                        ...geminiConfig,
-                        temperature: parseFloat(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <div className="input-group">
-                  <label>Top P: {geminiConfig.topP}</label>
-                  <input
-                    type="range"
-                    step="0.1"
-                    min="0"
-                    max="1"
-                    value={geminiConfig.topP}
-                    onChange={e =>
-                      setGeminiConfig({
-                        ...geminiConfig,
-                        topP: parseFloat(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-              </div>
+        const handleSettingsSave = async (newSettings) => {
+          setGeminiConfig(newSettings.geminiConfig);
+          setMinSearchVolume(newSettings.minSearchVolume);
 
+          const promises = [];
+          if (newSettings.adsAccountId !== configStatus.adsAccountId) {
+            promises.push(updateScriptProperty('ADS_ACCOUNT_ID', newSettings.adsAccountId));
+          }
+          if (newSettings.devToken) {
+            promises.push(updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken));
+          }
 
-              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
-              <div className="input-group">
-                <label>Min Search Volume</label>
-                <input
-                  type="number"
-                  value={minSearchVolume}
-                  onChange={e => setMinSearchVolume(Number(e.target.value))}
-                  placeholder="100"
-                />
-              </div>
+          await Promise.all(promises);
 
-              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
-              <div className="input-group">
-                <label>Application Data</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <button
-                    className="btn"
-                    onClick={() => {
-                      clearCache();
-                      setModalConfig({ ...modalConfig, isOpen: false });
-                    }}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: '#f3f4f6',
-                      color: '#4b5563',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      flexShrink: 0,
-                    }}
-                    title="Clear Cache"
-                  >
-                    <span
-                      className="material-icons-round"
-                      style={{ fontSize: '1.2rem' }}
-                    >
-                      delete_outline
-                    </span>
-                  </button>
-                  <div className="text-sm text-muted">
-                    Removes all locally saved data and resets the application state.
-                  </div>
-                </div>
-              </div>
-
-              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
-
-              <details
-                className="advanced-settings"
-                open={!!modalConfig.highlight}
-                style={{
-                  background: '#f8fafc',
-                  padding: '15px',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                }}
-              >
-                <summary
-                  style={{
-                    color: '#475569',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '1rem',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  <span className="material-icons-round" style={{ fontSize: '1.2rem' }}>expand_more</span>
-                  <span className="material-icons-round" style={{ fontSize: '1.2rem' }}>settings</span>
-                  Advanced Settings
-                </summary>
-                <div className="mt-4">
-                  <div className="input-group">
-                    <label>Ads Account ID</label>
-                    <div
-                      style={
-                        modalConfig.highlight === 'ADS_ACCOUNT_ID'
-                          ? {
-                              border: '2px solid #dc2626',
-                              borderRadius: '8px',
-                              padding: '4px',
-                              position: 'relative',
-                            }
-                          : {}
-                      }
-                    >
-                      <input
-                        ref={adsInputRef}
-                        type="text"
-                        value={configStatus.adsAccountId}
-                        onChange={e => {
-                          setConfigStatus({
-                            ...configStatus,
-                            adsAccountId: e.target.value,
-                          });
-                        }}
-                        onBlur={e =>
-                          updateScriptProperty('ADS_ACCOUNT_ID', e.target.value)
-                        }
-                        placeholder="e.g. 123-456-7890"
-                        style={{ width: '100%', boxSizing: 'border-box' }}
-                      />
-                      {modalConfig.highlight === 'ADS_ACCOUNT_ID' && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            right: '-40px',
-                            top: '50%',
-                            color: '#dc2626',
-                            fontSize: '32px',
-                            fontWeight: 'bold',
-                            animation: 'bounceHorizontal 1s infinite ease-in-out',
-                          }}
-                        >
-                          ←
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="input-group">
-                    <label>Developer Token</label>
-                    <div
-                      style={
-                        modalConfig.highlight === 'DEVELOPER_TOKEN'
-                          ? {
-                              border: '2px solid #dc2626',
-                              borderRadius: '8px',
-                              padding: '4px',
-                              position: 'relative',
-                            }
-                          : {}
-                      }
-                    >
-                      <button
-                        className="btn"
-                        onClick={() => {
-                          const token = prompt('Enter new Developer Token:');
-                          if (token) {
-                            updateScriptProperty('DEVELOPER_TOKEN', token);
-                          }
-                        }}
-                        style={{
-                          width: '100%',
-                          justifyContent: 'center',
-                          background: '#fff',
-                          border: '1px solid var(--border-color)',
-                        }}
-                      >
-                        Update Developer Token
-                      </button>
-                      {modalConfig.highlight === 'DEVELOPER_TOKEN' && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            right: '-40px',
-                            top: '50%',
-                            color: '#dc2626',
-                            fontSize: '32px',
-                            fontWeight: 'bold',
-                            animation: 'bounceHorizontal 1s infinite ease-in-out',
-                          }}
-                        >
-                          ←
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-sm text-muted mt-2">
-                      Token is saved securely and never shown.
-                    </div>
-                  </div>
-                </div>
-              </details>
-              <div className="modal-actions">
-                <button
-                  className="btn btn-primary"
-                  onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}
-                >
-                  OK
-                </button>
-              </div>
-            </div>
-          </Modal>
-        );
+          setModalConfig({ ...modalConfig, isOpen: false });
+          if (pendingAction) {
+            setTimeout(() => {
+              pendingAction();
+              setPendingAction(null);
+            }, 100);
+          }
+        };
 
         const languageModal = (
           <Modal
@@ -1630,6 +1723,27 @@ The Google Ads keyword ideas are:
                 </button>
                 <button className="btn btn-primary" onClick={submitModal}>
                   Add
+                </button>
+              </div>
+            </div>
+          </Modal>
+        );
+
+        const alertModal = (
+          <Modal
+            isOpen={modalConfig.isOpen && modalConfig.type === 'alert'}
+            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+            title="Alert"
+            showCloseButton={false}
+          >
+            <div className="modal-body">
+              <p>{modalConfig.message}</p>
+              <div className="modal-actions">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}
+                >
+                  OK
                 </button>
               </div>
             </div>
@@ -2091,7 +2205,7 @@ The Google Ads keyword ideas are:
                   value={trendsKeywords}
                   onChange={setTrendsKeywords}
                   placeholder="e.g. shoes, running shoes"
-                  helpText="Comma separated, up to 20"
+                  helpText=""
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
                       runTrends();
@@ -2193,7 +2307,7 @@ The Google Ads keyword ideas are:
                 >
                   {isGeneratingInsights ? (
                     <>
-                      <div className="spinner"></div> Generating...
+                      <div className="spinner"></div> Generating Insights...
                     </>
                   ) : (
                     <>
@@ -2320,7 +2434,17 @@ The Google Ads keyword ideas are:
 
             {languageModal}
             {locationModal}
-            {settingsModal}
+            <SettingsModal
+              isOpen={modalConfig.isOpen && modalConfig.type === 'settings'}
+              onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+              modalConfig={modalConfig}
+              geminiConfig={geminiConfig}
+              minSearchVolume={minSearchVolume}
+              configStatus={configStatus}
+              onSave={handleSettingsSave}
+              onClearCache={clearCache}
+            />
+            {alertModal}
           <ErrorModal
             isOpen={errorState.isOpen}
             onClose={() => setErrorState({ ...errorState, isOpen: false })}

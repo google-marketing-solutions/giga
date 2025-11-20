@@ -124,32 +124,27 @@ export const getInsights = (
   growthMetric = 'yoy',
   geminiConfig: Partial<GeminiConfig>
 ) => {
-  const relevantIdeas = Object.entries(ideas)
-    .map(([idea, searchVolume]) => {
-      const history = searchVolume as number[];
-      const latest = history[history.length - 1] || 0;
-      const prevMonth = history[history.length - 2] || 0;
-      const prevYear = history[history.length - 13] || 0;
+  const relevantIdeas = Object.entries(ideas).map(([idea, searchVolume]) => {
+    const history = searchVolume as number[];
+    const latest = history[history.length - 1] || 0;
+    const prevMonth = history[history.length - 2] || 0;
+    const prevYear = history[history.length - 13] || 0;
 
-      let growth = 0;
-      if (growthMetric === 'yoy') {
-        growth = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
-      } else if (growthMetric === 'mom') {
-        growth = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
-      } else if (growthMetric === 'latest_vs_avg') {
-        const totalSum = history.reduce((a, b) => a + b, 0);
-        const avg = history.length > 0 ? totalSum / history.length : 0;
-        growth = avg !== 0 ? (latest - avg) / avg : 0;
-      } else if (growthMetric === 'latest_vs_max') {
-        const max = Math.max(...history);
-        growth = max !== 0 ? (latest - max) / max : 0;
-      }
-      return [idea, growth];
-    })
-    .filter(
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ([_, growth]) => (growth as number) > MIN_YEAR_OVER_YEAR_GROWTH
-    );
+    let growth = 0;
+    if (growthMetric === 'yoy') {
+      growth = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+    } else if (growthMetric === 'mom') {
+      growth = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+    } else if (growthMetric === 'latest_vs_avg') {
+      const totalSum = history.reduce((a, b) => a + b, 0);
+      const avg = history.length > 0 ? totalSum / history.length : 0;
+      growth = avg !== 0 ? (latest - avg) / avg : 0;
+    } else if (growthMetric === 'latest_vs_max') {
+      const max = Math.max(...history);
+      growth = max !== 0 ? (latest - max) / max : 0;
+    }
+    return [idea, growth];
+  });
   console.log('relevantIdeas: ', relevantIdeas);
 
   const metricNames = {
@@ -364,21 +359,29 @@ export const generateTrendsKeywords = (
   promptTemplate,
   geminiConfig: Partial<GeminiConfig>
 ) => {
-  const prompt = `${promptTemplate}\n\nKeywords:\n${keywords.join('\n')}
+  const separator = ';';
+  const prompt = `${promptTemplate}
+
+  Keywords:
+  ${keywords.join('\n')}
 
   IMPORTANT:
   - Do NOT add the topic keyword itself to the trends if not necessary.
   - Only output the keywords itself and not add "trending" or "high demand for" other search terms
   - Only output the keywords without any introduction or other annotations
-  - Do NOT add punctuation or unnecessary hyphens to keep the keyword as simple and generic as possible`;
-  const config: any = createGeminiConfig(geminiConfig, 'application/json');
-  config.responseSchema = {
-    type: 'ARRAY',
-    items: {
-      type: 'STRING',
-    },
-  };
-  return gemini(config)(prompt);
+  - Do NOT add punctuation or unnecessary hyphens to keep the keyword as simple and generic as possible
+  - Output a list of google ads broad match keywords separated by "${separator}`;
+  const config: any = createGeminiConfig(geminiConfig, 'text/plain');
+
+  // config.responseSchema = {
+  //   type: 'ARRAY',
+  //   items: {
+  //     type: 'STRING',
+  //   },
+  // };
+  config.enableGoogleSearch = true; // not compatible with responseSchema
+  const res = gemini(config)(prompt);
+  return res.split(separator).map(k => k.trim());
 };
 
 export const checkScriptProperties = () => {
