@@ -1,4 +1,4 @@
-import { addGoogleAdsAuth, ADS_ENPOINT, ADS_VERSION } from './ideas';
+import { addGoogleAdsAuth, ADS_ENDPOINT, ADS_VERSION } from './ideas';
 import { getGeminiConfig } from './main';
 import { deduplicate, getDateWithDeltaDays, groupBy, keepKeys } from './util';
 import { gemini } from './vertex';
@@ -57,7 +57,7 @@ export const getNewSearchTermsClusters = (
 
 const authorizedGoogleAdsRequest = (customerId, service, request) => {
   const params: object = addGoogleAdsAuth(request);
-  const url = `${ADS_ENPOINT}/customers/${customerId}${service}`;
+  const url = `${ADS_ENDPOINT}/customers/${customerId}${service}`;
   return UrlFetchApp.fetch(url, params).getContentText();
 };
 

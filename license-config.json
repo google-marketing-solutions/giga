@@ -28,6 +28,10 @@
       "eachLine": {
         "prepend": "# "
       }
+    },
+    "default": {
+      "prepend": "/*",
+      "append": "*/"
     }
   },
   "trailingWhitespace": "TRIM"

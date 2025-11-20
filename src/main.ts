@@ -28,7 +28,7 @@ import {
 } from './util';
 import { gemini, getGCPProjectID, getGeminiModelID } from './vertex';
 
-const MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH = 100;
+const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 100;
 const MIN_YEAR_OVER_YEAR_GROWTH = 0.1;
 
 export const onOpen = () => {
@@ -46,7 +46,7 @@ export const getConfigSheet = () => getSheet('config');
 export const getIdeaSheet = () => getSheet('ideas');
 export const getClusterSheet = () => getSheet('clusters');
 export const getInsightsSheet = () => getSheet('insights');
-export const getCamaignsSheet = () => getSheet('campaigns');
+export const getCampaignsSheet = () => getSheet('campaigns');
 
 const MAX_SEED_KEYWORDS = 20;
 
@@ -58,13 +58,14 @@ export const getSeedKeywords = () =>
     .map(keyword => keyword.trim())
     .filter(Boolean); // filter out empty keywords in case a trailing comma is present
 
-// TODO remove MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH and let frontend handle this?
+// TODO remove MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH and let frontend handle this?
 export const convertIdeasToRows = ideas =>
   ideas
     .filter(
       res =>
-        res.keywordIdeaMetrics?.monthlySearchVolumes?.at(-1).monthlySearches >
-        MIN_SEARCH_VOLUME_THREASHOLD_FOR_LATEST_MONTH
+        res.keywordIdeaMetrics?.monthlySearchVolumes?.[
+          res.keywordIdeaMetrics.monthlySearchVolumes.length - 1
+        ].monthlySearches > MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH
     )
     .map(result => [
       result.text,
@@ -96,15 +97,13 @@ export const updateIdeas = () => {
   writeRowsToSheet(getIdeaSheet(), ideaRows, 1);
 };
 
-export const getYoYGroth = searchVolumes => {
-  const latestIndex = -1;
-  const previousYearIndex = latestIndex - 12;
-  const latestVolume = searchVolumes.at(latestIndex);
-  const previousYearVolume = searchVolumes.at(previousYearIndex);
+export const getYoYGrowth = searchVolumes => {
+  const latestVolume = searchVolumes[searchVolumes.length - 1];
+  const previousYearVolume = searchVolumes[searchVolumes.length - 13];
   return latestVolume / previousYearVolume - 1;
 };
 
-export const removeHTLMTicks = html => {
+export const removeHTMLTicks = html => {
   const prefix = '```html';
   const suffix = '```';
   let cleanedHtml = html;
@@ -117,19 +116,52 @@ export const removeHTLMTicks = html => {
   return cleanedHtml;
 };
 
-export const getInsights = (ideas, seedKeywords) => {
+export const getInsights = (ideas, seedKeywords, growthMetric = 'yoy') => {
   const relevantIdeas = Object.entries(ideas)
-    .map(([idea, searchVolume]) => [idea, getYoYGroth(searchVolume)])
+    .map(([idea, searchVolume]) => {
+      const history = searchVolume as number[];
+      const latest = history[history.length - 1] || 0;
+      const prevMonth = history[history.length - 2] || 0;
+      const prevYear = history[history.length - 13] || 0;
+
+      let growth = 0;
+      if (growthMetric === 'yoy') {
+        growth = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+      } else if (growthMetric === 'mom') {
+        growth = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+      } else if (growthMetric === 'latest_vs_avg') {
+        const totalSum = history.reduce((a, b) => a + b, 0);
+        const avg = history.length > 0 ? totalSum / history.length : 0;
+        growth = avg !== 0 ? (latest - avg) / avg : 0;
+      } else if (growthMetric === 'latest_vs_max') {
+        const max = Math.max(...history);
+        growth = max !== 0 ? (latest - max) / max : 0;
+      }
+      return [idea, growth];
+    })
     .filter(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ([_, yoyGrowth]) => (yoyGrowth as number) > MIN_YEAR_OVER_YEAR_GROWTH
+      ([_, growth]) => (growth as number) > MIN_YEAR_OVER_YEAR_GROWTH
     );
   console.log('relevantIdeas: ', relevantIdeas);
-  const insightsPrompt = getInsightsPrompt(relevantIdeas, seedKeywords);
+
+  const metricNames = {
+    yoy: 'YoY',
+    mom: 'MoM',
+    latest_vs_avg: 'Latest vs Average',
+    latest_vs_max: 'Last Month vs Max',
+  };
+  const metricName = metricNames[growthMetric] || 'YoY';
+
+  const insightsPrompt = getInsightsPrompt(
+    relevantIdeas,
+    seedKeywords,
+    metricName
+  );
   console.log(insightsPrompt.slice(insightsPrompt.length - 1000));
   const responseType = 'text/plain';
   const config = getGeminiConfig(responseType);
-  return removeHTLMTicks(gemini(config)(insightsPrompt));
+  return removeHTMLTicks(gemini(config)(insightsPrompt));
 };
 
 const updateInsights = () => {
@@ -144,13 +176,10 @@ const getSearchVolumeRow = res => {
   const volumes = res.keywordIdeaMetrics.monthlySearchVolumes.map(
     m => m.monthlySearches
   );
-  const latestIndex = -1;
-  const previousMonthIndex = latestIndex - 1;
-  const previousYearIndex = latestIndex - 12;
 
-  const latestVolume = volumes.at(latestIndex);
-  const previousMonthVolume = volumes.at(previousMonthIndex);
-  const previousYearVolume = volumes.at(previousYearIndex);
+  const latestVolume = volumes[volumes.length - 1];
+  const previousMonthVolume = volumes[volumes.length - 2];
+  const previousYearVolume = volumes[volumes.length - 13];
 
   return [
     latestVolume / previousMonthVolume - 1,
@@ -166,7 +195,7 @@ const getIdeasFromSheet = () =>
       .getValues()
       .filter(isNonEmptyRow)
       .map(row => [row[0], row.slice(4)])
-  ); // at 4 search volume starts, bevore avg and yoy are calculated
+  ); // at 4 search volume starts, before avg and yoy are calculated
 
 /**
  * @return {GeminiConfig} config
@@ -188,7 +217,7 @@ export const getGeminiConfig = responseType => {
   };
 };
 
-const getClusters = (ideas, promptTemplate) => {
+export const getClusters = (ideas, promptTemplate) => {
   ideas = objectToLowerCaseKeys(ideas);
   const keywords = Object.keys(ideas).join(', ');
   console.log(
@@ -199,11 +228,11 @@ const getClusters = (ideas, promptTemplate) => {
   const clusters = gemini(config)(prompt).map(cluster => {
     // TODO lookup all keywords again in keyword planner since gemini could have combined keywords into more generic broad match keywords that did not show up in ideas
     // remove keywords not found in ideas (hallucinations)
-    const [keywwordIdeas, hallucinations] = partition(
+    const [keywordIdeas, hallucinations] = partition(
       cluster.keywords,
       keyword => keyword.toLowerCase() in ideas
     );
-    cluster.keywords = keywwordIdeas;
+    cluster.keywords = keywordIdeas;
 
     // check hallucinations
     if (hallucinations.length > 0) {
@@ -214,7 +243,9 @@ const getClusters = (ideas, promptTemplate) => {
 
     // add search volume stats
     cluster.searchVolumes = cluster.keywords.map(k => ideas[k]);
-    cluster.latestSearchVolumes = cluster.searchVolumes.map(v => v.at(-1));
+    cluster.latestSearchVolumes = cluster.searchVolumes.map(
+      v => v[v.length - 1]
+    );
 
     // add sum of all keywords over time
     cluster.searchVolumeHistory = columnWiseSum(cluster.searchVolumes);
@@ -222,13 +253,29 @@ const getClusters = (ideas, promptTemplate) => {
     // get latest search volume sum of cluster
     cluster.searchVolume = sum(cluster.latestSearchVolumes);
 
-    // get yearOverYearGrowth
-    const latestIndex = -1;
-    const previousYearVolumes = cluster.searchVolumes.map(v =>
-      v.at(latestIndex - 12)
-    );
-    cluster.yearOverYearGrowth =
-      cluster.searchVolume / sum(previousYearVolumes) - 1;
+    // Calculate Growth Metrics
+    const history = cluster.searchVolumeHistory;
+    const latest = history[history.length - 1] || 0;
+    const prevMonth = history[history.length - 2] || 0;
+    const prevYear = history[history.length - 13] || 0; // 12 months ago
+
+    // Year over Year
+    // Note: Original logic used sum of previousYearVolumes for individual keywords, which is mathematically equivalent to history.at(-13) if history is sum.
+    // However, let's stick to the history array for consistency.
+    cluster.growthYoY = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+    cluster.yearOverYearGrowth = cluster.growthYoY; // Keep for backward compatibility
+
+    // Month over Month
+    cluster.growthMoM = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+
+    // Latest vs Average
+    const totalSum = history.reduce((a, b) => a + b, 0);
+    const avg = history.length > 0 ? totalSum / history.length : 0;
+    cluster.growthLatestVsAvg = avg !== 0 ? (latest - avg) / avg : 0;
+
+    // Latest vs Max
+    const max = Math.max(...history);
+    cluster.growthLatestVsMax = max !== 0 ? (latest - max) / max : 0;
 
     return cluster;
   });
@@ -239,11 +286,11 @@ const PROMPT_DATA_FORMAT_SUFFIX = `
   Output as a list of topics where each topic has a name and up to 10 keywords as JSON with this format:
     [
       {
-        "topic": "A decriptive name of topic 1",
+        "topic": "A descriptive name of topic 1",
         "keywords": ["a1", "b1", "c1"]
       },
       {
-        "topic": "A decriptive name of topic 2",
+        "topic": "A descriptive name of topic 2",
         "keywords": ["a2", "b2", "c2"]
       }
     ]
@@ -264,7 +311,7 @@ const updateClusters = () => {
 };
 
 export const getCampaigns = (insights, language, brandName, adExamples) => {
-  const prompt = ` I am a SEA manager working for ${brandName} and I want to crate new Google Ads search campaigns based on the following input.
+  const prompt = ` I am a SEA manager working for ${brandName} and I want to create new Google Ads search campaigns based on the following input.
   For each cluster in the **Cluster Insights & Marketing Takeaways:** section, generate a ready-to-use text ad campaign.
 
   Ensure the new created ads are following the style, wording, tonality of the following ad examples:
@@ -272,7 +319,7 @@ export const getCampaigns = (insights, language, brandName, adExamples) => {
 
   Output as HTML with standard HTML elements like <h1> and <ul> for captions or lists
 
-  Create the Campaings in ${language}.
+  Create the Campaigns in ${language}.
   Please style the Ad examples so that they look like text ads shown on google.com
 
   Insights:
@@ -280,7 +327,7 @@ export const getCampaigns = (insights, language, brandName, adExamples) => {
   ${insights}
 
   `;
-  return removeHTLMTicks(gemini(getGeminiConfig('text/plain'))(prompt));
+  return removeHTMLTicks(gemini(getGeminiConfig('text/plain'))(prompt));
 };
 
 export const doGet = () =>
