@@ -330,6 +330,23 @@ export const getCampaigns = (insights, language, brandName, adExamples) => {
   return removeHTMLTicks(gemini(getGeminiConfig('text/plain'))(prompt));
 };
 
+export const generateTrendsKeywords = (keywords, promptTemplate) => {
+  const prompt = `${promptTemplate}\n\nKeywords:\n${keywords.join('\n')}
+
+  IMPORTANT:
+  - Only output the keywrods itself and not add "trending" or "high demand for" other search terms
+  - Only output the keywords without any introduction or other annotations
+  - Do not add punctuation or unneccessary hyphens to keep the keyword as simple and generic as possible`;
+  const config: any = getGeminiConfig('application/json');
+  config.responseSchema = {
+    type: 'ARRAY',
+    items: {
+      type: 'STRING',
+    },
+  };
+  return gemini(config)(prompt);
+};
+
 export const doGet = () =>
   HtmlService.createTemplateFromFile('webApp').evaluate();
 

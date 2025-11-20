@@ -41,6 +41,8 @@ const addAuth = (params, payloadKey = 'payload') =>
  * @property {number} topP - Lower value for less randomness. Range: 0.0 - 1.0, Default: 1.0
  * @property {number} maxOutputTokens - Default gemini-pro-vision: 2048
  * @property {string} responseType - Response (text/plain or application/json)
+ * @property {object} responseSchema - Optional JSON schema for the response
+ * @property {boolean} enableGoogleSearch - Optional flag to enable Google Search grounding
  */
 
 /**
@@ -49,7 +51,11 @@ const addAuth = (params, payloadKey = 'payload') =>
 export const gemini =
   (config, jsonFetcher = fetchJson) =>
   prompt => {
-    const [url, options] = getGeminiRequest(config, prompt);
+    const [url, options] = getGeminiRequest(
+      config,
+      prompt,
+      config.enableGoogleSearch
+    );
 
     const res = jsonFetcher(url, options);
     console.log(JSON.stringify(res, null, 2));
@@ -69,7 +75,12 @@ export const gemini =
     }
   };
 
-const getGeminiRequest = (config, prompt, payloadKey = 'payload') => {
+const getGeminiRequest = (
+  config,
+  prompt,
+  enableGoogleSearch = false,
+  payloadKey = 'payload'
+) => {
   console.log(prompt);
   console.log(JSON.stringify(config, null, 2));
   const location = config.location || 'us-central1';
@@ -107,10 +118,12 @@ const getGeminiRequest = (config, prompt, payloadKey = 'payload') => {
       top_p: config.topP,
       max_output_tokens: config.maxOutputTokens,
       response_mime_type: config.responseType,
+      response_schema: config.responseSchema,
       thinkingConfig: {
         thinkingBudget: 1024,
       },
     },
+    tools: enableGoogleSearch ? [{ googleSearch: {} }] : [],
   };
 
   return [
