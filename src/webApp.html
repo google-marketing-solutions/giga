@@ -297,6 +297,8 @@ limitations under the License.
       const { useState, useEffect, useRef, useMemo } = React;
 
       // --- Constants & Data ---
+      const COLOR_PALETTE = ['#4f6d7a', '#c0d6df', '#dbe9ee', '#4a6fa5', '#166088'];
+
       const LANGUAGES = [
         { id: '1000', name: 'English' }, { id: '1001', name: 'German' }, { id: '1002', name: 'French' },
         { id: '1003', name: 'Spanish' }, { id: '1004', name: 'Italian' }, { id: '1009', name: 'Danish' },
@@ -386,7 +388,7 @@ The Google Ads keyword ideas are:
                 {options.map(opt => (
                   <option key={opt.id} value={opt.id}>{opt.name}</option>
                 ))}
-                <option value="custom">Custom ID...</option>
+                {onCustomOption && <option value="custom">Custom ID...</option>}
               </select>
             </div>
           </div>
@@ -657,7 +659,7 @@ The Google Ads keyword ideas are:
           const maxVol = Math.max(...clusters.map(c => c.searchVolume), 1);
 
           return {
-            datasets: clusters.map(c => {
+            datasets: clusters.map((c, i) => {
               let yValue = 0;
 
               if (growthMetric === 'yoy') {
@@ -677,7 +679,7 @@ The Google Ads keyword ideas are:
                   y: yValue,
                   r: 5 + ((c.searchVolume || 0) / maxVol) * 45
                 }],
-                backgroundColor: `rgba(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, 0.6)`
+                backgroundColor: COLOR_PALETTE[i % COLOR_PALETTE.length]
               };
             })
           };
@@ -695,8 +697,8 @@ The Google Ads keyword ideas are:
               {
                 label: `Search Volume: ${selectedCluster.topic}`,
                 data: data,
-                borderColor: 'rgb(37, 99, 235)',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderColor: COLOR_PALETTE[4],
+                backgroundColor: COLOR_PALETTE[4] + '1A',
                 fill: true,
                 tension: 0.3
               }
@@ -714,8 +716,7 @@ The Google Ads keyword ideas are:
           return {
             labels: chartLabels,
             datasets: seedIdeas.map((idea, index) => {
-              // Use blue for the first keyword, other colors for the rest
-              const color = index === 0 ? 'rgb(37, 99, 235)' : `hsl(${ (index * 360 / seedIdeas.length) % 360 }, 70%, 50%)`;
+              const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
 
               return {
                 label: idea.text,
@@ -841,8 +842,7 @@ The Google Ads keyword ideas are:
             {activeTab === 'explore' && (
               <div className="card fade-in">
                 <h2>Explore Keywords</h2>
-                <div className="grid-2">
-                  <InputField
+                <InputField
                     label="Seed Keywords"
                     value={keywords}
                     onChange={setKeywords}
@@ -854,6 +854,7 @@ The Google Ads keyword ideas are:
                       }
                     }}
                   />
+                <div className="grid-2">
                   <SelectField
                     label="Language"
                     value={language}
@@ -868,13 +869,9 @@ The Google Ads keyword ideas are:
                     options={[...COUNTRIES, ...customCountries]}
                     onCustomOption={() => handleCustomOption('country')}
                   />
-                  <SelectField
-                    label="Growth Metric"
-                    value={growthMetric}
-                    onChange={setGrowthMetric}
-                    options={GROWTH_METRICS}
-                  />
                 </div>
+
+
 
                 <details className="mb-4">
                   <summary className="cursor-pointer text-sm font-medium text-primary">Advanced Config</summary>
@@ -898,7 +895,7 @@ The Google Ads keyword ideas are:
 
                 {seedChartData && (
                   <div className="mt-4 card" style={{border: '1px solid var(--primary)'}}>
-                    <h3>Seed Keywords Trends</h3>
+                    <h3>Seed Keywords Search Volume</h3>
                     <div style={{height: '400px'}}>
                       <ChartComponent
                         type="line"
@@ -923,6 +920,15 @@ The Google Ads keyword ideas are:
                     </div>
                   </div>
                 )}
+
+                <div className="mt-4" style={{maxWidth: '300px'}}>
+                  <SelectField
+                    label="Growth Metric"
+                    value={growthMetric}
+                    onChange={setGrowthMetric}
+                    options={GROWTH_METRICS}
+                  />
+                </div>
 
                 {clustersChartData && (
                   <div className="mt-4">
@@ -960,7 +966,7 @@ The Google Ads keyword ideas are:
                        </div>
                     </div>
                     <div className="mt-4">
-                       <h4>Search Volume Trend</h4>
+                       <h4>Cluster Search Volume</h4>
                        <ChartComponent
                          type="line"
                          data={selectedClusterChartData}
@@ -974,7 +980,7 @@ The Google Ads keyword ideas are:
                        />
                     </div>
                     <div className="mt-4">
-                       <h4>Keyword Trends (All)</h4>
+                       <h4>Keyword Search Volume</h4>
                        <div style={{height: '400px'}}>
                          <ChartComponent
                            type="line"
@@ -982,7 +988,7 @@ The Google Ads keyword ideas are:
                              labels: chartLabels,
                              datasets: selectedCluster.keywords.map((k, i) => {
                                const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
-                               const color = `hsl(${ (i * 360 / selectedCluster.keywords.length) % 360 }, 70%, 50%)`;
+                               const color = COLOR_PALETTE[i % COLOR_PALETTE.length];
                                return {
                                  label: k,
                                  data: volHistory.slice(),
