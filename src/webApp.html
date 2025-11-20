@@ -853,13 +853,32 @@ The Google Ads keyword ideas are:
 
         const [geminiConfig, setGeminiConfig] = useStickyState(
           {
-            projectID: '',
-            modelID: 'gemini-2.5-flash',
+            projectId: '',
+            modelId: 'gemini-2.5-flash',
             temperature: 0.7,
             topP: 0.9,
           },
           'giga_geminiConfig'
         );
+
+        // Migration for renamed keys
+        useEffect(() => {
+          if (geminiConfig.modelID !== undefined || geminiConfig.projectID !== undefined) {
+            console.log('Migrating legacy geminiConfig keys...');
+            setGeminiConfig(prev => {
+              const newConfig = { ...prev };
+              if (prev.modelID !== undefined) {
+                newConfig.modelId = prev.modelID;
+                delete newConfig.modelID;
+              }
+              if (prev.projectID !== undefined) {
+                newConfig.projectId = prev.projectID;
+                delete newConfig.projectID;
+              }
+              return newConfig;
+            });
+          }
+        }, [geminiConfig]);
         const [creationResult, setCreationResult] = useStickyState(
           '',
           'giga_creationResult'
@@ -1330,9 +1349,9 @@ The Google Ads keyword ideas are:
                 <label>Gemini Model</label>
                 <div className="select-wrapper">
                   <select
-                    value={geminiConfig.modelID}
+                    value={geminiConfig.modelId}
                     onChange={e =>
-                      setGeminiConfig({ ...geminiConfig, modelID: e.target.value })
+                      setGeminiConfig({ ...geminiConfig, modelId: e.target.value })
                     }
                   >
                     <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>

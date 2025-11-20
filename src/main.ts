@@ -28,7 +28,7 @@ import {
   sum,
   writeRowsToSheet,
 } from './util';
-import { gemini, GeminiConfig, getGCPProjectID } from './vertex';
+import { gemini, GeminiConfig, getGcpProjectId } from './vertex';
 
 const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 100;
 const MIN_YEAR_OVER_YEAR_GROWTH = 0.1;
@@ -176,8 +176,8 @@ const updateInsights = () => {
   const keywords = getSeedKeywords();
   // Default config for backend triggers
   const defaultConfig = {
-    projectID: getGCPProjectID(),
-    modelID: 'gemini-2.5-pro',
+    projectId: getGcpProjectId(),
+    modelId: 'gemini-2.5-pro',
     temperature: 0.7,
     topP: 0.9,
   };
@@ -219,8 +219,8 @@ export const createGeminiConfig = (
   responseType = 'application/json'
 ): GeminiConfig => {
   return {
-    modelID: config.modelID,
-    projectID: getGCPProjectID(),
+    modelId: config.modelId,
+    projectId: getGcpProjectId(),
     location: 'us-central1',
     temperature: config.temperature,
     topP: config.topP,
@@ -317,8 +317,8 @@ const updateClusters = () => {
     .getRangeByName('PROMPT_TEMPLATE')
     .getValue();
   const defaultConfig = {
-    projectID: getGCPProjectID(),
-    modelID: 'gemini-2.5-pro',
+    projectId: getGcpProjectId(),
+    modelId: 'gemini-2.5-pro',
     temperature: 0.7,
     topP: 0.9,
   };

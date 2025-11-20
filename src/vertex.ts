@@ -16,8 +16,8 @@
 
 import { fetchJson, getConfigVariable, getGcpProjectDetails } from './util';
 
-export const getGeminiModelID = () => getConfigVariable('GEMINI_MODEL_ID');
-export const getGCPProjectID = () => getGcpProjectDetails().projectId;
+export const getGeminiModelId = () => getConfigVariable('GEMINI_MODEL_ID');
+export const getGcpProjectId = () => getGcpProjectDetails().projectId;
 
 const addAuth = (params, payloadKey = 'payload') =>
   Object.assign(
@@ -33,8 +33,8 @@ const addAuth = (params, payloadKey = 'payload') =>
   );
 
 export interface GeminiConfig {
-  projectID: string;
-  modelID: string;
+  projectId: string;
+  modelId: string;
   temperature: number;
   topP: number;
   location?: string;
@@ -83,7 +83,7 @@ const getGeminiRequest = (
   console.log(prompt);
   console.log(JSON.stringify(config, null, 2));
   const location = config.location || 'us-central1';
-  const baseUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${config.projectID}/locations/${location}/publishers/google/models/${config.modelID}`;
+  const baseUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${location}/publishers/google/models/${config.modelId}`;
 
   const safetySettings = [
     {

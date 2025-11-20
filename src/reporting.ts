@@ -226,7 +226,6 @@ export const getTopPerformingAdsAndKeywords = (cid, topN) => {
     AND ad_group_ad.status = 'ENABLED'
     AND ad_group.status = 'ENABLED'
     AND campaign.status = 'ENABLED'
-    AND campaign.status = 'ENABLED'
   ORDER BY metrics.clicks DESC
   LIMIT ${topN}`;
 
