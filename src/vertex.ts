@@ -32,24 +32,23 @@ const addAuth = (params, payloadKey = 'payload') =>
     }
   );
 
-/**
- * @typedef {Object} GeminiConfig
- * @property {string} projectID - GCP Project ID with Vertex AI enabled
- * @property {string} location - Location of the prediction model
- * @property {string} modelID - ID of the prediction model to use (e.g. gemini-pro)
- * @property {number} temperature - Degree of randomness in token selection (0 is deterministic, 1 max randomness, default for gemini-pro-vision: 0.4)
- * @property {number} topP - Lower value for less randomness. Range: 0.0 - 1.0, Default: 1.0
- * @property {number} maxOutputTokens - Default gemini-pro-vision: 2048
- * @property {string} responseType - Response (text/plain or application/json)
- * @property {object} responseSchema - Optional JSON schema for the response
- * @property {boolean} enableGoogleSearch - Optional flag to enable Google Search grounding
- */
+export interface GeminiConfig {
+  projectID: string;
+  modelID: string;
+  temperature: number;
+  topP: number;
+  location?: string;
+  maxOutputTokens?: number;
+  responseType?: string;
+  responseSchema?: any;
+  enableGoogleSearch?: boolean;
+}
 
 /**
  * @param {GeminiConfig} config
  */
 export const gemini =
-  (config, jsonFetcher = fetchJson) =>
+  (config: GeminiConfig, jsonFetcher = fetchJson) =>
   prompt => {
     const [url, options] = getGeminiRequest(
       config,
@@ -76,7 +75,7 @@ export const gemini =
   };
 
 const getGeminiRequest = (
-  config,
+  config: GeminiConfig,
   prompt,
   enableGoogleSearch = false,
   payloadKey = 'payload'

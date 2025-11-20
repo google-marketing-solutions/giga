@@ -20,13 +20,15 @@ import { getInsightsPrompt } from './prompt';
 import {
   alert,
   columnWiseSum,
+  getScriptProperties,
   isNonEmptyRow,
   objectToLowerCaseKeys,
   partition,
+  setScriptProperties,
   sum,
   writeRowsToSheet,
 } from './util';
-import { gemini, getGCPProjectID } from './vertex';
+import { gemini, GeminiConfig, getGCPProjectID } from './vertex';
 
 const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 100;
 const MIN_YEAR_OVER_YEAR_GROWTH = 0.1;
@@ -120,7 +122,7 @@ export const getInsights = (
   ideas,
   seedKeywords,
   growthMetric = 'yoy',
-  geminiConfig
+  geminiConfig: Partial<GeminiConfig>
 ) => {
   const relevantIdeas = Object.entries(ideas)
     .map(([idea, searchVolume]) => {
@@ -213,9 +215,9 @@ const getIdeasFromSheet = () =>
  * @return {GeminiConfig} config
  */
 export const createGeminiConfig = (
-  config,
+  config: Partial<GeminiConfig>,
   responseType = 'application/json'
-) => {
+): GeminiConfig => {
   return {
     modelID: config.modelID,
     projectID: getGCPProjectID(),
@@ -229,8 +231,7 @@ export const createGeminiConfig = (
 export const getClusters = (
   ideas,
   promptTemplate,
-  growthMetric = 'yoy',
-  geminiConfig
+  geminiConfig: Partial<GeminiConfig>
 ) => {
   ideas = objectToLowerCaseKeys(ideas);
   const keywords = Object.keys(ideas).join(', ');
@@ -321,7 +322,7 @@ const updateClusters = () => {
     temperature: 0.7,
     topP: 0.9,
   };
-  const clusters = getClusters(ideas, promptTemplate, 'yoy', defaultConfig);
+  const clusters = getClusters(ideas, promptTemplate, defaultConfig);
   const clusterRows = clusters.map(cluster => [
     cluster.topic,
     cluster.keywords.join(', '),
@@ -335,7 +336,7 @@ export const getCampaigns = (
   language,
   brandName,
   adExamples,
-  geminiConfig
+  geminiConfig: Partial<GeminiConfig>
 ) => {
   const prompt = ` I am a SEA manager working for ${brandName} and I want to create new Google Ads search campaigns based on the following input.
   For each cluster in the **Cluster Insights & Marketing Takeaways:** section, generate a ready-to-use text ad campaign.
@@ -361,14 +362,15 @@ export const getCampaigns = (
 export const generateTrendsKeywords = (
   keywords,
   promptTemplate,
-  geminiConfig
+  geminiConfig: Partial<GeminiConfig>
 ) => {
   const prompt = `${promptTemplate}\n\nKeywords:\n${keywords.join('\n')}
 
   IMPORTANT:
-  - Only output the keywrods itself and not add "trending" or "high demand for" other search terms
+  - Do NOT add the topic keyword itself to the trends if not necessary.
+  - Only output the keywords itself and not add "trending" or "high demand for" other search terms
   - Only output the keywords without any introduction or other annotations
-  - Do not add punctuation or unneccessary hyphens to keep the keyword as simple and generic as possible`;
+  - Do NOT add punctuation or unnecessary hyphens to keep the keyword as simple and generic as possible`;
   const config: any = createGeminiConfig(geminiConfig, 'application/json');
   config.responseSchema = {
     type: 'ARRAY',
@@ -377,6 +379,21 @@ export const generateTrendsKeywords = (
     },
   };
   return gemini(config)(prompt);
+};
+
+export const checkScriptProperties = () => {
+  const devToken = getScriptProperties('DEVELOPER_TOKEN');
+  const adsAccountId = getScriptProperties('ADS_ACCOUNT_ID');
+  return {
+    hasDeveloperToken: !!devToken,
+    hasAdsAccountId: !!adsAccountId,
+    adsAccountId: adsAccountId || '',
+  };
+};
+
+export const setScriptProperty = (key: string, value: string) => {
+  setScriptProperties(key, value);
+  return checkScriptProperties();
 };
 
 export const doGet = () =>

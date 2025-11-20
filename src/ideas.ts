@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  chunk,
-  fetchJson,
-  getConfigVariable,
-  getScriptProperties,
-} from './util';
+import { chunk, fetchJson, getScriptProperties } from './util';
 
 export const MAX_KEYWORDS_PER_REQUEST = 10000; // See https://developers.google.com/google-ads/api/rest/reference/rest/v15/customers/generateKeywordHistoricalMetrics for details
 export const LOOKBACK_YEARS = 2;
@@ -28,7 +23,7 @@ export const MAX_NUMBER_OF_KEYWORD_SEED_IDEAS = 20;
 
 export const getDeveloperToken = () => getScriptProperties('DEVELOPER_TOKEN');
 export const getCustomerId = () =>
-  getConfigVariable('ADS_ACCOUNT_ID').toString().replaceAll('-', '').trim();
+  getScriptProperties('ADS_ACCOUNT_ID').toString().replace(/-/g, '').trim();
 export const ADS_VERSION = 'v22';
 export const ADS_ENDPOINT = `https://googleads.googleapis.com/${ADS_VERSION}`;
 

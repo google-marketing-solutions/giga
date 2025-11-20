@@ -378,6 +378,10 @@ limitations under the License.
         gap: 1rem;
         margin-top: 1.5rem;
       }
+      @keyframes bounceHorizontal {
+        0%, 100% { transform: translateX(0) translateY(-50%); }
+        50% { transform: translateX(-10px) translateY(-50%); }
+      }
     </style>
   </head>
   <body>
@@ -489,7 +493,7 @@ All keywords assigned to a cluster must be exactly the same (e.g. same case, sam
 The Google Ads keyword ideas are:
 `;
 
-      const DEFAULT_TRENDS_PROMPT = `What are the current trends regarding the keywords mentioned below. Do not add the topic keyword itself to the trends if not necessary.`;
+      const DEFAULT_TRENDS_PROMPT = `Provide an extensive list of ~100 trends regarding the topics/keywords mentioned below.`;
 
       const LANGUAGE_INFO_URL =
         'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
@@ -677,6 +681,7 @@ The Google Ads keyword ideas are:
               : defaultValue;
           } catch (error) {
             console.warn(`Error reading localStorage key "${key}":`, error);
+            window.localStorage.removeItem(key);
             return defaultValue;
           }
         });
@@ -711,8 +716,6 @@ The Google Ads keyword ideas are:
           'giga_trendsResults'
         );
         const [trendsStatus, setTrendsStatus] = useState('');
-        const [trendsMinSearchVolume, setTrendsMinSearchVolume] =
-          useStickyState(100, 'giga_trendsMinSearchVolume');
         const [trendsPromptTemplate, setTrendsPromptTemplate] = useStickyState(
           DEFAULT_TRENDS_PROMPT,
           'giga_trendsPromptTemplate'
@@ -803,6 +806,41 @@ The Google Ads keyword ideas are:
           stack: '',
         });
 
+        const [configStatus, setConfigStatus] = useState({
+          hasDeveloperToken: false,
+          hasAdsAccountId: false,
+          adsAccountId: '',
+          checked: false,
+        });
+
+        const adsInputRef = useRef(null);
+
+        useEffect(() => {
+          if (
+            modalConfig &&
+            modalConfig.isOpen &&
+            modalConfig.highlight === 'ADS_ACCOUNT_ID' &&
+            adsInputRef.current
+          ) {
+            setTimeout(() => {
+              adsInputRef.current.focus();
+              // adsInputRef.current.select(); // Optional: select all text
+            }, 100);
+          }
+        }, [modalConfig && modalConfig.isOpen, modalConfig && modalConfig.highlight]);
+
+        useEffect(() => {
+          googleScriptRun
+            .checkScriptProperties()
+            .then(status => {
+              setConfigStatus({ ...status, checked: true });
+              if (status.adsAccountId) {
+                setAdsAccountId(status.adsAccountId);
+              }
+            })
+            .catch(console.error);
+        }, []);
+
         const showError = (title, error) => {
           console.error(error);
           setErrorState({
@@ -836,14 +874,8 @@ The Google Ads keyword ideas are:
         ];
 
         const clearCache = () => {
-          if (
-            confirm(
-              'Are you sure you want to clear all cached data? This will reset the application state.'
-            )
-          ) {
-            localStorage.clear();
-            onReset();
-          }
+          localStorage.clear();
+          onReset();
         };
 
         // Handlers
@@ -880,6 +912,43 @@ The Google Ads keyword ideas are:
         };
 
         const runExplore = async () => {
+          // Check properties on demand
+          let currentStatus = configStatus;
+          try {
+            const status = await googleScriptRun.checkScriptProperties();
+            setConfigStatus({ ...status, checked: true });
+            if (status.adsAccountId) {
+              setAdsAccountId(status.adsAccountId);
+            }
+            currentStatus = status;
+          } catch (e) {
+            console.error('Failed to check script properties:', e);
+            // If we haven't checked successfully yet, we can't trust configStatus
+            if (!configStatus.checked) {
+              alert('Failed to verify configuration. Please check your connection and try again.');
+              return;
+            }
+            // If we have checked before, we use the cached status (currentStatus)
+          }
+
+          if (!currentStatus.hasDeveloperToken) {
+            setModalConfig({
+              isOpen: true,
+              type: 'settings',
+              highlight: 'DEVELOPER_TOKEN',
+              message: 'Please configure your Developer Token to proceed.',
+            });
+            return;
+          }
+          if (!currentStatus.adsAccountId) {
+            setModalConfig({
+              isOpen: true,
+              type: 'settings',
+              highlight: 'ADS_ACCOUNT_ID',
+              message: 'Please configure your Ads Account ID to proceed.',
+            });
+            return;
+          }
           if (!keywords.trim()) {
             alert('Please enter at least one seed keyword.');
             return;
@@ -946,7 +1015,6 @@ The Google Ads keyword ideas are:
             const clusterResult = await googleScriptRun.getClusters(
               relevant,
               promptTemplate,
-              growthMetric,
               geminiConfig
             );
             setClusters(clusterResult);
@@ -1243,6 +1311,21 @@ The Google Ads keyword ideas are:
             title="Settings"
           >
             <div className="modal-body">
+              {modalConfig.message && (
+                <div
+                  className="alert alert-warning mb-4"
+                  style={{
+                    color: '#dc2626',
+                    background: '#fee2e2',
+                    padding: '10px',
+                    borderRadius: '6px',
+                    fontSize: '0.9rem',
+                    border: '1px solid #fca5a5',
+                  }}
+                >
+                  {modalConfig.message}
+                </div>
+              )}
               <div className="input-group">
                 <label>Gemini Model</label>
                 <div className="select-wrapper">
@@ -1291,30 +1374,185 @@ The Google Ads keyword ideas are:
                   />
                 </div>
               </div>
+
+
+              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+              <div className="input-group">
+                <label>Min Search Volume</label>
+                <input
+                  type="number"
+                  value={minSearchVolume}
+                  onChange={e => setMinSearchVolume(Number(e.target.value))}
+                  placeholder="100"
+                />
+              </div>
+
               <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
               <div className="input-group">
                 <label>Application Data</label>
-                <button
-                  className="btn"
-                  onClick={() => {
-                    clearCache();
-                    setModalConfig({ ...modalConfig, isOpen: false });
-                  }}
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '0.85rem',
-                    background: '#fee2e2',
-                    color: '#ef4444',
-                    border: '1px solid #fca5a5',
-                  }}
-                >
-                  <span className="material-icons-round" style={{ fontSize: '1.1rem' }}>delete_outline</span>
-                  Clear Cache
-                </button>
-                <div className="text-sm text-muted mt-2">
-                  Removes all locally saved data and resets the application state.
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    className="btn"
+                    onClick={() => {
+                      clearCache();
+                      setModalConfig({ ...modalConfig, isOpen: false });
+                    }}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#f3f4f6',
+                      color: '#4b5563',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      flexShrink: 0,
+                    }}
+                    title="Clear Cache"
+                  >
+                    <span
+                      className="material-icons-round"
+                      style={{ fontSize: '1.2rem' }}
+                    >
+                      delete_outline
+                    </span>
+                  </button>
+                  <div className="text-sm text-muted">
+                    Removes all locally saved data and resets the application state.
+                  </div>
                 </div>
               </div>
+
+              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+
+              <details
+                className="advanced-settings"
+                open={!!modalConfig.highlight}
+                style={{
+                  background: '#f8fafc',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
+                <summary
+                  style={{
+                    color: '#475569',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '1rem',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  <span className="material-icons-round" style={{ fontSize: '1.2rem' }}>expand_more</span>
+                  <span className="material-icons-round" style={{ fontSize: '1.2rem' }}>settings</span>
+                  Advanced Settings
+                </summary>
+                <div className="mt-4">
+                  <div className="input-group">
+                    <label>Ads Account ID</label>
+                    <div
+                      style={
+                        modalConfig.highlight === 'ADS_ACCOUNT_ID'
+                          ? {
+                              border: '2px solid #dc2626',
+                              borderRadius: '8px',
+                              padding: '4px',
+                              position: 'relative',
+                            }
+                          : {}
+                      }
+                    >
+                      <input
+                        ref={adsInputRef}
+                        type="text"
+                        value={configStatus.adsAccountId}
+                        onChange={e => {
+                          setConfigStatus({
+                            ...configStatus,
+                            adsAccountId: e.target.value,
+                          });
+                        }}
+                        onBlur={e =>
+                          updateScriptProperty('ADS_ACCOUNT_ID', e.target.value)
+                        }
+                        placeholder="e.g. 123-456-7890"
+                        style={{ width: '100%', boxSizing: 'border-box' }}
+                      />
+                      {modalConfig.highlight === 'ADS_ACCOUNT_ID' && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            right: '-40px',
+                            top: '50%',
+                            color: '#dc2626',
+                            fontSize: '32px',
+                            fontWeight: 'bold',
+                            animation: 'bounceHorizontal 1s infinite ease-in-out',
+                          }}
+                        >
+                          ←
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label>Developer Token</label>
+                    <div
+                      style={
+                        modalConfig.highlight === 'DEVELOPER_TOKEN'
+                          ? {
+                              border: '2px solid #dc2626',
+                              borderRadius: '8px',
+                              padding: '4px',
+                              position: 'relative',
+                            }
+                          : {}
+                      }
+                    >
+                      <button
+                        className="btn"
+                        onClick={() => {
+                          const token = prompt('Enter new Developer Token:');
+                          if (token) {
+                            updateScriptProperty('DEVELOPER_TOKEN', token);
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          justifyContent: 'center',
+                          background: '#fff',
+                          border: '1px solid var(--border-color)',
+                        }}
+                      >
+                        Update Developer Token
+                      </button>
+                      {modalConfig.highlight === 'DEVELOPER_TOKEN' && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            right: '-40px',
+                            top: '50%',
+                            color: '#dc2626',
+                            fontSize: '32px',
+                            fontWeight: 'bold',
+                            animation: 'bounceHorizontal 1s infinite ease-in-out',
+                          }}
+                        >
+                          ←
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted mt-2">
+                      Token is saved securely and never shown.
+                    </div>
+                  </div>
+                </div>
+              </details>
               <div className="modal-actions">
                 <button
                   className="btn btn-primary"
@@ -1378,6 +1616,93 @@ The Google Ads keyword ideas are:
             </div>
           </Modal>
         );
+
+        const updateScriptProperty = async (key, value) => {
+          try {
+            const status = await googleScriptRun.setScriptProperty(key, value);
+            setConfigStatus({ ...status, checked: true });
+            if (key === 'ADS_ACCOUNT_ID') {
+              setAdsAccountId(value);
+            }
+            return true;
+          } catch (e) {
+            showError('Error updating property', e);
+            return false;
+          }
+        };
+
+        const ConfigModal = () => {
+          const [localDevToken, setLocalDevToken] = useState('');
+          const [localAdsId, setLocalAdsId] = useState('');
+          const [isSaving, setIsSaving] = useState(false);
+
+          if (!configStatus.checked) return null;
+          if (configStatus.hasDeveloperToken && configStatus.hasAdsAccountId)
+            return null;
+
+          const handleSave = async () => {
+            setIsSaving(true);
+            try {
+              if (!configStatus.hasDeveloperToken && localDevToken) {
+                await updateScriptProperty('DEVELOPER_TOKEN', localDevToken);
+              }
+              if (!configStatus.hasAdsAccountId && localAdsId) {
+                await updateScriptProperty('ADS_ACCOUNT_ID', localAdsId);
+              }
+            } finally {
+              setIsSaving(false);
+            }
+          };
+
+          return (
+            <Modal
+              isOpen={true}
+              onClose={() => {}}
+              title="Configuration Required"
+            >
+              <div className="modal-body">
+                <p className="text-sm text-muted mb-4">
+                  Please provide the following required configuration to proceed.
+                </p>
+                {!configStatus.hasDeveloperToken && (
+                  <div className="input-group">
+                    <label>Developer Token</label>
+                    <input
+                      type="password"
+                      value={localDevToken}
+                      onChange={e => setLocalDevToken(e.target.value)}
+                      placeholder="Enter Developer Token"
+                    />
+                  </div>
+                )}
+                {!configStatus.hasAdsAccountId && (
+                  <div className="input-group">
+                    <label>Ads Account ID</label>
+                    <input
+                      type="text"
+                      value={localAdsId}
+                      onChange={e => setLocalAdsId(e.target.value)}
+                      placeholder="e.g. 123-456-7890"
+                    />
+                  </div>
+                )}
+                <div className="modal-actions">
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleSave}
+                    disabled={
+                      isSaving ||
+                      (!configStatus.hasDeveloperToken && !localDevToken) ||
+                      (!configStatus.hasAdsAccountId && !localAdsId)
+                    }
+                  >
+                    {isSaving ? 'Saving...' : 'Save Configuration'}
+                  </button>
+                </div>
+              </div>
+            </Modal>
+          );
+        };
 
         const locationModal = (
           <Modal
@@ -1530,14 +1855,7 @@ The Google Ads keyword ideas are:
                   <summary className="cursor-pointer text-sm font-medium text-primary">
                     Advanced Config
                   </summary>
-                  <div className="mt-4">
-                    <InputField
-                      label="Min Search Volume"
-                      type="number"
-                      value={minSearchVolume}
-                      onChange={setMinSearchVolume}
-                      placeholder="100"
-                    />
+                    <div className="mt-4">
                     <div className="mt-4">
                       <InputField
                         type="textarea"
@@ -1604,14 +1922,16 @@ The Google Ads keyword ideas are:
                   </div>
                 )}
 
-                <div className="mt-4" style={{ maxWidth: '300px' }}>
-                  <SelectField
-                    label="Growth Metric"
-                    value={growthMetric}
-                    onChange={setGrowthMetric}
-                    options={GROWTH_METRICS}
-                  />
-                </div>
+                {clusters && (
+                  <div className="mt-4" style={{ maxWidth: '300px' }}>
+                    <SelectField
+                      label="Growth Metric"
+                      value={growthMetric}
+                      onChange={setGrowthMetric}
+                      options={GROWTH_METRICS}
+                    />
+                  </div>
+                )}
 
                 {clustersChartData && (
                   <div className="mt-4">
@@ -1765,13 +2085,6 @@ The Google Ads keyword ideas are:
                     Advanced Config
                   </summary>
                   <div className="mt-4">
-                    <InputField
-                      label="Min Search Volume"
-                      type="number"
-                      value={trendsMinSearchVolume}
-                      onChange={setTrendsMinSearchVolume}
-                      placeholder="100"
-                    />
                     <div className="mt-4">
                       <InputField
                         type="textarea"
