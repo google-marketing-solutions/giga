@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { fetchJson, getConfigVariable } from './util';
+import { fetchJson, getConfigVariable, getGcpProjectDetails } from './util';
 
-export const getGeminiModelID = () => getConfigVariable('GEMINI_MODEL_ID');
-export const getGCPProjectID = () => getConfigVariable('GCP_ID');
+export const getGeminiModelId = () => getConfigVariable('GEMINI_MODEL_ID');
+export const getGcpProjectId = () => getGcpProjectDetails().projectId;
 
 const addAuth = (params, payloadKey = 'payload') =>
   Object.assign(
@@ -32,24 +32,29 @@ const addAuth = (params, payloadKey = 'payload') =>
     }
   );
 
-/**
- * @typedef {Object} GeminiConfig
- * @property {string} projectID - GCP Project ID with Vertex AI enabled
- * @property {string} location - Location of the prediction model
- * @property {string} modelID - ID of the prediction model to use (e.g. gemini-pro)
- * @property {number} temperature - Degree of randomness in token selection (0 is deterministic, 1 max randomness, default for gemini-pro-vision: 0.4)
- * @property {number} topP - Lower value for less randomness. Range: 0.0 - 1.0, Default: 1.0
- * @property {number} maxOutputTokens - Default gemini-pro-vision: 2048
- * @property {string} responseType - Response (text/plain or application/json)
- */
+export interface GeminiConfig {
+  projectId: string;
+  modelId: string;
+  temperature: number;
+  topP: number;
+  location?: string;
+  maxOutputTokens?: number;
+  responseType?: string;
+  responseSchema?: any;
+  enableGoogleSearch?: boolean;
+}
 
 /**
  * @param {GeminiConfig} config
  */
 export const gemini =
-  (config, jsonFetcher = fetchJson) =>
+  (config: GeminiConfig, jsonFetcher = fetchJson) =>
   prompt => {
-    const [url, options] = getGeminiRequest(config, prompt);
+    const [url, options] = getGeminiRequest(
+      config,
+      prompt,
+      config.enableGoogleSearch
+    );
 
     const res = jsonFetcher(url, options);
     console.log(JSON.stringify(res, null, 2));
@@ -69,11 +74,16 @@ export const gemini =
     }
   };
 
-const getGeminiRequest = (config, prompt, payloadKey = 'payload') => {
+const getGeminiRequest = (
+  config: GeminiConfig,
+  prompt,
+  enableGoogleSearch = false,
+  payloadKey = 'payload'
+) => {
   console.log(prompt);
   console.log(JSON.stringify(config, null, 2));
   const location = config.location || 'us-central1';
-  const baseUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${config.projectID}/locations/${location}/publishers/google/models/${config.modelID}`;
+  const baseUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${location}/publishers/google/models/${config.modelId}`;
 
   const safetySettings = [
     {
@@ -107,10 +117,12 @@ const getGeminiRequest = (config, prompt, payloadKey = 'payload') => {
       top_p: config.topP,
       max_output_tokens: config.maxOutputTokens,
       response_mime_type: config.responseType,
+      response_schema: config.responseSchema,
       thinkingConfig: {
         thinkingBudget: 1024,
       },
     },
+    tools: enableGoogleSearch ? [{ googleSearch: {} }] : [],
   };
 
   return [

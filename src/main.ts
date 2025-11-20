@@ -20,13 +20,15 @@ import { getInsightsPrompt } from './prompt';
 import {
   alert,
   columnWiseSum,
+  getScriptProperties,
   isNonEmptyRow,
   objectToLowerCaseKeys,
   partition,
+  setScriptProperties,
   sum,
   writeRowsToSheet,
 } from './util';
-import { gemini, getGCPProjectID, getGeminiModelID } from './vertex';
+import { gemini, GeminiConfig, getGcpProjectId } from './vertex';
 
 const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 100;
 const MIN_YEAR_OVER_YEAR_GROWTH = 0.1;
@@ -116,7 +118,12 @@ export const removeHTMLTicks = html => {
   return cleanedHtml;
 };
 
-export const getInsights = (ideas, seedKeywords, growthMetric = 'yoy') => {
+export const getInsights = (
+  ideas,
+  seedKeywords,
+  growthMetric = 'yoy',
+  geminiConfig: Partial<GeminiConfig>
+) => {
   const relevantIdeas = Object.entries(ideas)
     .map(([idea, searchVolume]) => {
       const history = searchVolume as number[];
@@ -160,14 +167,21 @@ export const getInsights = (ideas, seedKeywords, growthMetric = 'yoy') => {
   );
   console.log(insightsPrompt.slice(insightsPrompt.length - 1000));
   const responseType = 'text/plain';
-  const config = getGeminiConfig(responseType);
+  const config = createGeminiConfig(geminiConfig, responseType);
   return removeHTMLTicks(gemini(config)(insightsPrompt));
 };
 
 const updateInsights = () => {
   const ideas = getIdeasFromSheet();
   const keywords = getSeedKeywords();
-  const insights = getInsights(ideas, keywords);
+  // Default config for backend triggers
+  const defaultConfig = {
+    projectId: getGcpProjectId(),
+    modelId: 'gemini-2.5-pro',
+    temperature: 0.7,
+    topP: 0.9,
+  };
+  const insights = getInsights(ideas, keywords, 'yoy', defaultConfig);
   getInsightsSheet().getRange('A1').setValue(insights);
   console.log(insights);
 };
@@ -200,31 +214,32 @@ const getIdeasFromSheet = () =>
 /**
  * @return {GeminiConfig} config
  */
-export const getGeminiConfig = responseType => {
-  const temperature = Number(
-    SpreadsheetApp.getActive().getRangeByName('GEMINI_TEMPERATURE').getValue()
-  );
-  const topP = Number(
-    SpreadsheetApp.getActive().getRangeByName('GEMINI_TOP_P').getValue()
-  );
+export const createGeminiConfig = (
+  config: Partial<GeminiConfig>,
+  responseType = 'application/json'
+): GeminiConfig => {
   return {
-    modelID: getGeminiModelID(),
-    projectID: getGCPProjectID(),
+    modelId: config.modelId,
+    projectId: getGcpProjectId(),
     location: 'us-central1',
-    temperature, // Default for gemini-1.5-pro: 1.0, higher temperatures can lead to more diverse or creative results, range [0.0, 2.0]
-    topP,
-    responseType, // see https://cloud.google.com/vertex-ai/generative-ai/docs/reference/java/latest/com.google.cloud.vertexai.api.GenerationConfig
+    temperature: config.temperature,
+    topP: config.topP,
+    responseType,
   };
 };
 
-export const getClusters = (ideas, promptTemplate) => {
+export const getClusters = (
+  ideas,
+  promptTemplate,
+  geminiConfig: Partial<GeminiConfig>
+) => {
   ideas = objectToLowerCaseKeys(ideas);
   const keywords = Object.keys(ideas).join(', ');
   console.log(
     `Starting to cluster ${Object.keys(ideas).length} ideas (${keywords.length} characters)`
   );
   const prompt = `${promptTemplate}\n${keywords}\n${PROMPT_DATA_FORMAT_SUFFIX}`;
-  const config = getGeminiConfig('application/json');
+  const config = createGeminiConfig(geminiConfig, 'application/json');
   const clusters = gemini(config)(prompt).map(cluster => {
     // TODO lookup all keywords again in keyword planner since gemini could have combined keywords into more generic broad match keywords that did not show up in ideas
     // remove keywords not found in ideas (hallucinations)
@@ -301,7 +316,13 @@ const updateClusters = () => {
   const promptTemplate = SpreadsheetApp.getActive()
     .getRangeByName('PROMPT_TEMPLATE')
     .getValue();
-  const clusters = getClusters(ideas, promptTemplate);
+  const defaultConfig = {
+    projectId: getGcpProjectId(),
+    modelId: 'gemini-2.5-pro',
+    temperature: 0.7,
+    topP: 0.9,
+  };
+  const clusters = getClusters(ideas, promptTemplate, defaultConfig);
   const clusterRows = clusters.map(cluster => [
     cluster.topic,
     cluster.keywords.join(', '),
@@ -310,7 +331,13 @@ const updateClusters = () => {
   writeRowsToSheet(getClusterSheet(), clusterRows, 1);
 };
 
-export const getCampaigns = (insights, language, brandName, adExamples) => {
+export const getCampaigns = (
+  insights,
+  language,
+  brandName,
+  adExamples,
+  geminiConfig: Partial<GeminiConfig>
+) => {
   const prompt = ` I am a SEA manager working for ${brandName} and I want to create new Google Ads search campaigns based on the following input.
   For each cluster in the **Cluster Insights & Marketing Takeaways:** section, generate a ready-to-use text ad campaign.
 
@@ -327,7 +354,46 @@ export const getCampaigns = (insights, language, brandName, adExamples) => {
   ${insights}
 
   `;
-  return removeHTMLTicks(gemini(getGeminiConfig('text/plain'))(prompt));
+  return removeHTMLTicks(
+    gemini(createGeminiConfig(geminiConfig, 'text/plain'))(prompt)
+  );
+};
+
+export const generateTrendsKeywords = (
+  keywords,
+  promptTemplate,
+  geminiConfig: Partial<GeminiConfig>
+) => {
+  const prompt = `${promptTemplate}\n\nKeywords:\n${keywords.join('\n')}
+
+  IMPORTANT:
+  - Do NOT add the topic keyword itself to the trends if not necessary.
+  - Only output the keywords itself and not add "trending" or "high demand for" other search terms
+  - Only output the keywords without any introduction or other annotations
+  - Do NOT add punctuation or unnecessary hyphens to keep the keyword as simple and generic as possible`;
+  const config: any = createGeminiConfig(geminiConfig, 'application/json');
+  config.responseSchema = {
+    type: 'ARRAY',
+    items: {
+      type: 'STRING',
+    },
+  };
+  return gemini(config)(prompt);
+};
+
+export const checkScriptProperties = () => {
+  const devToken = getScriptProperties('DEVELOPER_TOKEN');
+  const adsAccountId = getScriptProperties('ADS_ACCOUNT_ID');
+  return {
+    hasDeveloperToken: !!devToken,
+    hasAdsAccountId: !!adsAccountId,
+    adsAccountId: adsAccountId || '',
+  };
+};
+
+export const setScriptProperty = (key: string, value: string) => {
+  setScriptProperties(key, value);
+  return checkScriptProperties();
 };
 
 export const doGet = () =>

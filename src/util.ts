@@ -142,3 +142,34 @@ export const objectToLowerCaseKeys = obj =>
   Object.fromEntries(
     Object.entries(obj).map(([key, value]) => [key.toLowerCase(), value])
   );
+
+export const getGcpProjectDetails = () => {
+  const token = ScriptApp.getOAuthToken();
+  const tokenInfoUrl = `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${token}`;
+  const tokenResponse = UrlFetchApp.fetch(tokenInfoUrl);
+  const tokenData = JSON.parse(tokenResponse.getContentText());
+  const clientId = tokenData.issued_to;
+  if (!clientId) throw new Error('Could not retrieve Client ID.');
+  const projectNumber = clientId.split('-')[0];
+  const crmUrl = `https://cloudresourcemanager.googleapis.com/v3/projects/${projectNumber}`;
+
+  const options = {
+    method: 'get' as const,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    muteHttpExceptions: true,
+  };
+
+  const crmResponse = UrlFetchApp.fetch(crmUrl, options);
+  const crmData = JSON.parse(crmResponse.getContentText());
+
+  if (crmResponse.getResponseCode() !== 200) {
+    throw new Error(`API Error: ${crmData.error.message}`);
+  }
+
+  return {
+    projectNumber: projectNumber,
+    projectId: crmData.projectId,
+  };
+};

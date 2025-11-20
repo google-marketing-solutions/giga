@@ -15,7 +15,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { getClusters, main } from './main';
+import { getClusters, main, generateTrendsKeywords } from './main';
 import { DEFAULT_STYLE_GUIDE } from './prompt';
 import { getTopPerformingAdsPrompt } from './reporting';
 
@@ -23,5 +23,6 @@ import { getTopPerformingAdsPrompt } from './reporting';
 //  webApp.html with google script run dynamically
 main;
 getClusters;
+generateTrendsKeywords;
 getTopPerformingAdsPrompt;
 DEFAULT_STYLE_GUIDE;

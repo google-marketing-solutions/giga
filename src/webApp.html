@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <title>GIGA</title>
@@ -21,16 +21,28 @@ limitations under the License.
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+      rel="stylesheet"
+    />
 
     <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.production.min.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+    ></script>
 
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -55,8 +67,10 @@ limitations under the License.
         --radius-md: 12px;
         --radius-lg: 16px;
         --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-md:
+          0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg:
+          0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
       }
 
       body {
@@ -85,22 +99,41 @@ limitations under the License.
         padding: 24px;
         margin-bottom: 24px;
         border: 1px solid rgba(255, 255, 255, 0.5);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
       }
 
       .card:hover {
         box-shadow: var(--shadow-lg);
       }
 
-      h1, h2, h3 {
+      h1,
+      h2,
+      h3 {
         margin-top: 0;
         font-weight: 600;
         color: var(--text-main);
       }
 
-      h1 { font-size: 3rem; letter-spacing: -0.025em; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem; }
-      h2 { font-size: 1.5rem; margin-bottom: 1rem; }
-      h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-secondary); }
+      h1 {
+        font-size: 3rem;
+        letter-spacing: -0.025em;
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+      }
 
       /* Inputs */
       .input-group {
@@ -115,7 +148,9 @@ limitations under the License.
         color: var(--text-secondary);
       }
 
-      input[type="text"], textarea, select {
+      input[type='text'],
+      textarea,
+      select {
         width: 100%;
         padding: 10px 14px;
         border-radius: var(--radius-md);
@@ -127,7 +162,9 @@ limitations under the License.
         box-sizing: border-box;
       }
 
-      input[type="text"]:focus, textarea:focus, select:focus {
+      input[type='text']:focus,
+      textarea:focus,
+      select:focus {
         outline: none;
         border-color: var(--primary);
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
@@ -150,7 +187,11 @@ limitations under the License.
       }
 
       .btn-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%
+        );
         color: white;
         box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
       }
@@ -221,12 +262,28 @@ limitations under the License.
       }
 
       /* Helper classes */
-      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-      @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
-      .mt-4 { margin-top: 1rem; }
-      .mb-4 { margin-bottom: 1rem; }
-      .text-sm { font-size: 0.875rem; }
-      .text-muted { color: var(--text-secondary); }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 768px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+      .mt-4 {
+        margin-top: 1rem;
+      }
+      .mb-4 {
+        margin-bottom: 1rem;
+      }
+      .text-sm {
+        font-size: 0.875rem;
+      }
+      .text-muted {
+        color: var(--text-secondary);
+      }
 
       /* Chart Container */
       .chart-container {
@@ -236,10 +293,16 @@ limitations under the License.
         margin-top: 20px;
       }
       .modal-overlay {
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         background: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(5px);
-        display: flex; justify-content: center; align-items: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         z-index: 1000;
         animation: fadeIn 0.2s ease-out;
       }
@@ -249,12 +312,42 @@ limitations under the License.
         border-radius: 16px;
         border: 1px solid var(--border-color);
         box-shadow: var(--shadow-lg);
-        width: 90%; max-width: 500px;
+        width: 90%;
+        max-width: 500px;
         animation: slideUp 0.2s ease-out;
       }
-      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-      @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
 
+      .error-details {
+        font-family: monospace;
+        font-size: 0.875rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: #991b1b;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .error-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: auto;
+      }
+
+      .error-actions .btn {
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
       /* Spinner */
       .spinner {
         width: 16px;
@@ -264,10 +357,31 @@ limitations under the License.
         border-top-color: white;
         animation: spin 0.8s linear infinite;
       }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-      .modal-header h3 { margin: 0; font-size: 1.25rem; }
-      .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+      .modal-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      @keyframes bounceHorizontal {
+        0%, 100% { transform: translateX(0) translateY(-50%); }
+        50% { transform: translateX(-10px) translateY(-50%); }
+      }
     </style>
   </head>
   <body>
@@ -275,52 +389,100 @@ limitations under the License.
 
     <!-- Backend Proxy -->
     <script>
-      const googleScriptRun = new Proxy({}, {
-        get: (target, prop) => (...args) => {
-          console.log(`Running ${prop} in AppsScript backend...`);
-          return new Promise((resolve, reject) => {
-            if (!google.script.run) {
-               // Mock for local dev if needed, or just fail
-               reject(new Error("google.script.run not available"));
-               return;
-            }
-            google.script.run
-              .withSuccessHandler(resolve)
-              .withFailureHandler(reject)
-              [prop](...args);
-          });
+      const googleScriptRun = new Proxy(
+        {},
+        {
+          get:
+            (target, prop) =>
+            (...args) => {
+              console.log(`Running ${prop} in AppsScript backend...`);
+              return new Promise((resolve, reject) => {
+                if (!google.script.run) {
+                  // Mock for local dev if needed, or just fail
+                  reject(new Error('google.script.run not available'));
+                  return;
+                }
+                google.script.run
+                  .withSuccessHandler(resolve)
+                  .withFailureHandler(reject)
+                  [prop](...args);
+              });
+            },
         }
-      });
+      );
     </script>
 
     <script type="text/babel">
       const { useState, useEffect, useRef, useMemo } = React;
 
       // --- Constants & Data ---
+      const COLOR_PALETTE = [
+        '#4f6d7a',
+        '#c0d6df',
+        '#dbe9ee',
+        '#4a6fa5',
+        '#166088',
+      ];
+
       const LANGUAGES = [
-        { id: '1000', name: 'English' }, { id: '1001', name: 'German' }, { id: '1002', name: 'French' },
-        { id: '1003', name: 'Spanish' }, { id: '1004', name: 'Italian' }, { id: '1009', name: 'Danish' },
-        { id: '1010', name: 'Dutch' }, { id: '1011', name: 'Finnish' }, { id: '1015', name: 'Swedish' },
-        { id: '1020', name: 'Bulgarian' }, { id: '1021', name: 'Czech' }, { id: '1022', name: 'Greek' },
-        { id: '1024', name: 'Hungarian' }, { id: '1028', name: 'Latvian' }, { id: '1029', name: 'Lithuanian' },
-        { id: '1030', name: 'Polish' }, { id: '1031', name: 'Russian' }, { id: '1032', name: 'Romanian' },
-        { id: '1033', name: 'Slovak' }, { id: '1034', name: 'Slovenian' }, { id: '1036', name: 'Ukrainian' },
-        { id: '1038', name: 'Catalan' }, { id: '1039', name: 'Croatian' }, { id: '1043', name: 'Estonian' },
-        { id: '1064', name: 'Persian' }
+        { id: '1000', name: 'English' },
+        { id: '1001', name: 'German' },
+        { id: '1002', name: 'French' },
+        { id: '1003', name: 'Spanish' },
+        { id: '1004', name: 'Italian' },
+        { id: '1009', name: 'Danish' },
+        { id: '1010', name: 'Dutch' },
+        { id: '1011', name: 'Finnish' },
+        { id: '1015', name: 'Swedish' },
+        { id: '1020', name: 'Bulgarian' },
+        { id: '1021', name: 'Czech' },
+        { id: '1022', name: 'Greek' },
+        { id: '1024', name: 'Hungarian' },
+        { id: '1028', name: 'Latvian' },
+        { id: '1029', name: 'Lithuanian' },
+        { id: '1030', name: 'Polish' },
+        { id: '1031', name: 'Russian' },
+        { id: '1032', name: 'Romanian' },
+        { id: '1033', name: 'Slovak' },
+        { id: '1034', name: 'Slovenian' },
+        { id: '1036', name: 'Ukrainian' },
+        { id: '1038', name: 'Catalan' },
+        { id: '1039', name: 'Croatian' },
+        { id: '1043', name: 'Estonian' },
+        { id: '1064', name: 'Persian' },
       ];
 
       const COUNTRIES = [
         { id: '', name: 'Worldwide' },
-        { id: '2276', name: 'Germany' }, { id: '2826', name: 'UK' }, { id: '2250', name: 'France' },
-        { id: '2380', name: 'Italy' }, { id: '2756', name: 'Switzerland' }, { id: '2724', name: 'Spain' },
-        { id: '2616', name: 'Poland' }, { id: '2642', name: 'Romania' }, { id: '2528', name: 'Netherlands' },
-        { id: '2056', name: 'Belgium' }, { id: '2203', name: 'Czechia' }, { id: '2300', name: 'Greece' },
-        { id: '2620', name: 'Portugal' }, { id: '2752', name: 'Sweden' }, { id: '2348', name: 'Hungary' },
-        { id: '2040', name: 'Austria' }, { id: '2100', name: 'Bulgaria' }, { id: '2208', name: 'Denmark' },
-        { id: '2703', name: 'Slovakia' }, { id: '2246', name: 'Finland' }, { id: '2372', name: 'Ireland' },
-        { id: '2191', name: 'Croatia' }, { id: '2440', name: 'Lithuania' }, { id: '2705', name: 'Slovenia' },
-        { id: '2428', name: 'Latvia' }, { id: '2233', name: 'Estonia' }, { id: '2196', name: 'Cyprus' },
-        { id: '2442', name: 'Luxembourg' }, { id: '2470', name: 'Malta' }
+        { id: '2276', name: 'Germany' },
+        { id: '2826', name: 'UK' },
+        { id: '2250', name: 'France' },
+        { id: '2380', name: 'Italy' },
+        { id: '2756', name: 'Switzerland' },
+        { id: '2724', name: 'Spain' },
+        { id: '2616', name: 'Poland' },
+        { id: '2642', name: 'Romania' },
+        { id: '2528', name: 'Netherlands' },
+        { id: '2056', name: 'Belgium' },
+        { id: '2203', name: 'Czechia' },
+        { id: '2300', name: 'Greece' },
+        { id: '2620', name: 'Portugal' },
+        { id: '2752', name: 'Sweden' },
+        { id: '2348', name: 'Hungary' },
+        { id: '2040', name: 'Austria' },
+        { id: '2100', name: 'Bulgaria' },
+        { id: '2208', name: 'Denmark' },
+        { id: '2703', name: 'Slovakia' },
+        { id: '2246', name: 'Finland' },
+        { id: '2372', name: 'Ireland' },
+        { id: '2191', name: 'Croatia' },
+        { id: '2440', name: 'Lithuania' },
+        { id: '2705', name: 'Slovenia' },
+        { id: '2428', name: 'Latvia' },
+        { id: '2233', name: 'Estonia' },
+        { id: '2196', name: 'Cyprus' },
+        { id: '2442', name: 'Luxembourg' },
+        { id: '2470', name: 'Malta' },
       ];
 
       const DEFAULT_PROMPT = `You are given a list of Google Ads keyword ideas.
@@ -331,37 +493,75 @@ All keywords assigned to a cluster must be exactly the same (e.g. same case, sam
 The Google Ads keyword ideas are:
 `;
 
+      const DEFAULT_TRENDS_PROMPT = `Provide an extensive list of ~100 trends regarding the topics/keywords mentioned below.`;
+
+      const LANGUAGE_INFO_URL =
+        'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
+      const LOCATION_INFO_URL =
+        'https://developers.google.com/google-ads/api/reference/data/geotargets';
+
       // --- Components ---
 
       // eslint-disable-next-line no-unused-vars
       const TabButton = ({ active, onClick, children }) => (
-        <button className={`tab-btn ${active ? 'active' : ''}`} onClick={onClick}>
+        <button
+          className={`tab-btn ${active ? 'active' : ''}`}
+          onClick={onClick}
+        >
           {children}
         </button>
       );
 
       // eslint-disable-next-line no-unused-vars
-      const InputField = ({ label, type = "text", value, onChange, placeholder, rows, helpText, onKeyDown }) => (
+      const InputField = ({
+        label,
+        type = 'text',
+        value,
+        onChange,
+        placeholder,
+        rows,
+        helpText,
+        onKeyDown,
+      }) => (
         <div className="input-group">
           <label>{label}</label>
           {type === 'textarea' ? (
-            <textarea rows={rows || 4} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} onKeyDown={onKeyDown} />
+            <textarea
+              rows={rows || 4}
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              placeholder={placeholder}
+              onKeyDown={onKeyDown}
+            />
           ) : (
-            <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} onKeyDown={onKeyDown} />
+            <input
+              type={type}
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              placeholder={placeholder}
+              onKeyDown={onKeyDown}
+            />
           )}
-          {helpText && <div className="text-sm text-muted mt-1">{helpText}</div>}
+          {helpText && (
+            <div className="text-sm text-muted mt-1">{helpText}</div>
+          )}
         </div>
       );
 
       // eslint-disable-next-line no-unused-vars
-      const Modal = ({ isOpen, onClose, title, children }) => {
+      const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
         if (!isOpen) return null;
         return (
           <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div
+              className={`modal-content ${className}`}
+              onClick={e => e.stopPropagation()}
+            >
               <div className="modal-header">
-                <h3>{title}</h3>
-                <button className="btn" onClick={onClose} style={{padding: '4px 8px'}}>&times;</button>
+                <h2>{title}</h2>
+                <button className="close-btn" onClick={onClose}>
+                  <span className="material-icons-round">close</span>
+                </button>
               </div>
               {children}
             </div>
@@ -369,9 +569,59 @@ The Google Ads keyword ideas are:
         );
       };
 
+      const ErrorModal = ({ isOpen, onClose, error }) => {
+        if (!isOpen || !error) return null;
+
+        const copyToClipboard = () => {
+          const text = `Error: ${error.title}\nMessage: ${error.message}\n\nStack Trace:\n${error.stack || 'N/A'}`;
+          navigator.clipboard.writeText(text).then(() => {
+            // Optional: Show a temporary "Copied!" tooltip or state
+          });
+        };
+
+        return (
+          <div className="modal-overlay" onClick={onClose}>
+            <div
+              className="modal-content error-modal-content"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="error-header">
+                <span className="material-icons-round error-icon">error_outline</span>
+                <h2 className="error-title">{error.title || 'An error occurred'}</h2>
+              </div>
+
+              <div className="error-body">
+                <p className="error-message">{error.message}</p>
+                {error.stack && (
+                  <div className="error-details">
+                    {error.stack}
+                  </div>
+                )}
+              </div>
+
+              <div className="error-actions">
+                <button className="btn btn-secondary" onClick={copyToClipboard}>
+                  <span className="material-icons-round">content_copy</span>
+                  Copy Details
+                </button>
+                <button className="btn btn-primary" onClick={onClose}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
       // eslint-disable-next-line no-unused-vars
-      const SelectField = ({ label, value, onChange, options, onCustomOption }) => {
-        const handleChange = (e) => {
+      const SelectField = ({
+        label,
+        value,
+        onChange,
+        options,
+        onCustomOption,
+      }) => {
+        const handleChange = e => {
           if (e.target.value === 'custom') {
             onCustomOption();
           } else {
@@ -384,9 +634,11 @@ The Google Ads keyword ideas are:
             <div className="select-wrapper">
               <select value={value} onChange={handleChange}>
                 {options.map(opt => (
-                  <option key={opt.id} value={opt.id}>{opt.name}</option>
+                  <option key={opt.id} value={opt.id}>
+                    {opt.name}
+                  </option>
                 ))}
-                <option value="custom">Custom ID...</option>
+                {onCustomOption && <option value="custom">Custom ID...</option>}
               </select>
             </div>
           </div>
@@ -401,12 +653,22 @@ The Google Ads keyword ideas are:
         useEffect(() => {
           if (canvasRef.current) {
             if (chartRef.current) chartRef.current.destroy();
-            chartRef.current = new Chart(canvasRef.current, { type, data, options });
+            chartRef.current = new Chart(canvasRef.current, {
+              type,
+              data,
+              options,
+            });
           }
-          return () => { if (chartRef.current) chartRef.current.destroy(); };
+          return () => {
+            if (chartRef.current) chartRef.current.destroy();
+          };
         }, [type, data, options]);
 
-        return <div className="chart-container"><canvas ref={canvasRef} /></div>;
+        return (
+          <div className="chart-container">
+            <canvas ref={canvasRef} />
+          </div>
+        );
       };
 
       // --- Hooks ---
@@ -414,9 +676,12 @@ The Google Ads keyword ideas are:
         const [value, setValue] = useState(() => {
           try {
             const stickyValue = window.localStorage.getItem(key);
-            return stickyValue !== null ? JSON.parse(stickyValue) : defaultValue;
+            return stickyValue !== null
+              ? JSON.parse(stickyValue)
+              : defaultValue;
           } catch (error) {
             console.warn(`Error reading localStorage key "${key}":`, error);
+            window.localStorage.removeItem(key);
             return defaultValue;
           }
         });
@@ -434,23 +699,61 @@ The Google Ads keyword ideas are:
 
       // eslint-disable-next-line no-unused-vars
       const GigaApp = ({ onReset }) => {
-        const [activeTab, setActiveTab] = useStickyState('explore', 'giga_activeTab');
+        const [activeTab, setActiveTab] = useStickyState(
+          'explore',
+          'giga_activeTab'
+        );
 
         // Explore State
         const [keywords, setKeywords] = useStickyState('', 'giga_keywords');
+        const [trendsKeywords, setTrendsKeywords] = useStickyState(
+          '',
+          'giga_trendsKeywords'
+        );
+        const [isTrendsRunning, setIsTrendsRunning] = useState(false);
+        const [trendsResults, setTrendsResults] = useStickyState(
+          [],
+          'giga_trendsResults'
+        );
+        const [trendsStatus, setTrendsStatus] = useState('');
+        const [trendsPromptTemplate, setTrendsPromptTemplate] = useStickyState(
+          DEFAULT_TRENDS_PROMPT,
+          'giga_trendsPromptTemplate'
+        );
         const [language, setLanguage] = useStickyState('1000', 'giga_language');
         const [country, setCountry] = useStickyState('', 'giga_country');
-        const [customLanguages, setCustomLanguages] = useStickyState([], 'giga_customLanguages');
-        const [customCountries, setCustomCountries] = useStickyState([], 'giga_customCountries');
-        const [promptTemplate, setPromptTemplate] = useStickyState(DEFAULT_PROMPT, 'giga_promptTemplate');
+        const [customLanguages, setCustomLanguages] = useStickyState(
+          [],
+          'giga_customLanguages'
+        );
+        const [customCountries, setCustomCountries] = useStickyState(
+          [],
+          'giga_customCountries'
+        );
+        const [promptTemplate, setPromptTemplate] = useStickyState(
+          DEFAULT_PROMPT,
+          'giga_promptTemplate'
+        );
         const [exploreStatus, setExploreStatus] = useState('');
         const [isExploring, setIsExploring] = useState(false);
-        const [ideasData, setIdeasData] = useStickyState(null, 'giga_ideasData');
+        const [ideasData, setIdeasData] = useStickyState(
+          null,
+          'giga_ideasData'
+        );
         const [clusters, setClusters] = useStickyState(null, 'giga_clusters');
-        const [relevantIdeas, setRelevantIdeas] = useStickyState({}, 'giga_relevantIdeas');
+        const [relevantIdeas, setRelevantIdeas] = useStickyState(
+          {},
+          'giga_relevantIdeas'
+        );
         const [selectedCluster, setSelectedCluster] = useState(null);
-        const [chartLabels, setChartLabels] = useStickyState([], 'giga_chartLabels');
-        const [minSearchVolume, setMinSearchVolume] = useStickyState(100, 'giga_minSearchVolume');
+        const [chartLabels, setChartLabels] = useStickyState(
+          [],
+          'giga_chartLabels'
+        );
+        const [minSearchVolume, setMinSearchVolume] = useStickyState(
+          100,
+          'giga_minSearchVolume'
+        );
 
         // Insights State
         const [insights, setInsights] = useStickyState('', 'giga_insights');
@@ -458,40 +761,150 @@ The Google Ads keyword ideas are:
         const [insightsStatus, setInsightsStatus] = useState('');
 
         // Campaigns State
-        const [adsAccountId, setAdsAccountId] = useStickyState('', 'giga_adsAccountId');
+        const [adsAccountId, setAdsAccountId] = useStickyState(
+          '',
+          'giga_adsAccountId'
+        );
         const [brandName, setBrandName] = useStickyState('', 'giga_brandName');
-        const [campaignSuggestions, setCampaignSuggestions] = useStickyState('', 'giga_campaignSuggestions');
-        const [isGeneratingCampaigns, setIsGeneratingCampaigns] = useState(false);
+        const [campaignSuggestions, setCampaignSuggestions] = useStickyState(
+          '',
+          'giga_campaignSuggestions'
+        );
+        const [isGeneratingCampaigns, setIsGeneratingCampaigns] =
+          useState(false);
         const [campaignStatus, setCampaignStatus] = useState('');
 
         // Campaign Creation State
-        const [creationAccountId, setCreationAccountId] = useStickyState('111-222-3333', 'giga_creationAccountId');
-        const [creationPromptTemplate, setCreationPromptTemplate] = useStickyState('', 'giga_creationPromptTemplate');
-        const [creationStyleGuide, setCreationStyleGuide] = useStickyState('<?= DEFAULT_STYLE_GUIDE ?>', 'giga_creationStyleGuide');
-        const [creationInstructions, setCreationInstructions] = useStickyState('Created ads must be in German.', 'giga_creationInstructions');
-        const [creationKeywords, setCreationKeywords] = useStickyState('', 'giga_creationKeywords');
-        const [growthMetric, setGrowthMetric] = useStickyState('yoy', 'growthMetric');
-        const [creationResult, setCreationResult] = useStickyState('', 'giga_creationResult');
+        const [creationAccountId, setCreationAccountId] = useStickyState(
+          '111-222-3333',
+          'giga_creationAccountId'
+        );
+        const [creationPromptTemplate, setCreationPromptTemplate] =
+          useStickyState('', 'giga_creationPromptTemplate');
+        const [creationStyleGuide, setCreationStyleGuide] = useStickyState(
+          '<?= DEFAULT_STYLE_GUIDE ?>',
+          'giga_creationStyleGuide'
+        );
+        const [creationInstructions, setCreationInstructions] = useStickyState(
+          'Created ads must be in German.',
+          'giga_creationInstructions'
+        );
+        const [creationKeywords, setCreationKeywords] = useStickyState(
+          '',
+          'giga_creationKeywords'
+        );
+        const [growthMetric, setGrowthMetric] = useStickyState(
+          'yoy',
+          'growthMetric'
+        );
+
+        // Gemini Configuration
+        const [errorState, setErrorState] = useState({
+          isOpen: false,
+          title: '',
+          message: '',
+          stack: '',
+        });
+
+        const [configStatus, setConfigStatus] = useState({
+          hasDeveloperToken: false,
+          hasAdsAccountId: false,
+          adsAccountId: '',
+          checked: false,
+        });
+
+        const adsInputRef = useRef(null);
+
+        useEffect(() => {
+          if (
+            modalConfig &&
+            modalConfig.isOpen &&
+            modalConfig.highlight === 'ADS_ACCOUNT_ID' &&
+            adsInputRef.current
+          ) {
+            setTimeout(() => {
+              adsInputRef.current.focus();
+              // adsInputRef.current.select(); // Optional: select all text
+            }, 100);
+          }
+        }, [modalConfig && modalConfig.isOpen, modalConfig && modalConfig.highlight]);
+
+        useEffect(() => {
+          googleScriptRun
+            .checkScriptProperties()
+            .then(status => {
+              setConfigStatus({ ...status, checked: true });
+              if (status.adsAccountId) {
+                setAdsAccountId(status.adsAccountId);
+              }
+            })
+            .catch(console.error);
+        }, []);
+
+        const showError = (title, error) => {
+          console.error(error);
+          setErrorState({
+            isOpen: true,
+            title: title,
+            message: error.message || String(error),
+            stack: error.stack || '',
+          });
+        };
+
+        const [geminiConfig, setGeminiConfig] = useStickyState(
+          {
+            projectId: '',
+            modelId: 'gemini-2.5-flash',
+            temperature: 0.7,
+            topP: 0.9,
+          },
+          'giga_geminiConfig'
+        );
+
+        // Migration for renamed keys
+        useEffect(() => {
+          if (geminiConfig.modelID !== undefined || geminiConfig.projectID !== undefined) {
+            console.log('Migrating legacy geminiConfig keys...');
+            setGeminiConfig(prev => {
+              const newConfig = { ...prev };
+              if (prev.modelID !== undefined) {
+                newConfig.modelId = prev.modelID;
+                delete newConfig.modelID;
+              }
+              if (prev.projectID !== undefined) {
+                newConfig.projectId = prev.projectID;
+                delete newConfig.projectID;
+              }
+              return newConfig;
+            });
+          }
+        }, [geminiConfig]);
+        const [creationResult, setCreationResult] = useStickyState(
+          '',
+          'giga_creationResult'
+        );
         const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
 
         const GROWTH_METRICS = [
           { id: 'yoy', name: 'Year over Year' },
           { id: 'mom', name: 'Month over Month' },
           { id: 'latest_vs_avg', name: 'Latest vs Average' },
-          { id: 'latest_vs_max', name: 'Last Month vs Max' }
+          { id: 'latest_vs_max', name: 'Last Month vs Max' },
         ];
 
         const clearCache = () => {
-          if (confirm('Are you sure you want to clear all cached data? This will reset the application state.')) {
-            localStorage.clear();
-            onReset();
-          }
+          localStorage.clear();
+          onReset();
         };
 
         // Handlers
-        const [modalConfig, setModalConfig] = useState({ isOpen: false, type: '', value: '' });
+        const [modalConfig, setModalConfig] = useState({
+          isOpen: false,
+          type: '',
+          value: '',
+        });
 
-        const handleCustomOption = (type) => {
+        const handleCustomOption = type => {
           setModalConfig({ isOpen: true, type, value: '' });
         };
 
@@ -499,10 +912,16 @@ The Google Ads keyword ideas are:
           const { type, value } = modalConfig;
           if (value && !isNaN(Number(value))) {
             if (type === 'language') {
-              setCustomLanguages([...customLanguages, { id: value, name: value }]);
+              setCustomLanguages([
+                ...customLanguages,
+                { id: value, name: value },
+              ]);
               setLanguage(value);
             } else {
-              setCustomCountries([...customCountries, { id: value, name: value }]);
+              setCustomCountries([
+                ...customCountries,
+                { id: value, name: value },
+              ]);
               setCountry(value);
             }
             setModalConfig({ isOpen: false, type: '', value: '' });
@@ -512,11 +931,51 @@ The Google Ads keyword ideas are:
         };
 
         const runExplore = async () => {
+          // Check properties on demand
+          let currentStatus = configStatus;
+          try {
+            const status = await googleScriptRun.checkScriptProperties();
+            setConfigStatus({ ...status, checked: true });
+            if (status.adsAccountId) {
+              setAdsAccountId(status.adsAccountId);
+            }
+            currentStatus = status;
+          } catch (e) {
+            console.error('Failed to check script properties:', e);
+            // If we haven't checked successfully yet, we can't trust configStatus
+            if (!configStatus.checked) {
+              alert('Failed to verify configuration. Please check your connection and try again.');
+              return;
+            }
+            // If we have checked before, we use the cached status (currentStatus)
+          }
+
+          if (!currentStatus.hasDeveloperToken) {
+            setModalConfig({
+              isOpen: true,
+              type: 'settings',
+              highlight: 'DEVELOPER_TOKEN',
+              message: 'Please configure your Developer Token to proceed.',
+            });
+            return;
+          }
+          if (!currentStatus.adsAccountId) {
+            setModalConfig({
+              isOpen: true,
+              type: 'settings',
+              highlight: 'ADS_ACCOUNT_ID',
+              message: 'Please configure your Ads Account ID to proceed.',
+            });
+            return;
+          }
           if (!keywords.trim()) {
             alert('Please enter at least one seed keyword.');
             return;
           }
-          const seedKeywords = keywords.split(',').map(k => k.trim()).filter(Boolean);
+          const seedKeywords = keywords
+            .split(',')
+            .map(k => k.trim())
+            .filter(Boolean);
           if (seedKeywords.length > 20) {
             alert('Maximum 20 keywords allowed.');
             return;
@@ -530,18 +989,29 @@ The Google Ads keyword ideas are:
 
           try {
             const ideas = await googleScriptRun.generateKeywordIdeas(
-              seedKeywords, country || undefined, language || undefined, 5000
+              seedKeywords,
+              country || undefined,
+              language || undefined,
+              5000
             );
 
-            const validIdeas = ideas.filter(res => res.keywordIdeaMetrics !== undefined);
+            const validIdeas = ideas.filter(
+              res => res.keywordIdeaMetrics !== undefined
+            );
 
-            const processedIdeas = validIdeas.flatMap(idea =>
-              (idea.closeVariants || []).concat(idea.text).map(k => [k, idea])
-            ).map(([k, res]) => ({
-              text: k,
-              searchVolume: res.keywordIdeaMetrics.monthlySearchVolumes.map(item => Number(item.monthlySearches)),
-              months: res.keywordIdeaMetrics.monthlySearchVolumes.map(item => `${item.month} ${item.year}`)
-            }));
+            const processedIdeas = validIdeas
+              .flatMap(idea =>
+                (idea.closeVariants || []).concat(idea.text).map(k => [k, idea])
+              )
+              .map(([k, res]) => ({
+                text: k,
+                searchVolume: res.keywordIdeaMetrics.monthlySearchVolumes.map(
+                  item => Number(item.monthlySearches)
+                ),
+                months: res.keywordIdeaMetrics.monthlySearchVolumes.map(
+                  item => `${item.month} ${item.year}`
+                ),
+              }));
 
             if (processedIdeas.length > 0) {
               setChartLabels(processedIdeas[0].months.slice());
@@ -552,7 +1022,8 @@ The Google Ads keyword ideas are:
             // Filter relevant ideas
             const relevant = {};
             processedIdeas.forEach(idea => {
-              if (idea.searchVolume.at(0) >= minSearchVolume) { // Check latest (index 0 usually)
+              if (idea.searchVolume.at(0) >= minSearchVolume) {
+                // Check latest (index 0 usually)
                 relevant[idea.text] = idea.searchVolume;
               }
             });
@@ -560,16 +1031,49 @@ The Google Ads keyword ideas are:
 
             setExploreStatus(`Clustering ${processedIdeas.length} ideas...`);
 
-            const clusterResult = await googleScriptRun.getClusters(relevant, promptTemplate, growthMetric);
+            const clusterResult = await googleScriptRun.getClusters(
+              relevant,
+              promptTemplate,
+              geminiConfig
+            );
             setClusters(clusterResult);
-            setExploreStatus(`Done. Clustered ${processedIdeas.length} keywords.`);
-
+            setExploreStatus(
+              `Done. Clustered ${processedIdeas.length} keywords.`
+            );
           } catch (e) {
             console.error(e);
             setExploreStatus(`Error: ${e.message}`);
-            alert(e.message);
+            showError('Error', e);
           } finally {
             setIsExploring(false);
+          }
+        };
+
+        const runTrends = async () => {
+          if (!trendsKeywords.trim()) {
+            alert('Please enter at least one seed keyword.');
+            return;
+          }
+          setIsTrendsRunning(true);
+          setTrendsResults([]);
+          try {
+            const keywords = trendsKeywords
+              .split(',')
+              .map(k => k.trim())
+              .filter(Boolean);
+            const result = await googleScriptRun.generateTrendsKeywords(
+              keywords,
+              trendsPromptTemplate,
+              geminiConfig
+            );
+            setTrendsResults(result);
+            setTrendsStatus('');
+          } catch (e) {
+            console.error(e);
+            setTrendsStatus(`Error: ${e.message}`);
+            showError('Error', e);
+          } finally {
+            setIsTrendsRunning(false);
           }
         };
 
@@ -581,12 +1085,21 @@ The Google Ads keyword ideas are:
           setIsGeneratingInsights(true);
           setInsightsStatus('Generating insights...');
           try {
-            const seedKeywords = keywords.split(',').map(k => k.trim()).filter(Boolean);
-            const result = await googleScriptRun.getInsights(relevantIdeas, seedKeywords, growthMetric);
+            const seedKeywords = keywords
+              .split(',')
+              .map(k => k.trim())
+              .filter(Boolean);
+            const result = await googleScriptRun.getInsights(
+              relevantIdeas,
+              seedKeywords,
+              growthMetric,
+              geminiConfig
+            );
             setInsights(result);
             setInsightsStatus('');
           } catch (e) {
             setInsightsStatus(`Error: ${e.message}`);
+            showError('Error', e);
           } finally {
             setIsGeneratingInsights(false);
           }
@@ -602,53 +1115,78 @@ The Google Ads keyword ideas are:
           try {
             let adExamples = '';
             if (adsAccountId) {
-               const ads = await googleScriptRun.getTopPerformingAdsAndKeywords(adsAccountId.replaceAll('-', '').trim(), 10);
-               adExamples = ads.map(ad => JSON.stringify(ad)).join('\n');
+              const ads = await googleScriptRun.getTopPerformingAdsAndKeywords(
+                adsAccountId.replaceAll('-', '').trim(),
+                10
+              );
+              adExamples = ads.map(ad => JSON.stringify(ad)).join('\n');
             }
-            const langName = [...LANGUAGES, ...customLanguages].find(l => l.id === language)?.name || language;
-            const result = await googleScriptRun.getCampaigns(insights, langName, brandName, adExamples);
+            const langName =
+              [...LANGUAGES, ...customLanguages].find(l => l.id === language)
+                ?.name || language;
+            const result = await googleScriptRun.getCampaigns(
+              insights,
+              langName,
+              brandName,
+              adExamples,
+              geminiConfig
+            );
             setCampaignSuggestions(result);
             setCampaignStatus('');
           } catch (e) {
             setCampaignStatus(`Error: ${e.message}`);
+            showError('Error', e);
           } finally {
             setIsGeneratingCampaigns(false);
           }
         };
 
         const generatePrompt = async () => {
-           const id = creationAccountId.replaceAll('-', '').trim();
-           if (!id) {
-             alert('Please enter a Google Ads Account ID.');
-             return;
-           }
-           setIsCreatingCampaign(true);
-           setCreationResult('Generating prompt...');
-           try {
-             const result = await googleScriptRun.createCampaignPrompt(
-               id, creationPromptTemplate, creationStyleGuide, creationInstructions, creationKeywords
-             );
-             setCreationResult(result);
-           } catch (e) {
-             setCreationResult(`Error: ${e.message}`);
-           } finally {
-             setIsCreatingCampaign(false);
-           }
+          const id = creationAccountId.replaceAll('-', '').trim();
+          if (!id) {
+            alert('Please enter a Google Ads Account ID.');
+            return;
+          }
+          setIsCreatingCampaign(true);
+          setCreationResult('Generating prompt...');
+          try {
+            const result = await googleScriptRun.createCampaignPrompt(
+              id,
+              creationPromptTemplate,
+              creationStyleGuide,
+              creationInstructions,
+              creationKeywords
+            );
+            setCreationResult(result);
+          } catch (e) {
+            setCreationResult(`Error: ${e.message}`);
+            showError('Error', e);
+          } finally {
+            setIsCreatingCampaign(false);
+          }
         };
 
         const generateNewCampaigns = async () => {
-           setIsCreatingCampaign(true);
-           setCreationResult('Generating ad...');
-           try {
-             const kws = creationKeywords.split(',').map(k => k.trim()).filter(Boolean);
-             const prompt = `${creationStyleGuide}\n${creationInstructions}\n${creationPromptTemplate}`;
-             const result = await googleScriptRun.createAdSuggestion(prompt, kws);
-             setCreationResult(JSON.stringify(result, null, 2));
-           } catch (e) {
-             setCreationResult(`Error: ${e.message}`);
-           } finally {
-             setIsCreatingCampaign(false);
-           }
+          setIsCreatingCampaign(true);
+          setCreationResult('Generating ad...');
+          try {
+            const kws = creationKeywords
+              .split(',')
+              .map(k => k.trim())
+              .filter(Boolean);
+            const prompt = `${creationStyleGuide}\n${creationInstructions}\n${creationPromptTemplate}`;
+            const result = await googleScriptRun.createAdSuggestion(
+              prompt,
+              kws,
+              geminiConfig
+            );
+            setCreationResult(JSON.stringify(result, null, 2));
+          } catch (e) {
+            setCreationResult(`Error: ${e.message}`);
+            showError('Error', e);
+          } finally {
+            setIsCreatingCampaign(false);
+          }
         };
 
         // Charts Data Preparation
@@ -657,7 +1195,7 @@ The Google Ads keyword ideas are:
           const maxVol = Math.max(...clusters.map(c => c.searchVolume), 1);
 
           return {
-            datasets: clusters.map(c => {
+            datasets: clusters.map((c, i) => {
               let yValue = 0;
 
               if (growthMetric === 'yoy') {
@@ -672,14 +1210,16 @@ The Google Ads keyword ideas are:
 
               return {
                 label: c.topic,
-                data: [{
-                  x: c.searchVolume || 0,
-                  y: yValue,
-                  r: 5 + ((c.searchVolume || 0) / maxVol) * 45
-                }],
-                backgroundColor: `rgba(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, 0.6)`
+                data: [
+                  {
+                    x: c.searchVolume || 0,
+                    y: yValue,
+                    r: 5 + ((c.searchVolume || 0) / maxVol) * 45,
+                  },
+                ],
+                backgroundColor: COLOR_PALETTE[i % COLOR_PALETTE.length],
               };
-            })
+            }),
           };
         }, [clusters, growthMetric]);
 
@@ -695,27 +1235,31 @@ The Google Ads keyword ideas are:
               {
                 label: `Search Volume: ${selectedCluster.topic}`,
                 data: data,
-                borderColor: 'rgb(37, 99, 235)',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderColor: COLOR_PALETTE[4],
+                backgroundColor: COLOR_PALETTE[4] + '1A',
                 fill: true,
-                tension: 0.3
-              }
-            ]
+                tension: 0.3,
+              },
+            ],
           };
         }, [selectedCluster, chartLabels]);
 
         const seedChartData = useMemo(() => {
           if (!ideasData || !keywords || !chartLabels.length) return null;
-          const seeds = keywords.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
-          const seedIdeas = ideasData.filter(idea => seeds.includes(idea.text.toLowerCase()));
+          const seeds = keywords
+            .split(',')
+            .map(k => k.trim().toLowerCase())
+            .filter(Boolean);
+          const seedIdeas = ideasData.filter(idea =>
+            seeds.includes(idea.text.toLowerCase())
+          );
 
           if (seedIdeas.length === 0) return null;
 
           return {
             labels: chartLabels,
             datasets: seedIdeas.map((idea, index) => {
-              // Use blue for the first keyword, other colors for the rest
-              const color = index === 0 ? 'rgb(37, 99, 235)' : `hsl(${ (index * 360 / seedIdeas.length) % 360 }, 70%, 50%)`;
+              const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
 
               return {
                 label: idea.text,
@@ -725,55 +1269,342 @@ The Google Ads keyword ideas are:
                 fill: false, // No fill
                 tension: 0.3,
                 pointRadius: 3,
-                pointHoverRadius: 6
+                pointHoverRadius: 6,
               };
-            })
+            }),
           };
         }, [ideasData, keywords, chartLabels]);
 
-        const bubbleChartOptions = useMemo(() => ({
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { title: { display: true, text: 'Search Volume' } },
-            y: {
-              title: { display: true, text: GROWTH_METRICS.find(m => m.id === growthMetric)?.name || 'Growth' },
-              ticks: {
-                callback: (value) => (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%'
+        const bubbleChartOptions = useMemo(
+          () => ({
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { title: { display: true, text: 'Search Volume' } },
+              y: {
+                title: {
+                  display: true,
+                  text:
+                    GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
+                    'Growth',
+                },
+                ticks: {
+                  callback: value =>
+                    (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%',
+                },
+              },
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: ctx =>
+                    `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
+                },
+              },
+            },
+            onClick: (evt, elements) => {
+              if (elements.length > 0) {
+                const index = elements[0].datasetIndex;
+                // We need to access the current clusters state here.
+                // Since this function is inside useMemo, it will capture 'clusters' from the dependency array.
+                if (clusters && clusters[index]) {
+                  setSelectedCluster(clusters[index]);
+                  setTimeout(() => {
+                    document
+                      .getElementById('cluster-details')
+                      ?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }
               }
-            }
-          },
-          plugins: {
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`
-              }
-            }
-          },
-          onClick: (evt, elements) => {
-            if (elements.length > 0) {
-              const index = elements[0].datasetIndex;
-              // We need to access the current clusters state here.
-              // Since this function is inside useMemo, it will capture 'clusters' from the dependency array.
-              if (clusters && clusters[index]) {
-                 setSelectedCluster(clusters[index]);
-                 setTimeout(() => {
-                     document.getElementById('cluster-details')?.scrollIntoView({ behavior: 'smooth' });
-                 }, 100);
-              }
-            }
-          }
-        }), [growthMetric, clusters]);
+            },
+          }),
+          [growthMetric, clusters]
+        );
 
         // --- Render ---
 
+        const settingsModal = (
+          <Modal
+            isOpen={modalConfig.isOpen && modalConfig.type === 'settings'}
+            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+            title="Settings"
+          >
+            <div className="modal-body">
+              {modalConfig.message && (
+                <div
+                  className="alert alert-warning mb-4"
+                  style={{
+                    color: '#dc2626',
+                    background: '#fee2e2',
+                    padding: '10px',
+                    borderRadius: '6px',
+                    fontSize: '0.9rem',
+                    border: '1px solid #fca5a5',
+                  }}
+                >
+                  {modalConfig.message}
+                </div>
+              )}
+              <div className="input-group">
+                <label>Gemini Model</label>
+                <div className="select-wrapper">
+                  <select
+                    value={geminiConfig.modelId}
+                    onChange={e =>
+                      setGeminiConfig({ ...geminiConfig, modelId: e.target.value })
+                    }
+                  >
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="input-group">
+                  <label>Temperature: {geminiConfig.temperature}</label>
+                  <input
+                    type="range"
+                    step="0.1"
+                    min="0"
+                    max="2"
+                    value={geminiConfig.temperature}
+                    onChange={e =>
+                      setGeminiConfig({
+                        ...geminiConfig,
+                        temperature: parseFloat(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Top P: {geminiConfig.topP}</label>
+                  <input
+                    type="range"
+                    step="0.1"
+                    min="0"
+                    max="1"
+                    value={geminiConfig.topP}
+                    onChange={e =>
+                      setGeminiConfig({
+                        ...geminiConfig,
+                        topP: parseFloat(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+
+              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+              <div className="input-group">
+                <label>Min Search Volume</label>
+                <input
+                  type="number"
+                  value={minSearchVolume}
+                  onChange={e => setMinSearchVolume(Number(e.target.value))}
+                  placeholder="100"
+                />
+              </div>
+
+              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+              <div className="input-group">
+                <label>Application Data</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    className="btn"
+                    onClick={() => {
+                      clearCache();
+                      setModalConfig({ ...modalConfig, isOpen: false });
+                    }}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#f3f4f6',
+                      color: '#4b5563',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      flexShrink: 0,
+                    }}
+                    title="Clear Cache"
+                  >
+                    <span
+                      className="material-icons-round"
+                      style={{ fontSize: '1.2rem' }}
+                    >
+                      delete_outline
+                    </span>
+                  </button>
+                  <div className="text-sm text-muted">
+                    Removes all locally saved data and resets the application state.
+                  </div>
+                </div>
+              </div>
+
+              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+
+              <details
+                className="advanced-settings"
+                open={!!modalConfig.highlight}
+                style={{
+                  background: '#f8fafc',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
+                <summary
+                  style={{
+                    color: '#475569',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '1rem',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  <span className="material-icons-round" style={{ fontSize: '1.2rem' }}>expand_more</span>
+                  <span className="material-icons-round" style={{ fontSize: '1.2rem' }}>settings</span>
+                  Advanced Settings
+                </summary>
+                <div className="mt-4">
+                  <div className="input-group">
+                    <label>Ads Account ID</label>
+                    <div
+                      style={
+                        modalConfig.highlight === 'ADS_ACCOUNT_ID'
+                          ? {
+                              border: '2px solid #dc2626',
+                              borderRadius: '8px',
+                              padding: '4px',
+                              position: 'relative',
+                            }
+                          : {}
+                      }
+                    >
+                      <input
+                        ref={adsInputRef}
+                        type="text"
+                        value={configStatus.adsAccountId}
+                        onChange={e => {
+                          setConfigStatus({
+                            ...configStatus,
+                            adsAccountId: e.target.value,
+                          });
+                        }}
+                        onBlur={e =>
+                          updateScriptProperty('ADS_ACCOUNT_ID', e.target.value)
+                        }
+                        placeholder="e.g. 123-456-7890"
+                        style={{ width: '100%', boxSizing: 'border-box' }}
+                      />
+                      {modalConfig.highlight === 'ADS_ACCOUNT_ID' && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            right: '-40px',
+                            top: '50%',
+                            color: '#dc2626',
+                            fontSize: '32px',
+                            fontWeight: 'bold',
+                            animation: 'bounceHorizontal 1s infinite ease-in-out',
+                          }}
+                        >
+                          ←
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label>Developer Token</label>
+                    <div
+                      style={
+                        modalConfig.highlight === 'DEVELOPER_TOKEN'
+                          ? {
+                              border: '2px solid #dc2626',
+                              borderRadius: '8px',
+                              padding: '4px',
+                              position: 'relative',
+                            }
+                          : {}
+                      }
+                    >
+                      <button
+                        className="btn"
+                        onClick={() => {
+                          const token = prompt('Enter new Developer Token:');
+                          if (token) {
+                            updateScriptProperty('DEVELOPER_TOKEN', token);
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          justifyContent: 'center',
+                          background: '#fff',
+                          border: '1px solid var(--border-color)',
+                        }}
+                      >
+                        Update Developer Token
+                      </button>
+                      {modalConfig.highlight === 'DEVELOPER_TOKEN' && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            right: '-40px',
+                            top: '50%',
+                            color: '#dc2626',
+                            fontSize: '32px',
+                            fontWeight: 'bold',
+                            animation: 'bounceHorizontal 1s infinite ease-in-out',
+                          }}
+                        >
+                          ←
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted mt-2">
+                      Token is saved securely and never shown.
+                    </div>
+                  </div>
+                </div>
+              </details>
+              <div className="modal-actions">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </Modal>
+        );
+
         const languageModal = (
-          <Modal isOpen={modalConfig.isOpen && modalConfig.type === 'language'} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} title="Add Custom Language">
+          <Modal
+            isOpen={modalConfig.isOpen && modalConfig.type === 'language'}
+            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+            title="Add Custom Language"
+          >
             <div className="modal-body">
               <p className="text-sm text-muted mb-4">
                 Enter the numeric Language ID from Google Ads API.
-                <a href="https://developers.google.com/google-ads/api/reference/data/codes-formats#languages" target="_blank" rel="noopener noreferrer" style={{marginLeft: '4px', verticalAlign: 'middle'}}>
-                  <span className="material-icons-round" style={{fontSize: '16px'}}>info</span>
+                <a
+                  href={LANGUAGE_INFO_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ marginLeft: '4px', verticalAlign: 'middle' }}
+                >
+                  <span
+                    className="material-icons-round"
+                    style={{ fontSize: '16px' }}
+                  >
+                    info
+                  </span>
                 </a>
               </p>
               <div className="input-group">
@@ -781,26 +1612,138 @@ The Google Ads keyword ideas are:
                 <input
                   type="text"
                   value={modalConfig.value}
-                  onChange={e => setModalConfig({ ...modalConfig, value: e.target.value })}
+                  onChange={e =>
+                    setModalConfig({ ...modalConfig, value: e.target.value })
+                  }
                   placeholder="e.g. 1000"
                   autoFocus
                 />
               </div>
               <div className="modal-actions">
-                <button className="btn" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>Cancel</button>
-                <button className="btn btn-primary" onClick={submitModal}>Add</button>
+                <button
+                  className="btn"
+                  onClick={() =>
+                    setModalConfig({ ...modalConfig, isOpen: false })
+                  }
+                >
+                  Cancel
+                </button>
+                <button className="btn btn-primary" onClick={submitModal}>
+                  Add
+                </button>
               </div>
             </div>
           </Modal>
         );
 
+        const updateScriptProperty = async (key, value) => {
+          try {
+            const status = await googleScriptRun.setScriptProperty(key, value);
+            setConfigStatus({ ...status, checked: true });
+            if (key === 'ADS_ACCOUNT_ID') {
+              setAdsAccountId(value);
+            }
+            return true;
+          } catch (e) {
+            showError('Error updating property', e);
+            return false;
+          }
+        };
+
+        const ConfigModal = () => {
+          const [localDevToken, setLocalDevToken] = useState('');
+          const [localAdsId, setLocalAdsId] = useState('');
+          const [isSaving, setIsSaving] = useState(false);
+
+          if (!configStatus.checked) return null;
+          if (configStatus.hasDeveloperToken && configStatus.hasAdsAccountId)
+            return null;
+
+          const handleSave = async () => {
+            setIsSaving(true);
+            try {
+              if (!configStatus.hasDeveloperToken && localDevToken) {
+                await updateScriptProperty('DEVELOPER_TOKEN', localDevToken);
+              }
+              if (!configStatus.hasAdsAccountId && localAdsId) {
+                await updateScriptProperty('ADS_ACCOUNT_ID', localAdsId);
+              }
+            } finally {
+              setIsSaving(false);
+            }
+          };
+
+          return (
+            <Modal
+              isOpen={true}
+              onClose={() => {}}
+              title="Configuration Required"
+            >
+              <div className="modal-body">
+                <p className="text-sm text-muted mb-4">
+                  Please provide the following required configuration to proceed.
+                </p>
+                {!configStatus.hasDeveloperToken && (
+                  <div className="input-group">
+                    <label>Developer Token</label>
+                    <input
+                      type="password"
+                      value={localDevToken}
+                      onChange={e => setLocalDevToken(e.target.value)}
+                      placeholder="Enter Developer Token"
+                    />
+                  </div>
+                )}
+                {!configStatus.hasAdsAccountId && (
+                  <div className="input-group">
+                    <label>Ads Account ID</label>
+                    <input
+                      type="text"
+                      value={localAdsId}
+                      onChange={e => setLocalAdsId(e.target.value)}
+                      placeholder="e.g. 123-456-7890"
+                    />
+                  </div>
+                )}
+                <div className="modal-actions">
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleSave}
+                    disabled={
+                      isSaving ||
+                      (!configStatus.hasDeveloperToken && !localDevToken) ||
+                      (!configStatus.hasAdsAccountId && !localAdsId)
+                    }
+                  >
+                    {isSaving ? 'Saving...' : 'Save Configuration'}
+                  </button>
+                </div>
+              </div>
+            </Modal>
+          );
+        };
+
         const locationModal = (
-          <Modal isOpen={modalConfig.isOpen && modalConfig.type === 'country'} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} title="Add Custom Location">
+          <Modal
+            isOpen={modalConfig.isOpen && modalConfig.type === 'country'}
+            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+            title="Add Custom Location"
+          >
             <div className="modal-body">
               <p className="text-sm text-muted mb-4">
                 Enter the numeric Location ID from Google Ads API.
-                <a href="https://developers.google.com/google-ads/api/reference/data/geotargets" target="_blank" rel="noopener noreferrer" style={{marginLeft: '4px', verticalAlign: 'middle'}}>
-                  <span className="material-icons-round" style={{fontSize: '16px'}}>info</span>
+                <a
+                  href={LOCATION_INFO_URL}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  style={{ marginLeft: '4px', verticalAlign: 'middle' }}
+                >
+                  <span
+                    className="material-icons-round"
+                    style={{ fontSize: '16px' }}
+                  >
+                    info
+                  </span>
                 </a>
               </p>
               <div className="input-group">
@@ -808,14 +1751,25 @@ The Google Ads keyword ideas are:
                 <input
                   type="text"
                   value={modalConfig.value}
-                  onChange={e => setModalConfig({ ...modalConfig, value: e.target.value })}
+                  onChange={e =>
+                    setModalConfig({ ...modalConfig, value: e.target.value })
+                  }
                   placeholder="e.g. 2840"
                   autoFocus
                 />
               </div>
               <div className="modal-actions">
-                <button className="btn" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>Cancel</button>
-                <button className="btn btn-primary" onClick={submitModal}>Add</button>
+                <button
+                  className="btn"
+                  onClick={() =>
+                    setModalConfig({ ...modalConfig, isOpen: false })
+                  }
+                >
+                  Cancel
+                </button>
+                <button className="btn btn-primary" onClick={submitModal}>
+                  Add
+                </button>
               </div>
             </div>
           </Modal>
@@ -823,37 +1777,83 @@ The Google Ads keyword ideas are:
 
         return (
           <div className="app">
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px',
+              }}
+            >
               <h1>GIGA</h1>
-              <button className="btn" onClick={clearCache} style={{background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-color)'}}>
-                <span className="material-icons-round" style={{fontSize: '1.2rem', marginRight: '4px'}}>delete_outline</span>
-                Clear Cache
+              <button
+                className="btn"
+                onClick={() => handleCustomOption('settings')}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-color)',
+                  padding: '8px',
+                }}
+              >
+                <span
+                  className="material-icons-round"
+                  style={{ fontSize: '1.5rem' }}
+                >
+                  settings
+                </span>
               </button>
             </div>
 
             <div className="tabs">
-              <TabButton active={activeTab === 'explore'} onClick={() => setActiveTab('explore')}>Explore</TabButton>
-              <TabButton active={activeTab === 'insights'} onClick={() => setActiveTab('insights')}>Insights</TabButton>
-              <TabButton active={activeTab === 'campaigns'} onClick={() => setActiveTab('campaigns')}>Campaign Suggestions</TabButton>
-              <TabButton active={activeTab === 'creation'} onClick={() => setActiveTab('creation')}>Campaign Creation</TabButton>
+              <TabButton
+                active={activeTab === 'explore'}
+                onClick={() => setActiveTab('explore')}
+              >
+                Explore
+              </TabButton>
+              <TabButton
+                active={activeTab === 'trends'}
+                onClick={() => setActiveTab('trends')}
+              >
+                Trends
+              </TabButton>
+              <TabButton
+                active={activeTab === 'insights'}
+                onClick={() => setActiveTab('insights')}
+              >
+                Insights
+              </TabButton>
+              <TabButton
+                active={activeTab === 'campaigns'}
+                onClick={() => setActiveTab('campaigns')}
+              >
+                Campaign Suggestions
+              </TabButton>
+              <TabButton
+                active={activeTab === 'creation'}
+                onClick={() => setActiveTab('creation')}
+              >
+                Campaign Creation
+              </TabButton>
             </div>
 
             {activeTab === 'explore' && (
               <div className="card fade-in">
                 <h2>Explore Keywords</h2>
+                <InputField
+                  label="Seed Keywords"
+                  value={keywords}
+                  onChange={setKeywords}
+                  placeholder="e.g. shoes, running shoes"
+                  helpText="Comma separated, up to 20"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      runExplore();
+                    }
+                  }}
+                />
                 <div className="grid-2">
-                  <InputField
-                    label="Seed Keywords"
-                    value={keywords}
-                    onChange={setKeywords}
-                    placeholder="e.g. shoes, running shoes"
-                    helpText="Comma separated, up to 20"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        runExplore();
-                      }
-                    }}
-                  />
                   <SelectField
                     label="Language"
                     value={language}
@@ -868,38 +1868,52 @@ The Google Ads keyword ideas are:
                     options={[...COUNTRIES, ...customCountries]}
                     onCustomOption={() => handleCustomOption('country')}
                   />
-                  <SelectField
-                    label="Growth Metric"
-                    value={growthMetric}
-                    onChange={setGrowthMetric}
-                    options={GROWTH_METRICS}
-                  />
                 </div>
 
                 <details className="mb-4">
-                  <summary className="cursor-pointer text-sm font-medium text-primary">Advanced Config</summary>
-                  <div className="mt-4">
-                    <InputField
-                      label="Min Search Volume"
-                      type="number"
-                      value={minSearchVolume}
-                      onChange={setMinSearchVolume}
-                      placeholder="100"
-                    />
+                  <summary className="cursor-pointer text-sm font-medium text-primary">
+                    Advanced Config
+                  </summary>
                     <div className="mt-4">
-                      <InputField type="textarea" label="Clustering Prompt" value={promptTemplate} onChange={setPromptTemplate} rows={6} />
+                    <div className="mt-4">
+                      <InputField
+                        type="textarea"
+                        label="Clustering Prompt"
+                        value={promptTemplate}
+                        onChange={setPromptTemplate}
+                        rows={6}
+                      />
                     </div>
                   </div>
                 </details>
 
-                <button className="btn btn-primary" onClick={runExplore} disabled={isExploring}>
-                  {isExploring ? <><div className="spinner"></div> {exploreStatus || 'Running...'}</> : <><span className="material-icons-round">rocket_launch</span> Start Exploration</>}
+                <button
+                  className="btn btn-primary"
+                  onClick={runExplore}
+                  disabled={isExploring}
+                >
+                  {isExploring ? (
+                    <>
+                      <div className="spinner"></div>{' '}
+                      {exploreStatus || 'Running...'}
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-icons-round">
+                        rocket_launch
+                      </span>{' '}
+                      Start
+                    </>
+                  )}
                 </button>
 
                 {seedChartData && (
-                  <div className="mt-4 card" style={{border: '1px solid var(--primary)'}}>
-                    <h3>Seed Keywords Trends</h3>
-                    <div style={{height: '400px'}}>
+                  <div
+                    className="mt-4 card"
+                    style={{ border: '1px solid var(--primary)' }}
+                  >
+                    <h3>Seed Keywords Search Volume</h3>
+                    <div style={{ height: '400px' }}>
                       <ChartComponent
                         type="line"
                         data={seedChartData}
@@ -907,27 +1921,43 @@ The Google Ads keyword ideas are:
                           responsive: true,
                           maintainAspectRatio: false,
                           plugins: {
-                            legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10 } },
-                            tooltip: { mode: 'index', intersect: false }
+                            legend: {
+                              position: 'bottom',
+                              labels: { boxWidth: 10, padding: 10 },
+                            },
+                            tooltip: { mode: 'index', intersect: false },
                           },
                           interaction: {
                             mode: 'nearest',
                             axis: 'x',
-                            intersect: false
+                            intersect: false,
                           },
                           scales: {
-                            y: { beginAtZero: true }
-                          }
+                            y: { beginAtZero: true },
+                          },
                         }}
                       />
                     </div>
                   </div>
                 )}
 
+                {clusters && (
+                  <div className="mt-4" style={{ maxWidth: '300px' }}>
+                    <SelectField
+                      label="Growth Metric"
+                      value={growthMetric}
+                      onChange={setGrowthMetric}
+                      options={GROWTH_METRICS}
+                    />
+                  </div>
+                )}
+
                 {clustersChartData && (
                   <div className="mt-4">
                     <h3>Clusters</h3>
-                    <div className="text-sm text-muted mb-2">Click on a bubble to view details</div>
+                    <div className="text-sm text-muted mb-2">
+                      Click on a bubble to view details
+                    </div>
                     <ChartComponent
                       type="bubble"
                       data={clustersChartData}
@@ -937,82 +1967,212 @@ The Google Ads keyword ideas are:
                 )}
 
                 {selectedCluster && selectedClusterChartData && (
-                  <div id="cluster-details" className="mt-4 card" style={{border: '1px solid var(--primary)'}}>
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                       <h3>Details: {selectedCluster.topic}</h3>
-                       <button onClick={() => setSelectedCluster(null)} className="btn" style={{padding: '4px 8px'}}>&times;</button>
+                  <div
+                    id="cluster-details"
+                    className="mt-4 card"
+                    style={{ border: '1px solid var(--primary)' }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <h3>Details: {selectedCluster.topic}</h3>
+                      <button
+                        onClick={() => setSelectedCluster(null)}
+                        className="btn"
+                        style={{ padding: '4px 8px' }}
+                      >
+                        &times;
+                      </button>
                     </div>
                     <div className="grid-2">
-                       <div>
-                          <strong>Total Volume:</strong> {selectedCluster.searchVolume.toLocaleString()}
-                       </div>
-                       <div>
-                          <strong>{GROWTH_METRICS.find(m => m.id === growthMetric)?.name || 'Growth'}:</strong> {
-                            (() => {
-                              let val = 0;
-                              if (growthMetric === 'yoy') val = selectedCluster.growthYoY || selectedCluster.yearOverYearGrowth || 0;
-                              else if (growthMetric === 'mom') val = selectedCluster.growthMoM || 0;
-                              else if (growthMetric === 'latest_vs_avg') val = selectedCluster.growthLatestVsAvg || 0;
-                              else if (growthMetric === 'latest_vs_max') val = selectedCluster.growthLatestVsMax || 0;
-                              return (val * 100).toFixed(1);
-                            })()
-                          }%
-                       </div>
+                      <div>
+                        <strong>Total Volume:</strong>{' '}
+                        {selectedCluster.searchVolume.toLocaleString()}
+                      </div>
+                      <div>
+                        <strong>
+                          {GROWTH_METRICS.find(m => m.id === growthMetric)
+                            ?.name || 'Growth'}
+                          :
+                        </strong>{' '}
+                        {(() => {
+                          let val = 0;
+                          if (growthMetric === 'yoy')
+                            val =
+                              selectedCluster.growthYoY ||
+                              selectedCluster.yearOverYearGrowth ||
+                              0;
+                          else if (growthMetric === 'mom')
+                            val = selectedCluster.growthMoM || 0;
+                          else if (growthMetric === 'latest_vs_avg')
+                            val = selectedCluster.growthLatestVsAvg || 0;
+                          else if (growthMetric === 'latest_vs_max')
+                            val = selectedCluster.growthLatestVsMax || 0;
+                          return (val * 100).toFixed(1);
+                        })()}
+                        %
+                      </div>
                     </div>
                     <div className="mt-4">
-                       <h4>Search Volume Trend</h4>
-                       <ChartComponent
-                         type="line"
-                         data={selectedClusterChartData}
-                         options={{
-                           responsive: true,
-                           maintainAspectRatio: false,
-                           plugins: {
-                             legend: { display: false }
-                           }
-                         }}
-                       />
+                      <h4>Cluster Search Volume</h4>
+                      <ChartComponent
+                        type="line"
+                        data={selectedClusterChartData}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: { display: false },
+                          },
+                        }}
+                      />
                     </div>
                     <div className="mt-4">
-                       <h4>Keyword Trends (All)</h4>
-                       <div style={{height: '400px'}}>
-                         <ChartComponent
-                           type="line"
-                           data={{
-                             labels: chartLabels,
-                             datasets: selectedCluster.keywords.map((k, i) => {
-                               const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
-                               const color = `hsl(${ (i * 360 / selectedCluster.keywords.length) % 360 }, 70%, 50%)`;
-                               return {
-                                 label: k,
-                                 data: volHistory.slice(),
-                                 borderColor: color,
-                                 backgroundColor: color,
-                                 fill: false,
-                                 tension: 0.3,
-                                 pointRadius: 2,
-                                 pointHoverRadius: 5
-                               };
-                             })
-                           }}
-                           options={{
-                             responsive: true,
-                             maintainAspectRatio: false,
-                             plugins: {
-                               legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10 } },
-                               tooltip: { mode: 'index', intersect: false }
-                             },
-                             interaction: {
-                               mode: 'nearest',
-                               axis: 'x',
-                               intersect: false
-                             },
-                             scales: {
-                               y: { beginAtZero: true }
-                             }
-                           }}
-                         />
-                       </div>
+                      <h4>Keyword Search Volume</h4>
+                      <div style={{ height: '400px' }}>
+                        <ChartComponent
+                          type="line"
+                          data={{
+                            labels: chartLabels,
+                            datasets: selectedCluster.keywords.map((k, i) => {
+                              const volHistory = relevantIdeas[k]
+                                ? relevantIdeas[k]
+                                : [];
+                              const color =
+                                COLOR_PALETTE[i % COLOR_PALETTE.length];
+                              return {
+                                label: k,
+                                data: volHistory.slice(),
+                                borderColor: color,
+                                backgroundColor: color,
+                                fill: false,
+                                tension: 0.3,
+                                pointRadius: 2,
+                                pointHoverRadius: 5,
+                              };
+                            }),
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                              legend: {
+                                position: 'bottom',
+                                labels: { boxWidth: 10, padding: 10 },
+                              },
+                              tooltip: { mode: 'index', intersect: false },
+                            },
+                            interaction: {
+                              mode: 'nearest',
+                              axis: 'x',
+                              intersect: false,
+                            },
+                            scales: {
+                              y: { beginAtZero: true },
+                            },
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'trends' && (
+              <div className="card fade-in">
+                <h2>Trends Analysis</h2>
+                <InputField
+                  label="Seed Keywords"
+                  value={trendsKeywords}
+                  onChange={setTrendsKeywords}
+                  placeholder="e.g. shoes, running shoes"
+                  helpText="Comma separated, up to 20"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      runTrends();
+                    }
+                  }}
+                />
+
+                <details className="mb-4">
+                  <summary className="cursor-pointer text-sm font-medium text-primary">
+                    Advanced Config
+                  </summary>
+                  <div className="mt-4">
+                    <div className="mt-4">
+                      <InputField
+                        type="textarea"
+                        label="Trends Prompt"
+                        value={trendsPromptTemplate}
+                        onChange={setTrendsPromptTemplate}
+                        rows={6}
+                      />
+                    </div>
+                  </div>
+                </details>
+
+                <button
+                  className="btn btn-primary"
+                  onClick={runTrends}
+                  disabled={isTrendsRunning}
+                >
+                  {isTrendsRunning ? (
+                    <>
+                      <div className="spinner"></div> Generating trends keywords...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-icons-round">
+                        rocket_launch
+                      </span>{' '}
+                      Start
+                    </>
+                  )}
+                </button>
+                {trendsStatus && (
+                  <div className="status-msg">{trendsStatus}</div>
+                )}
+
+                {trendsResults && trendsResults.length > 0 && (
+                  <div className="mt-4">
+                    <h3>Trends Keywords ({trendsResults.length})</h3>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table
+                        style={{
+                          width: '100%',
+                          borderCollapse: 'collapse',
+                          marginTop: '10px',
+                        }}
+                      >
+                        <thead>
+                          <tr
+                            style={{
+                              borderBottom: '2px solid var(--border-color)',
+                            }}
+                          >
+                            <th style={{ textAlign: 'left', padding: '8px' }}>
+                              Keyword
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {trendsResults.map((keyword, index) => (
+                            <tr
+                              key={index}
+                              style={{
+                                borderBottom: '1px solid var(--border-color)',
+                              }}
+                            >
+                              <td style={{ padding: '8px' }}>{keyword}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 )}
@@ -1022,11 +2182,29 @@ The Google Ads keyword ideas are:
             {activeTab === 'insights' && (
               <div className="card fade-in">
                 <h2>Insights</h2>
-                <div className="mb-4" dangerouslySetInnerHTML={{ __html: insights }} />
-                <button className="btn btn-primary" onClick={generateInsights} disabled={isGeneratingInsights}>
-                  {isGeneratingInsights ? <><div className="spinner"></div> Generating...</> : <><span className="material-icons-round">lightbulb</span> Generate Insights</>}
+                <div
+                  className="mb-4"
+                  dangerouslySetInnerHTML={{ __html: insights }}
+                />
+                <button
+                  className="btn btn-primary"
+                  onClick={generateInsights}
+                  disabled={isGeneratingInsights}
+                >
+                  {isGeneratingInsights ? (
+                    <>
+                      <div className="spinner"></div> Generating...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-icons-round">lightbulb</span>{' '}
+                      Generate Insights
+                    </>
+                  )}
                 </button>
-                {insightsStatus && <div className="status-msg">{insightsStatus}</div>}
+                {insightsStatus && (
+                  <div className="status-msg">{insightsStatus}</div>
+                )}
               </div>
             )}
 
@@ -1034,35 +2212,99 @@ The Google Ads keyword ideas are:
               <div className="card fade-in">
                 <h2>Campaign Suggestions</h2>
                 <div className="grid-2">
-                  <InputField label="Google Ads Account ID" value={adsAccountId} onChange={setAdsAccountId} placeholder="123-456-7890" />
-                  <InputField label="Brand Name" value={brandName} onChange={setBrandName} placeholder="My Brand" />
+                  <InputField
+                    label="Google Ads Account ID"
+                    value={adsAccountId}
+                    onChange={setAdsAccountId}
+                    placeholder="123-456-7890"
+                  />
+                  <InputField
+                    label="Brand Name"
+                    value={brandName}
+                    onChange={setBrandName}
+                    placeholder="My Brand"
+                  />
                 </div>
-                <div className="mb-4 mt-4" dangerouslySetInnerHTML={{ __html: campaignSuggestions }} />
-                <button className="btn btn-primary" onClick={generateCampaignSuggestions} disabled={isGeneratingCampaigns}>
-                  {isGeneratingCampaigns ? <><div className="spinner"></div> Generating...</> : <><span className="material-icons-round">campaign</span> Generate Suggestions</>}
+                <div
+                  className="mb-4 mt-4"
+                  dangerouslySetInnerHTML={{ __html: campaignSuggestions }}
+                />
+                <button
+                  className="btn btn-primary"
+                  onClick={generateCampaignSuggestions}
+                  disabled={isGeneratingCampaigns}
+                >
+                  {isGeneratingCampaigns ? (
+                    <>
+                      <div className="spinner"></div> Generating...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-icons-round">campaign</span>{' '}
+                      Generate Suggestions
+                    </>
+                  )}
                 </button>
-                {campaignStatus && <div className="status-msg">{campaignStatus}</div>}
+                {campaignStatus && (
+                  <div className="status-msg">{campaignStatus}</div>
+                )}
               </div>
             )}
 
             {activeTab === 'creation' && (
               <div className="card fade-in">
                 <h2>Campaign Creation</h2>
-                <InputField label="Google Ads Account ID" value={creationAccountId} onChange={setCreationAccountId} />
+                <InputField
+                  label="Google Ads Account ID"
+                  value={creationAccountId}
+                  onChange={setCreationAccountId}
+                />
 
                 <div className="grid-2">
-                   <div className="mt-4">
-                      <button className="btn btn-primary" onClick={generatePrompt}>Generate Pre-Prompt</button>
-                   </div>
+                  <div className="mt-4">
+                    <button
+                      className="btn btn-primary"
+                      onClick={generatePrompt}
+                    >
+                      Generate Pre-Prompt
+                    </button>
+                  </div>
                 </div>
 
-                <InputField type="textarea" label="Prompt Template" value={creationPromptTemplate} onChange={setCreationPromptTemplate} rows={6} />
-                <InputField type="textarea" label="Style Guide" value={creationStyleGuide} onChange={setCreationStyleGuide} rows={6} />
-                <InputField type="textarea" label="Instructions" value={creationInstructions} onChange={setCreationInstructions} rows={3} />
-                <InputField label="Campaign Keywords" value={creationKeywords} onChange={setCreationKeywords} placeholder="keyword1, keyword2" />
+                <InputField
+                  type="textarea"
+                  label="Prompt Template"
+                  value={creationPromptTemplate}
+                  onChange={setCreationPromptTemplate}
+                  rows={6}
+                />
+                <InputField
+                  type="textarea"
+                  label="Style Guide"
+                  value={creationStyleGuide}
+                  onChange={setCreationStyleGuide}
+                  rows={6}
+                />
+                <InputField
+                  type="textarea"
+                  label="Instructions"
+                  value={creationInstructions}
+                  onChange={setCreationInstructions}
+                  rows={3}
+                />
+                <InputField
+                  label="Campaign Keywords"
+                  value={creationKeywords}
+                  onChange={setCreationKeywords}
+                  placeholder="keyword1, keyword2"
+                />
 
                 <div className="mt-4">
-                  <button className="btn btn-primary" onClick={generateNewCampaigns} disabled={isCreatingCampaign}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={generateNewCampaigns}
+                    disabled={isCreatingCampaign}
+                  >
                     {isCreatingCampaign ? 'Creating...' : 'Generate Ad'}
                     <span className="material-icons-round">add_circle</span>
                   </button>
@@ -1078,8 +2320,14 @@ The Google Ads keyword ideas are:
 
             {languageModal}
             {locationModal}
-          </div>
-        );
+            {settingsModal}
+          <ErrorModal
+            isOpen={errorState.isOpen}
+            onClose={() => setErrorState({ ...errorState, isOpen: false })}
+            error={errorState}
+          />
+        </div>
+      );
       };
 
       // eslint-disable-next-line no-unused-vars
