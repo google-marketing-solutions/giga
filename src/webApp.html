@@ -324,17 +324,30 @@ limitations under the License.
           opacity: 1;
         }
       }
-      @keyframes slideUp {
-        from {
-          transform: translateY(20px);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
+
+      .error-details {
+        font-family: monospace;
+        font-size: 0.875rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: #991b1b;
+        max-height: 200px;
+        overflow-y: auto;
       }
 
+      .error-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: auto;
+      }
+
+      .error-actions .btn {
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
       /* Spinner */
       .spinner {
         width: 16px;
@@ -532,22 +545,65 @@ The Google Ads keyword ideas are:
       );
 
       // eslint-disable-next-line no-unused-vars
-      const Modal = ({ isOpen, onClose, title, children }) => {
+      const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
         if (!isOpen) return null;
         return (
           <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div
+              className={`modal-content ${className}`}
+              onClick={e => e.stopPropagation()}
+            >
               <div className="modal-header">
-                <h3>{title}</h3>
-                <button
-                  className="btn"
-                  onClick={onClose}
-                  style={{ padding: '4px 8px' }}
-                >
-                  &times;
+                <h2>{title}</h2>
+                <button className="close-btn" onClick={onClose}>
+                  <span className="material-icons-round">close</span>
                 </button>
               </div>
               {children}
+            </div>
+          </div>
+        );
+      };
+
+      const ErrorModal = ({ isOpen, onClose, error }) => {
+        if (!isOpen || !error) return null;
+
+        const copyToClipboard = () => {
+          const text = `Error: ${error.title}\nMessage: ${error.message}\n\nStack Trace:\n${error.stack || 'N/A'}`;
+          navigator.clipboard.writeText(text).then(() => {
+            // Optional: Show a temporary "Copied!" tooltip or state
+          });
+        };
+
+        return (
+          <div className="modal-overlay" onClick={onClose}>
+            <div
+              className="modal-content error-modal-content"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="error-header">
+                <span className="material-icons-round error-icon">error_outline</span>
+                <h2 className="error-title">{error.title || 'An error occurred'}</h2>
+              </div>
+
+              <div className="error-body">
+                <p className="error-message">{error.message}</p>
+                {error.stack && (
+                  <div className="error-details">
+                    {error.stack}
+                  </div>
+                )}
+              </div>
+
+              <div className="error-actions">
+                <button className="btn btn-secondary" onClick={copyToClipboard}>
+                  <span className="material-icons-round">content_copy</span>
+                  Copy Details
+                </button>
+                <button className="btn btn-primary" onClick={onClose}>
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -738,6 +794,34 @@ The Google Ads keyword ideas are:
           'yoy',
           'growthMetric'
         );
+
+        // Gemini Configuration
+        const [errorState, setErrorState] = useState({
+          isOpen: false,
+          title: '',
+          message: '',
+          stack: '',
+        });
+
+        const showError = (title, error) => {
+          console.error(error);
+          setErrorState({
+            isOpen: true,
+            title: title,
+            message: error.message || String(error),
+            stack: error.stack || '',
+          });
+        };
+
+        const [geminiConfig, setGeminiConfig] = useStickyState(
+          {
+            projectID: '',
+            modelID: 'gemini-2.5-flash',
+            temperature: 0.7,
+            topP: 0.9,
+          },
+          'giga_geminiConfig'
+        );
         const [creationResult, setCreationResult] = useStickyState(
           '',
           'giga_creationResult'
@@ -862,7 +946,8 @@ The Google Ads keyword ideas are:
             const clusterResult = await googleScriptRun.getClusters(
               relevant,
               promptTemplate,
-              growthMetric
+              growthMetric,
+              geminiConfig
             );
             setClusters(clusterResult);
             setExploreStatus(
@@ -871,7 +956,7 @@ The Google Ads keyword ideas are:
           } catch (e) {
             console.error(e);
             setExploreStatus(`Error: ${e.message}`);
-            alert(e.message);
+            showError('Error', e);
           } finally {
             setIsExploring(false);
           }
@@ -891,14 +976,15 @@ The Google Ads keyword ideas are:
               .filter(Boolean);
             const result = await googleScriptRun.generateTrendsKeywords(
               keywords,
-              trendsPromptTemplate
+              trendsPromptTemplate,
+              geminiConfig
             );
             setTrendsResults(result);
             setTrendsStatus('');
           } catch (e) {
             console.error(e);
             setTrendsStatus(`Error: ${e.message}`);
-            alert(e.message);
+            showError('Error', e);
           } finally {
             setIsTrendsRunning(false);
           }
@@ -919,12 +1005,14 @@ The Google Ads keyword ideas are:
             const result = await googleScriptRun.getInsights(
               relevantIdeas,
               seedKeywords,
-              growthMetric
+              growthMetric,
+              geminiConfig
             );
             setInsights(result);
             setInsightsStatus('');
           } catch (e) {
             setInsightsStatus(`Error: ${e.message}`);
+            showError('Error', e);
           } finally {
             setIsGeneratingInsights(false);
           }
@@ -953,12 +1041,14 @@ The Google Ads keyword ideas are:
               insights,
               langName,
               brandName,
-              adExamples
+              adExamples,
+              geminiConfig
             );
             setCampaignSuggestions(result);
             setCampaignStatus('');
           } catch (e) {
             setCampaignStatus(`Error: ${e.message}`);
+            showError('Error', e);
           } finally {
             setIsGeneratingCampaigns(false);
           }
@@ -983,6 +1073,7 @@ The Google Ads keyword ideas are:
             setCreationResult(result);
           } catch (e) {
             setCreationResult(`Error: ${e.message}`);
+            showError('Error', e);
           } finally {
             setIsCreatingCampaign(false);
           }
@@ -999,11 +1090,13 @@ The Google Ads keyword ideas are:
             const prompt = `${creationStyleGuide}\n${creationInstructions}\n${creationPromptTemplate}`;
             const result = await googleScriptRun.createAdSuggestion(
               prompt,
-              kws
+              kws,
+              geminiConfig
             );
             setCreationResult(JSON.stringify(result, null, 2));
           } catch (e) {
             setCreationResult(`Error: ${e.message}`);
+            showError('Error', e);
           } finally {
             setIsCreatingCampaign(false);
           }
@@ -1151,6 +1244,55 @@ The Google Ads keyword ideas are:
           >
             <div className="modal-body">
               <div className="input-group">
+                <label>Gemini Model</label>
+                <div className="select-wrapper">
+                  <select
+                    value={geminiConfig.modelID}
+                    onChange={e =>
+                      setGeminiConfig({ ...geminiConfig, modelID: e.target.value })
+                    }
+                  >
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="input-group">
+                  <label>Temperature: {geminiConfig.temperature}</label>
+                  <input
+                    type="range"
+                    step="0.1"
+                    min="0"
+                    max="2"
+                    value={geminiConfig.temperature}
+                    onChange={e =>
+                      setGeminiConfig({
+                        ...geminiConfig,
+                        temperature: parseFloat(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Top P: {geminiConfig.topP}</label>
+                  <input
+                    type="range"
+                    step="0.1"
+                    min="0"
+                    max="1"
+                    value={geminiConfig.topP}
+                    onChange={e =>
+                      setGeminiConfig({
+                        ...geminiConfig,
+                        topP: parseFloat(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+              <div className="input-group">
                 <label>Application Data</label>
                 <button
                   className="btn"
@@ -1159,19 +1301,27 @@ The Google Ads keyword ideas are:
                     setModalConfig({ ...modalConfig, isOpen: false });
                   }}
                   style={{
-                    width: '100%',
-                    justifyContent: 'center',
+                    padding: '8px 16px',
+                    fontSize: '0.85rem',
                     background: '#fee2e2',
                     color: '#ef4444',
                     border: '1px solid #fca5a5',
                   }}
                 >
-                  <span className="material-icons-round">delete_outline</span>
+                  <span className="material-icons-round" style={{ fontSize: '1.1rem' }}>delete_outline</span>
                   Clear Cache
                 </button>
                 <div className="text-sm text-muted mt-2">
                   Removes all locally saved data and resets the application state.
                 </div>
+              </div>
+              <div className="modal-actions">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}
+                >
+                  OK
+                </button>
               </div>
             </div>
           </Modal>
@@ -1839,8 +1989,13 @@ The Google Ads keyword ideas are:
             {languageModal}
             {locationModal}
             {settingsModal}
-          </div>
-        );
+          <ErrorModal
+            isOpen={errorState.isOpen}
+            onClose={() => setErrorState({ ...errorState, isOpen: false })}
+            error={errorState}
+          />
+        </div>
+      );
       };
 
       // eslint-disable-next-line no-unused-vars

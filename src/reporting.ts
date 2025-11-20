@@ -1,5 +1,5 @@
 import { addGoogleAdsAuth, ADS_ENDPOINT, ADS_VERSION } from './ideas';
-import { getGeminiConfig } from './main';
+import { createGeminiConfig } from './main';
 import { deduplicate, getDateWithDeltaDays, groupBy, keepKeys } from './util';
 import { gemini } from './vertex';
 
@@ -22,15 +22,10 @@ export const getNewSearchTermsClusters = (
   customerId,
   newDuringLastDays = 7,
   compareDuration = 30,
-  language = 'English'
+  language = 'English',
+  geminiConfig
 ) => {
-  // TODO use model config from frontend
-  // See https://ai.google.dev/gemini-api/docs/models/experimental-models#available-models
-  const config = {
-    modelID: 'gemini-2.5-flash',
-    projectID: 'cloud-project-here',
-    responseType: 'application/json',
-  };
+  const config = createGeminiConfig(geminiConfig, 'application/json');
 
   // TODO make get only new a parameter
   const searchTerms = getSearchTermReportDiff(
@@ -231,6 +226,7 @@ export const getTopPerformingAdsAndKeywords = (cid, topN) => {
     AND ad_group_ad.status = 'ENABLED'
     AND ad_group.status = 'ENABLED'
     AND campaign.status = 'ENABLED'
+    AND campaign.status = 'ENABLED'
   ORDER BY metrics.clicks DESC
   LIMIT ${topN}`;
 
@@ -255,8 +251,8 @@ export const getTopPerformingAdsPrompt = (cid, topN) => {
   return prompt;
 };
 
-export const createAdSuggestion = (prompt, userKeywords) => {
-  const config = getGeminiConfig('application/json');
+export const createAdSuggestion = (prompt, userKeywords, geminiConfig) => {
+  const config = createGeminiConfig(geminiConfig, 'application/json');
   return gemini(config)(
     `${prompt}\n${getPromptKeywordsTemplate(userKeywords)}`
   );
