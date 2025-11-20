@@ -40,8 +40,15 @@ export interface GeminiConfig {
   location?: string;
   maxOutputTokens?: number;
   responseType?: string;
-  responseSchema?: any;
+  responseSchema?: ResponseSchema;
   enableGoogleSearch?: boolean;
+}
+
+export interface ResponseSchema {
+  type: string;
+  items: {
+    type: string;
+  };
 }
 
 /**

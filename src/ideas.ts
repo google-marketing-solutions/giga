@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { services } from 'google-ads-api';
 import { chunk, fetchJson, getScriptProperties } from './util';
 
 export const MAX_KEYWORDS_PER_REQUEST = 10000; // See https://developers.google.com/google-ads/api/rest/reference/rest/v15/customers/generateKeywordHistoricalMetrics for details
@@ -85,11 +86,11 @@ export const getHistoricalMetricsOptions = lookbackYears => ({
   },
 });
 
-export function getSearchVolume(
+export function getHistoricalMetrics(
   keywords,
   criteriaId,
   lookbackYears = LOOKBACK_YEARS
-) {
+): services.GenerateKeywordHistoricalMetricsResult[] {
   const results = chunk(keywords, MAX_KEYWORDS_PER_REQUEST).map(
     (keywords, batchIndex) => {
       console.log(

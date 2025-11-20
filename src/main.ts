@@ -31,7 +31,6 @@ import {
 import { gemini, GeminiConfig, getGcpProjectId } from './vertex';
 
 const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 100;
-const MIN_YEAR_OVER_YEAR_GROWTH = 0.1;
 
 export const onOpen = () => {
   SpreadsheetApp.getUi()
@@ -371,7 +370,7 @@ export const generateTrendsKeywords = (
   - Only output the keywords without any introduction or other annotations
   - Do NOT add punctuation or unnecessary hyphens to keep the keyword as simple and generic as possible
   - Output a list of google ads broad match keywords separated by "${separator}`;
-  const config: any = createGeminiConfig(geminiConfig, 'text/plain');
+  const config: GeminiConfig = createGeminiConfig(geminiConfig, 'text/plain');
 
   // config.responseSchema = {
   //   type: 'ARRAY',

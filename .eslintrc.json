@@ -12,6 +12,12 @@
         "no-unused-vars": "off",
         "no-undef": "off"
       }
+    },
+    {
+      "files": ["*.ts"],
+      "rules": {
+        "n/no-unpublished-import": "off"
+      }
     }
   ],
   "parserOptions": {
