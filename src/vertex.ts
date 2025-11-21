@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { fetchJson, getConfigVariable, getGcpProjectDetails } from './util';
+import { fetchJson, getGcpProjectDetails } from './util';
 
-export const getGeminiModelId = () => getConfigVariable('GEMINI_MODEL_ID');
 export const getGcpProjectId = () => getGcpProjectDetails().projectId;
 
 const addAuth = (params, payloadKey = 'payload') =>
@@ -40,8 +39,15 @@ export interface GeminiConfig {
   location?: string;
   maxOutputTokens?: number;
   responseType?: string;
-  responseSchema?: any;
+  responseSchema?: ResponseSchema;
   enableGoogleSearch?: boolean;
+}
+
+export interface ResponseSchema {
+  type: string;
+  items: {
+    type: string;
+  };
 }
 
 /**

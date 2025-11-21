@@ -18,47 +18,16 @@ import { getCriterionIDs } from './geo';
 import { generateKeywordIdeas } from './ideas';
 import { getInsightsPrompt } from './prompt';
 import {
-  alert,
   columnWiseSum,
   getScriptProperties,
-  isNonEmptyRow,
   objectToLowerCaseKeys,
   partition,
   setScriptProperties,
   sum,
-  writeRowsToSheet,
 } from './util';
 import { gemini, GeminiConfig, getGcpProjectId } from './vertex';
 
 const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 100;
-const MIN_YEAR_OVER_YEAR_GROWTH = 0.1;
-
-export const onOpen = () => {
-  SpreadsheetApp.getUi()
-    .createMenu('💡 GIGA 💡')
-    .addItem('Update Ideas', updateIdeas.name)
-    .addItem('Update Clusters', updateClusters.name)
-    .addItem('Update Insights', updateInsights.name)
-    .addToUi();
-};
-
-export const getSheet = name => SpreadsheetApp.getActive().getSheetByName(name);
-
-export const getConfigSheet = () => getSheet('config');
-export const getIdeaSheet = () => getSheet('ideas');
-export const getClusterSheet = () => getSheet('clusters');
-export const getInsightsSheet = () => getSheet('insights');
-export const getCampaignsSheet = () => getSheet('campaigns');
-
-const MAX_SEED_KEYWORDS = 20;
-
-export const getSeedKeywords = () =>
-  SpreadsheetApp.getActive()
-    .getRangeByName('SEED_KEYWORDS')
-    .getValue()
-    .split(',')
-    .map(keyword => keyword.trim())
-    .filter(Boolean); // filter out empty keywords in case a trailing comma is present
 
 // TODO remove MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH and let frontend handle this?
 export const convertIdeasToRows = ideas =>
@@ -81,22 +50,6 @@ export const getIdeas = (keywords, geoID, language, maxIdeas) => {
     : language;
   const ideas = generateKeywordIdeas(keywords, geoID, languageID, maxIdeas);
   return convertIdeasToRows(ideas);
-};
-
-export const updateIdeas = () => {
-  const geoID = SpreadsheetApp.getActive().getRangeByName('COUNTRY').getValue();
-  const languageID = SpreadsheetApp.getActive()
-    .getRangeByName('LANGUAGE')
-    .getValue();
-  const keywords = getSeedKeywords();
-  const overflowKeywords = keywords.splice(MAX_SEED_KEYWORDS);
-  if (overflowKeywords.length > 0) {
-    alert(`Please enter a maximum of ${MAX_SEED_KEYWORDS} keywords only.
-    Ignoring the overflow keywords: ${overflowKeywords.join(', ')} `);
-  }
-  const maxIdeas = 10000;
-  const ideaRows = getIdeas(keywords, geoID, languageID, maxIdeas);
-  writeRowsToSheet(getIdeaSheet(), ideaRows, 1);
 };
 
 export const getYoYGrowth = searchVolumes => {
@@ -124,32 +77,27 @@ export const getInsights = (
   growthMetric = 'yoy',
   geminiConfig: Partial<GeminiConfig>
 ) => {
-  const relevantIdeas = Object.entries(ideas)
-    .map(([idea, searchVolume]) => {
-      const history = searchVolume as number[];
-      const latest = history[history.length - 1] || 0;
-      const prevMonth = history[history.length - 2] || 0;
-      const prevYear = history[history.length - 13] || 0;
+  const relevantIdeas = Object.entries(ideas).map(([idea, searchVolume]) => {
+    const history = searchVolume as number[];
+    const latest = history[history.length - 1] || 0;
+    const prevMonth = history[history.length - 2] || 0;
+    const prevYear = history[history.length - 13] || 0;
 
-      let growth = 0;
-      if (growthMetric === 'yoy') {
-        growth = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
-      } else if (growthMetric === 'mom') {
-        growth = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
-      } else if (growthMetric === 'latest_vs_avg') {
-        const totalSum = history.reduce((a, b) => a + b, 0);
-        const avg = history.length > 0 ? totalSum / history.length : 0;
-        growth = avg !== 0 ? (latest - avg) / avg : 0;
-      } else if (growthMetric === 'latest_vs_max') {
-        const max = Math.max(...history);
-        growth = max !== 0 ? (latest - max) / max : 0;
-      }
-      return [idea, growth];
-    })
-    .filter(
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ([_, growth]) => (growth as number) > MIN_YEAR_OVER_YEAR_GROWTH
-    );
+    let growth = 0;
+    if (growthMetric === 'yoy') {
+      growth = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+    } else if (growthMetric === 'mom') {
+      growth = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+    } else if (growthMetric === 'latest_vs_avg') {
+      const totalSum = history.reduce((a, b) => a + b, 0);
+      const avg = history.length > 0 ? totalSum / history.length : 0;
+      growth = avg !== 0 ? (latest - avg) / avg : 0;
+    } else if (growthMetric === 'latest_vs_max') {
+      const max = Math.max(...history);
+      growth = max !== 0 ? (latest - max) / max : 0;
+    }
+    return [idea, growth];
+  });
   console.log('relevantIdeas: ', relevantIdeas);
 
   const metricNames = {
@@ -171,21 +119,6 @@ export const getInsights = (
   return removeHTMLTicks(gemini(config)(insightsPrompt));
 };
 
-const updateInsights = () => {
-  const ideas = getIdeasFromSheet();
-  const keywords = getSeedKeywords();
-  // Default config for backend triggers
-  const defaultConfig = {
-    projectId: getGcpProjectId(),
-    modelId: 'gemini-2.5-pro',
-    temperature: 0.7,
-    topP: 0.9,
-  };
-  const insights = getInsights(ideas, keywords, 'yoy', defaultConfig);
-  getInsightsSheet().getRange('A1').setValue(insights);
-  console.log(insights);
-};
-
 const getSearchVolumeRow = res => {
   const volumes = res.keywordIdeaMetrics.monthlySearchVolumes.map(
     m => m.monthlySearches
@@ -201,15 +134,6 @@ const getSearchVolumeRow = res => {
     ...volumes,
   ];
 };
-
-const getIdeasFromSheet = () =>
-  Object.fromEntries(
-    SpreadsheetApp.getActive()
-      .getRange('IDEAS')
-      .getValues()
-      .filter(isNonEmptyRow)
-      .map(row => [row[0], row.slice(4)])
-  ); // at 4 search volume starts, before avg and yoy are calculated
 
 /**
  * @return {GeminiConfig} config
@@ -311,26 +235,6 @@ const PROMPT_DATA_FORMAT_SUFFIX = `
     ]
 `;
 
-const updateClusters = () => {
-  const ideas = getIdeasFromSheet();
-  const promptTemplate = SpreadsheetApp.getActive()
-    .getRangeByName('PROMPT_TEMPLATE')
-    .getValue();
-  const defaultConfig = {
-    projectId: getGcpProjectId(),
-    modelId: 'gemini-2.5-pro',
-    temperature: 0.7,
-    topP: 0.9,
-  };
-  const clusters = getClusters(ideas, promptTemplate, defaultConfig);
-  const clusterRows = clusters.map(cluster => [
-    cluster.topic,
-    cluster.keywords.join(', '),
-    cluster.searchVolumes,
-  ]);
-  writeRowsToSheet(getClusterSheet(), clusterRows, 1);
-};
-
 export const getCampaigns = (
   insights,
   language,
@@ -357,28 +261,6 @@ export const getCampaigns = (
   return removeHTMLTicks(
     gemini(createGeminiConfig(geminiConfig, 'text/plain'))(prompt)
   );
-};
-
-export const generateTrendsKeywords = (
-  keywords,
-  promptTemplate,
-  geminiConfig: Partial<GeminiConfig>
-) => {
-  const prompt = `${promptTemplate}\n\nKeywords:\n${keywords.join('\n')}
-
-  IMPORTANT:
-  - Do NOT add the topic keyword itself to the trends if not necessary.
-  - Only output the keywords itself and not add "trending" or "high demand for" other search terms
-  - Only output the keywords without any introduction or other annotations
-  - Do NOT add punctuation or unnecessary hyphens to keep the keyword as simple and generic as possible`;
-  const config: any = createGeminiConfig(geminiConfig, 'application/json');
-  config.responseSchema = {
-    type: 'ARRAY',
-    items: {
-      type: 'STRING',
-    },
-  };
-  return gemini(config)(prompt);
 };
 
 export const checkScriptProperties = () => {
