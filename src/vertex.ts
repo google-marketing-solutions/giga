@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { fetchJson, getConfigVariable, getGcpProjectDetails } from './util';
+import { fetchJson, getGcpProjectDetails } from './util';
 
-export const getGeminiModelId = () => getConfigVariable('GEMINI_MODEL_ID');
 export const getGcpProjectId = () => getGcpProjectDetails().projectId;
 
 const addAuth = (params, payloadKey = 'payload') =>

@@ -379,8 +379,13 @@ limitations under the License.
         margin-top: 1.5rem;
       }
       @keyframes bounceHorizontal {
-        0%, 100% { transform: translateX(0) translateY(-50%); }
-        50% { transform: translateX(-10px) translateY(-50%); }
+        0%,
+        100% {
+          transform: translateX(0) translateY(-50%);
+        }
+        50% {
+          transform: translateX(-10px) translateY(-50%);
+        }
       }
     </style>
   </head>
@@ -493,7 +498,7 @@ All keywords assigned to a cluster must be exactly the same (e.g. same case, sam
 The Google Ads keyword ideas are:
 `;
 
-      const DEFAULT_TRENDS_PROMPT = `Provide an extensive list of around 100 trends regarding the topics/keywords mentioned below.`;
+      const DEFAULT_TRENDS_PROMPT = `Provide an extensive list of around 100 Google Ads broad match keywords that represent trends regarding the topics/keywords mentioned below.`;
 
       const LANGUAGE_INFO_URL =
         'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
@@ -549,7 +554,14 @@ The Google Ads keyword ideas are:
       );
 
       // eslint-disable-next-line no-unused-vars
-      const Modal = ({ isOpen, onClose, title, children, className = '', showCloseButton = true }) => {
+      const Modal = ({
+        isOpen,
+        onClose,
+        title,
+        children,
+        className = '',
+        showCloseButton = true,
+      }) => {
         if (!isOpen) return null;
         return (
           <div className="modal-overlay" onClick={onClose}>
@@ -588,16 +600,18 @@ The Google Ads keyword ideas are:
               onClick={e => e.stopPropagation()}
             >
               <div className="error-header">
-                <span className="material-icons-round error-icon">error_outline</span>
-                <h2 className="error-title">{error.title || 'An error occurred'}</h2>
+                <span className="material-icons-round error-icon">
+                  error_outline
+                </span>
+                <h2 className="error-title">
+                  {error.title || 'An error occurred'}
+                </h2>
               </div>
 
               <div className="error-body">
                 <p className="error-message">{error.message}</p>
                 {error.stack && (
-                  <div className="error-details">
-                    {error.stack}
-                  </div>
+                  <div className="error-details">{error.stack}</div>
                 )}
               </div>
 
@@ -706,11 +720,15 @@ The Google Ads keyword ideas are:
         minSearchVolume,
         configStatus,
         onSave,
-        onClearCache
+        onClearCache,
       }) => {
-        const [localGeminiConfig, setLocalGeminiConfig] = useState(geminiConfig);
-        const [localMinSearchVolume, setLocalMinSearchVolume] = useState(minSearchVolume);
-        const [localAdsId, setLocalAdsId] = useState(configStatus.adsAccountId || '');
+        const [localGeminiConfig, setLocalGeminiConfig] =
+          useState(geminiConfig);
+        const [localMinSearchVolume, setLocalMinSearchVolume] =
+          useState(minSearchVolume);
+        const [localAdsId, setLocalAdsId] = useState(
+          configStatus.adsAccountId || ''
+        );
         const [localDevToken, setLocalDevToken] = useState('');
         const [isSaving, setIsSaving] = useState(false);
         const adsInputRef = useRef(null);
@@ -727,7 +745,12 @@ The Google Ads keyword ideas are:
 
         // Focus Ads Account ID if highlighted
         useEffect(() => {
-          if (isOpen && (modalConfig.highlight === 'ADS_ACCOUNT_ID' || modalConfig.highlight === 'BOTH') && adsInputRef.current) {
+          if (
+            isOpen &&
+            (modalConfig.highlight === 'ADS_ACCOUNT_ID' ||
+              modalConfig.highlight === 'BOTH') &&
+            adsInputRef.current
+          ) {
             setTimeout(() => {
               adsInputRef.current.focus();
             }, 100);
@@ -741,10 +764,10 @@ The Google Ads keyword ideas are:
               geminiConfig: localGeminiConfig,
               minSearchVolume: localMinSearchVolume,
               adsAccountId: localAdsId,
-              devToken: localDevToken
+              devToken: localDevToken,
             });
           } catch (error) {
-            console.error("Failed to save settings", error);
+            console.error('Failed to save settings', error);
           } finally {
             setIsSaving(false);
           }
@@ -779,7 +802,10 @@ The Google Ads keyword ideas are:
                   <select
                     value={localGeminiConfig.modelId}
                     onChange={e =>
-                      setLocalGeminiConfig({ ...localGeminiConfig, modelId: e.target.value })
+                      setLocalGeminiConfig({
+                        ...localGeminiConfig,
+                        modelId: e.target.value,
+                      })
                     }
                   >
                     <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
@@ -822,21 +848,37 @@ The Google Ads keyword ideas are:
                 </div>
               </div>
 
-              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+              <hr
+                style={{
+                  margin: '20px 0',
+                  border: '0',
+                  borderTop: '1px solid var(--border-color)',
+                }}
+              />
               <div className="input-group">
                 <label>Min Search Volume</label>
                 <input
                   type="number"
                   value={localMinSearchVolume}
-                  onChange={e => setLocalMinSearchVolume(Number(e.target.value))}
+                  onChange={e =>
+                    setLocalMinSearchVolume(Number(e.target.value))
+                  }
                   placeholder="100"
                 />
               </div>
 
-              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+              <hr
+                style={{
+                  margin: '20px 0',
+                  border: '0',
+                  borderTop: '1px solid var(--border-color)',
+                }}
+              />
               <div className="input-group">
                 <label>Application Data</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
+                >
                   <button
                     className="btn"
                     onClick={() => {
@@ -866,12 +908,19 @@ The Google Ads keyword ideas are:
                     </span>
                   </button>
                   <div className="text-sm text-muted">
-                    Removes all locally saved data and resets the application state.
+                    Removes all locally saved data and resets the application
+                    state.
                   </div>
                 </div>
               </div>
 
-              <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid var(--border-color)' }} />
+              <hr
+                style={{
+                  margin: '20px 0',
+                  border: '0',
+                  borderTop: '1px solid var(--border-color)',
+                }}
+              />
 
               <details
                 className="advanced-settings"
@@ -894,8 +943,18 @@ The Google Ads keyword ideas are:
                     fontWeight: 'bold',
                   }}
                 >
-                  <span className="material-icons-round" style={{ fontSize: '1.2rem' }}>expand_more</span>
-                  <span className="material-icons-round" style={{ fontSize: '1.2rem' }}>settings</span>
+                  <span
+                    className="material-icons-round"
+                    style={{ fontSize: '1.2rem' }}
+                  >
+                    expand_more
+                  </span>
+                  <span
+                    className="material-icons-round"
+                    style={{ fontSize: '1.2rem' }}
+                  >
+                    settings
+                  </span>
                   Advanced Settings
                 </summary>
                 <div className="mt-4">
@@ -903,7 +962,8 @@ The Google Ads keyword ideas are:
                     <label>Ads Account ID</label>
                     <div
                       style={
-                        modalConfig.highlight === 'ADS_ACCOUNT_ID' || modalConfig.highlight === 'BOTH'
+                        modalConfig.highlight === 'ADS_ACCOUNT_ID' ||
+                        modalConfig.highlight === 'BOTH'
                           ? {
                               border: '2px solid #dc2626',
                               borderRadius: '8px',
@@ -921,7 +981,8 @@ The Google Ads keyword ideas are:
                         placeholder="e.g. 123-456-7890"
                         style={{ width: '100%', boxSizing: 'border-box' }}
                       />
-                      { (modalConfig.highlight === 'ADS_ACCOUNT_ID' || modalConfig.highlight === 'BOTH') && (
+                      {(modalConfig.highlight === 'ADS_ACCOUNT_ID' ||
+                        modalConfig.highlight === 'BOTH') && (
                         <div
                           style={{
                             position: 'absolute',
@@ -930,7 +991,8 @@ The Google Ads keyword ideas are:
                             color: '#dc2626',
                             fontSize: '32px',
                             fontWeight: 'bold',
-                            animation: 'bounceHorizontal 1s infinite ease-in-out',
+                            animation:
+                              'bounceHorizontal 1s infinite ease-in-out',
                           }}
                         >
                           ←
@@ -942,7 +1004,8 @@ The Google Ads keyword ideas are:
                     <label>Developer Token</label>
                     <div
                       style={
-                        modalConfig.highlight === 'DEVELOPER_TOKEN' || modalConfig.highlight === 'BOTH'
+                        modalConfig.highlight === 'DEVELOPER_TOKEN' ||
+                        modalConfig.highlight === 'BOTH'
                           ? {
                               border: '2px solid #dc2626',
                               borderRadius: '8px',
@@ -963,7 +1026,8 @@ The Google Ads keyword ideas are:
                         }
                         style={{ width: '100%', boxSizing: 'border-box' }}
                       />
-                      { (modalConfig.highlight === 'DEVELOPER_TOKEN' || modalConfig.highlight === 'BOTH') && (
+                      {(modalConfig.highlight === 'DEVELOPER_TOKEN' ||
+                        modalConfig.highlight === 'BOTH') && (
                         <div
                           style={{
                             position: 'absolute',
@@ -972,7 +1036,8 @@ The Google Ads keyword ideas are:
                             color: '#dc2626',
                             fontSize: '32px',
                             fontWeight: 'bold',
-                            animation: 'bounceHorizontal 1s infinite ease-in-out',
+                            animation:
+                              'bounceHorizontal 1s infinite ease-in-out',
                           }}
                         >
                           ←
@@ -983,11 +1048,7 @@ The Google Ads keyword ideas are:
                 </div>
               </details>
               <div className="modal-actions">
-                <button
-                  className="btn"
-                  onClick={onClose}
-                  disabled={isSaving}
-                >
+                <button className="btn" onClick={onClose} disabled={isSaving}>
                   Cancel
                 </button>
                 <button
@@ -1155,7 +1216,10 @@ The Google Ads keyword ideas are:
 
         // Migration for renamed keys
         useEffect(() => {
-          if (geminiConfig.modelID !== undefined || geminiConfig.projectID !== undefined) {
+          if (
+            geminiConfig.modelID !== undefined ||
+            geminiConfig.projectID !== undefined
+          ) {
             console.log('Migrating legacy geminiConfig keys...');
             setGeminiConfig(prev => {
               const newConfig = { ...prev };
@@ -1199,12 +1263,12 @@ The Google Ads keyword ideas are:
           message: '',
         });
 
-        const showAlert = (message) => {
+        const showAlert = message => {
           setModalConfig({
             isOpen: true,
             type: 'alert',
             message: message,
-            value: ''
+            value: '',
           });
         };
 
@@ -1271,7 +1335,9 @@ The Google Ads keyword ideas are:
             // If we haven't checked successfully yet, we can't trust configStatus
             if (!configStatus.checked) {
               setIsExploring(false);
-              showAlert('Failed to verify configuration. Please check your connection and try again.');
+              showAlert(
+                'Failed to verify configuration. Please check your connection and try again.'
+              );
               return;
             }
             // If we have checked before, we use the cached status (currentStatus)
@@ -1284,7 +1350,8 @@ The Google Ads keyword ideas are:
               isOpen: true,
               type: 'settings',
               highlight: 'BOTH',
-              message: 'Please configure your Developer Token and Ads Account ID to proceed.',
+              message:
+                'Please configure your Developer Token and Ads Account ID to proceed.',
             });
             return;
           }
@@ -1654,16 +1721,20 @@ The Google Ads keyword ideas are:
 
         // --- Render ---
 
-        const handleSettingsSave = async (newSettings) => {
+        const handleSettingsSave = async newSettings => {
           setGeminiConfig(newSettings.geminiConfig);
           setMinSearchVolume(newSettings.minSearchVolume);
 
           const promises = [];
           if (newSettings.adsAccountId !== configStatus.adsAccountId) {
-            promises.push(updateScriptProperty('ADS_ACCOUNT_ID', newSettings.adsAccountId));
+            promises.push(
+              updateScriptProperty('ADS_ACCOUNT_ID', newSettings.adsAccountId)
+            );
           }
           if (newSettings.devToken) {
-            promises.push(updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken));
+            promises.push(
+              updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken)
+            );
           }
 
           await Promise.all(promises);
@@ -1741,7 +1812,9 @@ The Google Ads keyword ideas are:
               <div className="modal-actions">
                 <button
                   className="btn btn-primary"
-                  onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}
+                  onClick={() =>
+                    setModalConfig({ ...modalConfig, isOpen: false })
+                  }
                 >
                   OK
                 </button>
@@ -1795,7 +1868,8 @@ The Google Ads keyword ideas are:
             >
               <div className="modal-body">
                 <p className="text-sm text-muted mb-4">
-                  Please provide the following required configuration to proceed.
+                  Please provide the following required configuration to
+                  proceed.
                 </p>
                 {!configStatus.hasDeveloperToken && (
                   <div className="input-group">
@@ -1988,7 +2062,7 @@ The Google Ads keyword ideas are:
                   <summary className="cursor-pointer text-sm font-medium text-primary">
                     Advanced Config
                   </summary>
-                    <div className="mt-4">
+                  <div className="mt-4">
                     <div className="mt-4">
                       <InputField
                         type="textarea"
@@ -2237,7 +2311,8 @@ The Google Ads keyword ideas are:
                 >
                   {isTrendsRunning ? (
                     <>
-                      <div className="spinner"></div> Generating trends keywords...
+                      <div className="spinner"></div> Generating trends
+                      keywords...
                     </>
                   ) : (
                     <>
@@ -2445,13 +2520,13 @@ The Google Ads keyword ideas are:
               onClearCache={clearCache}
             />
             {alertModal}
-          <ErrorModal
-            isOpen={errorState.isOpen}
-            onClose={() => setErrorState({ ...errorState, isOpen: false })}
-            error={errorState}
-          />
-        </div>
-      );
+            <ErrorModal
+              isOpen={errorState.isOpen}
+              onClose={() => setErrorState({ ...errorState, isOpen: false })}
+              error={errorState}
+            />
+          </div>
+        );
       };
 
       // eslint-disable-next-line no-unused-vars

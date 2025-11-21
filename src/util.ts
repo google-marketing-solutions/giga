@@ -14,34 +14,6 @@
  * limitations under the License.
  */
 
-export const isNonEmptyRow = row => row.join('').length > 0;
-
-export const getNonEmptyRows = sheet =>
-  sheet.getDataRange().getValues().filter(isNonEmptyRow);
-
-export const truncateRows = (sheet, headerRows) => {
-  const lastRow = sheet.getLastRow();
-  const lastColumn = sheet.getLastColumn();
-
-  if (lastRow > headerRows) {
-    sheet
-      .getRange(headerRows + 1, 1, lastRow - headerRows, lastColumn)
-      .clearContent();
-  }
-};
-
-export const appendRows = (sheet, data, startRow = 1) => {
-  const numRows = data.length;
-  const numColumns = data[0].length;
-  const range = sheet.getRange(startRow, 1, numRows, numColumns);
-  range.setValues(data);
-};
-
-export const writeRowsToSheet = (sheet, data, headerRows) => {
-  truncateRows(sheet, headerRows);
-  appendRows(sheet, data, 1 + headerRows);
-};
-
 export const getScriptProperties = key =>
   PropertiesService.getScriptProperties().getProperty(key);
 
@@ -68,11 +40,6 @@ export const columnWiseSum = matrix => {
   return result;
 };
 
-export const alert = prompt => {
-  console.log(prompt);
-  trying(() => SpreadsheetApp.getUi())?.alert(prompt);
-};
-
 export const chunk = (arr, len) => {
   const chunks = [];
   const n = arr.length;
@@ -82,11 +49,6 @@ export const chunk = (arr, len) => {
   }
   return chunks;
 };
-
-export const getConfigVariable = id =>
-  SpreadsheetApp.getActiveSpreadsheet()
-    .getRangeByName(`config!${id}`)
-    .getValue();
 
 export const fetchJson = (url, params) => {
   const text = UrlFetchApp.fetch(url, params).getContentText();
