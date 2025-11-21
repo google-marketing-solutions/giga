@@ -9,7 +9,8 @@
     ".github",
     "CONTRIBUTING",
     "build",
-    "dist"
+    "dist",
+    "deploy.sh"
   ],
   "license": "license-header.txt",
   "licenseFormats": {

@@ -149,6 +149,7 @@ limitations under the License.
       }
 
       input[type='text'],
+      input[type='number'],
       textarea,
       select {
         width: 100%;
@@ -163,6 +164,7 @@ limitations under the License.
       }
 
       input[type='text']:focus,
+      input[type='number']:focus,
       textarea:focus,
       select:focus {
         outline: none;
@@ -498,7 +500,7 @@ All keywords assigned to a cluster must be exactly the same (e.g. same case, sam
 The Google Ads keyword ideas are:
 `;
 
-      const DEFAULT_TRENDS_PROMPT = `Provide an extensive list of around 100 Google Ads broad match keywords that represent trends regarding the topics/keywords mentioned below.`;
+      const DEFAULT_TRENDS_PROMPT = `Provide a list of around 100 Google Ads broad match keywords that represent trends regarding the topics/keywords mentioned below.`;
 
       const LANGUAGE_INFO_URL =
         'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
@@ -1182,6 +1184,103 @@ The Google Ads keyword ideas are:
           checked: false,
         });
 
+        // Sorting State
+        const [sortConfig, setSortConfig] = useState({
+          key: 'growth',
+          direction: 'descending',
+        });
+
+        const processedTrendsData = useMemo(() => {
+          if (!trendsResults) return [];
+          return trendsResults.map(item => {
+            if (typeof item === 'string') {
+              return { text: item }; // minimal object
+            }
+            return item;
+          });
+        }, [trendsResults]);
+
+        // Filter State
+        const [trendsFilters, setTrendsFilters] = useState({
+          keyword: '',
+          minVolume: '',
+        });
+
+        const filteredTrendsResults = useMemo(() => {
+          console.log('Filtering with:', trendsFilters);
+          return processedTrendsData.filter(item => {
+            const text = item.text || '';
+            if (
+              trendsFilters.keyword &&
+              !text.toLowerCase().includes(trendsFilters.keyword.toLowerCase())
+            ) {
+              return false;
+            }
+            if (
+              trendsFilters.minVolume !== '' &&
+              (item.latestSearchVolume || 0) < Number(trendsFilters.minVolume)
+            ) {
+              return false;
+            }
+            return true;
+          });
+        }, [processedTrendsData, trendsFilters]);
+
+        const sortedTrendsResults = useMemo(() => {
+          let sortableItems = [...filteredTrendsResults];
+          if (sortConfig.key) {
+            sortableItems.sort((a, b) => {
+              let aValue, bValue;
+
+              // Handle Growth special case
+              if (sortConfig.key === 'growth') {
+                if (growthMetric === 'yoy') {
+                  aValue = a.growthYoY;
+                  bValue = b.growthYoY;
+                } else if (growthMetric === 'mom') {
+                  aValue = a.growthMoM;
+                  bValue = b.growthMoM;
+                } else if (growthMetric === 'latest_vs_avg') {
+                  aValue = a.growthLatestVsAvg;
+                  bValue = b.growthLatestVsAvg;
+                } else if (growthMetric === 'latest_vs_max') {
+                  aValue = a.growthLatestVsMax;
+                  bValue = b.growthLatestVsMax;
+                }
+              } else {
+                aValue = a[sortConfig.key];
+                bValue = b[sortConfig.key];
+              }
+
+              // Handle nulls/undefined - usually push to bottom
+              if (aValue == null) return 1;
+              if (bValue == null) return -1;
+
+              if (aValue < bValue) {
+                return sortConfig.direction === 'ascending' ? -1 : 1;
+              }
+              if (aValue > bValue) {
+                return sortConfig.direction === 'ascending' ? 1 : -1;
+              }
+              return 0;
+            });
+          }
+          return sortableItems;
+        }, [filteredTrendsResults, sortConfig, growthMetric]);
+
+        const requestSort = key => {
+          let direction = 'descending';
+          if (sortConfig.key === key && sortConfig.direction === 'descending') {
+            direction = 'ascending';
+          }
+          setSortConfig({ key, direction });
+        };
+
+        const getSortIndicator = key => {
+          if (sortConfig.key !== key) return null;
+          return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
+        };
+
         useEffect(() => {
           googleScriptRun
             .checkScriptProperties()
@@ -1458,12 +1557,70 @@ The Google Ads keyword ideas are:
               .split(',')
               .map(k => k.trim())
               .filter(Boolean);
-            const result = await googleScriptRun.generateTrendsKeywords(
+            const trendKeywords = await googleScriptRun.generateTrendsKeywords(
               keywords,
               trendsPromptTemplate,
               geminiConfig
             );
-            setTrendsResults(result);
+            console.log('received trends result', trendKeywords);
+
+            const criteriaId = undefined; // world
+            const metrics = await googleScriptRun.getHistoricalMetrics(
+              trendKeywords,
+              criteriaId
+            );
+
+            const keywordData = metrics
+              .filter(m => m && m.text && m.keywordMetrics)
+              .map(metric => {
+                const keywordText = metric.text;
+                const historicalMetrics = metric.keywordMetrics;
+
+                const volumes = (
+                  historicalMetrics?.monthlySearchVolumes || []
+                ).map(m => Number(m.monthlySearches));
+                const latestSearchVolume = volumes[volumes.length - 1] || 0;
+                const prevMonth = volumes[volumes.length - 2] || 0;
+                const prevYear = volumes[volumes.length - 13] || 0;
+
+                const growthYoY =
+                  prevYear !== 0
+                    ? (latestSearchVolume - prevYear) / prevYear
+                    : 0;
+                const growthMoM =
+                  prevMonth !== 0
+                    ? (latestSearchVolume - prevMonth) / prevMonth
+                    : 0;
+
+                const totalSum = volumes.reduce((a, b) => a + b, 0);
+                const avg = volumes.length > 0 ? totalSum / volumes.length : 0;
+                const growthLatestVsAvg =
+                  avg !== 0 ? (latestSearchVolume - avg) / avg : 0;
+
+                const max = Math.max(...volumes);
+                const growthLatestVsMax =
+                  max !== 0 ? (latestSearchVolume - max) / max : 0;
+
+                return {
+                  text: keywordText,
+                  latestSearchVolume,
+                  competition: historicalMetrics?.competition || null,
+                  competition_index:
+                    historicalMetrics?.competitionIndex || null,
+                  low_top_of_page_bid_micros:
+                    historicalMetrics?.lowTopOfPageBidMicros || null,
+                  high_top_of_page_bid_micros:
+                    historicalMetrics?.highTopOfPageBidMicros || null,
+                  average_cpc_micros:
+                    historicalMetrics?.averageCpcMicros || null,
+                  growthYoY,
+                  growthMoM,
+                  growthLatestVsAvg,
+                  growthLatestVsMax,
+                };
+              });
+
+            setTrendsResults(keywordData);
             setTrendsStatus('');
           } catch (e) {
             console.error(e);
@@ -2328,40 +2485,246 @@ The Google Ads keyword ideas are:
                 )}
 
                 {trendsResults && trendsResults.length > 0 && (
-                  <div className="mt-4">
-                    <h3>Trends Keywords ({trendsResults.length})</h3>
+                  <div style={{ marginTop: '32px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '16px',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <InputField
+                          label="Filter by Keyword"
+                          value={trendsFilters.keyword}
+                          onChange={val =>
+                            setTrendsFilters(prev => ({
+                              ...prev,
+                              keyword: val,
+                            }))
+                          }
+                          placeholder="Search..."
+                        />
+                      </div>
+                      <div style={{ width: '150px' }}>
+                        <InputField
+                          type="number"
+                          label="Min Volume"
+                          value={trendsFilters.minVolume}
+                          onChange={val =>
+                            setTrendsFilters(prev => ({
+                              ...prev,
+                              minVolume: val,
+                            }))
+                          }
+                          placeholder="e.g. 100"
+                        />
+                      </div>
+                      <div style={{ width: '200px' }}>
+                        <SelectField
+                          label="Growth Metric"
+                          value={growthMetric}
+                          onChange={setGrowthMetric}
+                          options={GROWTH_METRICS}
+                        />
+                      </div>
+                    </div>
+
                     <div style={{ overflowX: 'auto' }}>
                       <table
                         style={{
                           width: '100%',
                           borderCollapse: 'collapse',
                           marginTop: '10px',
+                          fontSize: '0.9rem',
                         }}
                       >
                         <thead>
                           <tr
                             style={{
                               borderBottom: '2px solid var(--border-color)',
+                              color: 'var(--text-secondary)',
                             }}
                           >
-                            <th style={{ textAlign: 'left', padding: '8px' }}>
-                              Keyword
+                            <th
+                              style={{
+                                textAlign: 'left',
+                                padding: '8px',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => requestSort('text')}
+                            >
+                              Keyword{getSortIndicator('text')}
+                            </th>
+                            <th
+                              style={{
+                                textAlign: 'right',
+                                padding: '8px',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => requestSort('latestSearchVolume')}
+                            >
+                              Search Vol{getSortIndicator('latestSearchVolume')}
+                            </th>
+                            <th
+                              style={{
+                                textAlign: 'right',
+                                padding: '8px',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => requestSort('growth')}
+                            >
+                              Growth{getSortIndicator('growth')}
+                            </th>
+                            <th
+                              style={{
+                                textAlign: 'left',
+                                padding: '8px',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => requestSort('competition')}
+                            >
+                              Competition{getSortIndicator('competition')}
+                            </th>
+                            <th
+                              style={{
+                                textAlign: 'right',
+                                padding: '8px',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => requestSort('competition_index')}
+                            >
+                              Index{getSortIndicator('competition_index')}
+                            </th>
+                            <th
+                              style={{
+                                textAlign: 'right',
+                                padding: '8px',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() =>
+                                requestSort('low_top_of_page_bid_micros')
+                              }
+                            >
+                              Low Bid
+                              {getSortIndicator('low_top_of_page_bid_micros')}
+                            </th>
+                            <th
+                              style={{
+                                textAlign: 'right',
+                                padding: '8px',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() =>
+                                requestSort('high_top_of_page_bid_micros')
+                              }
+                            >
+                              High Bid
+                              {getSortIndicator('high_top_of_page_bid_micros')}
+                            </th>
+                            <th
+                              style={{
+                                textAlign: 'right',
+                                padding: '8px',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => requestSort('average_cpc_micros')}
+                            >
+                              Avg CPC{getSortIndicator('average_cpc_micros')}
                             </th>
                           </tr>
                         </thead>
                         <tbody>
-                          {trendsResults.map((keyword, index) => (
-                            <tr
-                              key={index}
-                              style={{
-                                borderBottom: '1px solid var(--border-color)',
-                              }}
-                            >
-                              <td style={{ padding: '8px' }}>{keyword}</td>
-                            </tr>
-                          ))}
+                          {sortedTrendsResults.map((item, index) => {
+                            const text = item.text;
+                            const vol = item.latestSearchVolume;
+                            const comp = item.competition;
+                            const idx = item.competition_index;
+                            const low = item.low_top_of_page_bid_micros;
+                            const high = item.high_top_of_page_bid_micros;
+                            const cpc = item.average_cpc_micros;
+
+                            let growth = 0;
+                            if (growthMetric === 'yoy')
+                              growth = item.growthYoY || 0;
+                            else if (growthMetric === 'mom')
+                              growth = item.growthMoM || 0;
+                            else if (growthMetric === 'latest_vs_avg')
+                              growth = item.growthLatestVsAvg || 0;
+                            else if (growthMetric === 'latest_vs_max')
+                              growth = item.growthLatestVsMax || 0;
+
+                            const formatMoney = micros =>
+                              micros != null
+                                ? (micros / 1000000).toLocaleString('en-US', {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                  })
+                                : '-';
+
+                            return (
+                              <tr
+                                key={index}
+                                style={{
+                                  borderBottom: '1px solid var(--border-color)',
+                                }}
+                              >
+                                <td style={{ padding: '8px' }}>{text}</td>
+                                <td
+                                  style={{ padding: '8px', textAlign: 'right' }}
+                                >
+                                  {vol != null ? vol.toLocaleString() : '-'}
+                                </td>
+                                <td
+                                  style={{
+                                    padding: '8px',
+                                    textAlign: 'right',
+                                    color:
+                                      growth > 0
+                                        ? 'var(--success)'
+                                        : growth < 0
+                                          ? 'var(--error)'
+                                          : 'inherit',
+                                  }}
+                                >
+                                  {growth > 0 ? '+' : ''}
+                                  {(growth * 100).toFixed(1)}%
+                                </td>
+                                <td style={{ padding: '8px' }}>
+                                  {comp || '-'}
+                                </td>
+                                <td
+                                  style={{ padding: '8px', textAlign: 'right' }}
+                                >
+                                  {idx != null ? idx : '-'}
+                                </td>
+                                <td
+                                  style={{ padding: '8px', textAlign: 'right' }}
+                                >
+                                  {formatMoney(low)}
+                                </td>
+                                <td
+                                  style={{ padding: '8px', textAlign: 'right' }}
+                                >
+                                  {formatMoney(high)}
+                                </td>
+                                <td
+                                  style={{ padding: '8px', textAlign: 'right' }}
+                                >
+                                  {formatMoney(cpc)}
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
+                    </div>
+                    <div
+                      className="text-sm text-muted mt-4"
+                      style={{ textAlign: 'right' }}
+                    >
+                      Trends Keywords ({sortedTrendsResults.length} /{' '}
+                      {trendsResults.length})
                     </div>
                   </div>
                 )}

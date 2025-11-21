@@ -17,7 +17,7 @@ import { createGeminiConfig } from './main';
 import { GeminiConfig, gemini } from './vertex';
 
 export const generateTrendsKeywords = (
-  keywords,
+  seedKeywords,
   promptTemplate,
   geminiConfig: Partial<GeminiConfig>
 ) => {
@@ -25,7 +25,7 @@ export const generateTrendsKeywords = (
   const prompt = `${promptTemplate}
 
   Keywords:
-  ${keywords.join('\n')}
+  ${seedKeywords.join('\n')}
 
   IMPORTANT:
   - Aim for simple wording (best case single words) that can be used as broadmatch keywords in Google Ads.
