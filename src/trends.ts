@@ -37,7 +37,7 @@ export const generateTrendsKeywords = (
   - Avoid overly specific or niche keywords; focus on broader terms that capture wider interest.
   - Do NOT add the Google Ads keyword itself to the trends if not necessary.
   - Only output the Google Ads broadmatch keywords itself and not add "trending" or "high demand for" other search terms
-  - Only output the keywords without any introduction or other annotations separated by "${separator}
+  - Only output the keywords without any introduction or other annotations separated by "${separator}"
   - Do NOT add punctuation or unnecessary hyphens to keep the keyword as simple and generic as possible`;
 
   const config: GeminiConfig = createGeminiConfig(geminiConfig, 'text/plain');
