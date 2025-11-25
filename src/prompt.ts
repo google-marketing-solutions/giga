@@ -24,6 +24,7 @@ export const getInsightsPrompt = (ideaRows, keywords, metricName = 'YoY') => {
   )}] related list provided in the <DATA> section. Cluster this comma-separated list of search terms and ${metricName} search growth and identify overall trends. Also, consider the list is sorted descending by growth rate.
 
   Output as HTML with standard HTML elements like <h1> and <ul> for captions or lists.
+  DO NOT add any introduction like "Of course! Here is the HTML" and instead only output the HTML code.
 
 <EXAMPLE>
 INPUT:
