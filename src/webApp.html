@@ -572,6 +572,8 @@ The Google Ads keyword ideas are:
         'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
       const LOCATION_INFO_URL =
         'https://developers.google.com/google-ads/api/reference/data/geotargets';
+      const GOOGLE_ADS_ID_HELP_URL =
+        'https://support.google.com/google-ads/answer/1704344?hl=en';
 
       // --- Components ---
 
@@ -3109,7 +3111,35 @@ The Google Ads keyword ideas are:
                 <h2>Campaign Suggestions</h2>
                 <div className="grid-2">
                   <InputField
-                    label="Google Ads Account ID"
+                    label={
+                      <span
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        Google Ads Account ID
+                        <a
+                          href={GOOGLE_ADS_ID_HELP_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            textDecoration: 'none',
+                            color: 'inherit',
+                            display: 'flex',
+                          }}
+                          title="Find your Google Ads customer ID"
+                        >
+                          <span
+                            className="material-icons-round"
+                            style={{ fontSize: '16px', cursor: 'pointer' }}
+                          >
+                            info
+                          </span>
+                        </a>
+                      </span>
+                    }
                     value={adsAccountId}
                     onChange={setAdsAccountId}
                     placeholder="123-456-7890"
@@ -3150,10 +3180,16 @@ The Google Ads keyword ideas are:
                 <h2>Campaign Creation</h2>
                 <InputField
                   label={
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
                       Google Ads Account ID
                       <a
-                        href="https://support.google.com/google-ads/answer/1704344?hl=en"
+                        href={GOOGLE_ADS_ID_HELP_URL}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
