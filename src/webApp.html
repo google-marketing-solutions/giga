@@ -1234,19 +1234,22 @@ The Google Ads keyword ideas are:
         const loadExploreDemoData = async (randomize, delay = 0) => {
           if (!isDemoMode) return false;
           try {
-            const c_ideas = localStorage.getItem('giga_ideasData');
-            const c_clusters = localStorage.getItem('giga_clusters');
-            const c_relevant = localStorage.getItem('giga_relevantIdeas');
-            const c_labels = localStorage.getItem('giga_chartLabels');
+            const cachedIdeas = localStorage.getItem('giga_ideasData');
+            const cachedClusters = localStorage.getItem('giga_clusters');
+            const cachedRelevantIdeas =
+              localStorage.getItem('giga_relevantIdeas');
+            const cachedLaels = localStorage.getItem('giga_chartLabels');
 
-            if (c_ideas && c_clusters) {
+            if (cachedIdeas && cachedClusters) {
               if (delay > 0) {
                 await new Promise(resolve => setTimeout(resolve, delay));
               }
 
-              let parsedIdeas = JSON.parse(c_ideas);
-              let parsedClusters = JSON.parse(c_clusters);
-              let parsedRelevant = c_relevant ? JSON.parse(c_relevant) : {};
+              let parsedIdeas = JSON.parse(cachedIdeas);
+              let parsedClusters = JSON.parse(cachedClusters);
+              let parsedRelevant = cachedRelevantIdeas
+                ? JSON.parse(cachedRelevantIdeas)
+                : {};
 
               if (randomize) {
                 const generateSmoothSeries = originalSeries => {
@@ -1320,15 +1323,17 @@ The Google Ads keyword ideas are:
                 });
               } else {
                 // Explicitly reload original data to be safe
-                parsedIdeas = JSON.parse(c_ideas);
-                parsedClusters = JSON.parse(c_clusters);
-                parsedRelevant = c_relevant ? JSON.parse(c_relevant) : {};
+                parsedIdeas = JSON.parse(cachedIdeas);
+                parsedClusters = JSON.parse(cachedClusters);
+                parsedRelevant = cachedRelevantIdeas
+                  ? JSON.parse(cachedRelevantIdeas)
+                  : {};
               }
 
               setIdeasData(parsedIdeas);
               setClusters(parsedClusters);
               setRelevantIdeas(parsedRelevant);
-              if (c_labels) setChartLabels(JSON.parse(c_labels));
+              if (cachedLaels) setChartLabels(JSON.parse(cachedLaels));
 
               setExploreStatus('');
               setIsExploring(false);
@@ -1436,7 +1441,7 @@ The Google Ads keyword ideas are:
         useEffect(() => {
           const handleKeyDown = e => {
             if (!isDemoMode) return;
-            // Toggle on Shift + Alt + D
+            // Toggle on Shift + Alt + R
             if (e.shiftKey && e.altKey && e.code === 'KeyR') {
               console.log('Shortcut triggered: Toggling Randomization');
               e.preventDefault();
@@ -3051,7 +3056,8 @@ The Google Ads keyword ideas are:
                               <React.Fragment key={index}>
                                 <tr
                                   style={{
-                                    borderBottom: '1px solid var(--border-color)',
+                                    borderBottom:
+                                      '1px solid var(--border-color)',
                                     cursor: 'pointer',
                                     backgroundColor:
                                       selectedTrend?.text === text
