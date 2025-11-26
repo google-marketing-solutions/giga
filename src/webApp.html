@@ -1194,6 +1194,7 @@ The Google Ads keyword ideas are:
           isDemoMode
         );
         const [selectedCluster, setSelectedCluster] = useState(null);
+        const [selectedTrend, setSelectedTrend] = useState(null);
         const [chartLabels, setChartLabels] = useStickyState(
           [],
           'giga_chartLabels',
@@ -1953,8 +1954,20 @@ The Google Ads keyword ideas are:
                   growthMoM,
                   growthLatestVsAvg,
                   growthLatestVsMax,
+                  searchVolumeHistory: volumes,
                 };
               });
+
+            if (
+              keywordData.length > 0 &&
+              metrics[0]?.keywordMetrics?.monthlySearchVolumes
+            ) {
+              const firstMetric =
+                metrics[0].keywordMetrics.monthlySearchVolumes;
+              setChartLabels(
+                firstMetric.map(item => `${item.month} ${item.year}`)
+              );
+            }
 
             setTrendsResults(keywordData);
             setTrendsStatus('');
@@ -2155,6 +2168,27 @@ The Google Ads keyword ideas are:
             ],
           };
         }, [selectedCluster, chartLabels]);
+
+        const selectedTrendChartData = useMemo(() => {
+          if (!selectedTrend || !chartLabels.length) return null;
+          if (!Array.isArray(selectedTrend.searchVolumeHistory)) return null;
+
+          const data = selectedTrend.searchVolumeHistory.slice();
+
+          return {
+            labels: chartLabels,
+            datasets: [
+              {
+                label: `Search Volume: ${selectedTrend.text}`,
+                data: data,
+                borderColor: COLOR_PALETTE[3],
+                backgroundColor: COLOR_PALETTE[3] + '1A',
+                fill: true,
+                tension: 0.3,
+              },
+            ],
+          };
+        }, [selectedTrend, chartLabels]);
 
         const seedChartData = useMemo(() => {
           if (!ideasData || !keywords || !chartLabels.length) return null;
@@ -3014,52 +3048,176 @@ The Google Ads keyword ideas are:
                                 : '-';
 
                             return (
-                              <tr
-                                key={index}
-                                style={{
-                                  borderBottom: '1px solid var(--border-color)',
-                                }}
-                              >
-                                <td style={{ padding: '8px' }}>{text}</td>
-                                <td
-                                  style={{ padding: '8px', textAlign: 'right' }}
-                                >
-                                  {vol != null ? vol.toLocaleString() : '-'}
-                                </td>
-                                <td
+                              <React.Fragment key={index}>
+                                <tr
                                   style={{
-                                    padding: '8px',
-                                    textAlign: 'right',
-                                    color:
-                                      growth > 0
-                                        ? 'var(--success)'
-                                        : growth < 0
-                                          ? 'var(--error)'
-                                          : 'inherit',
+                                    borderBottom: '1px solid var(--border-color)',
+                                    cursor: 'pointer',
+                                    backgroundColor:
+                                      selectedTrend?.text === text
+                                        ? 'rgba(37, 99, 235, 0.05)'
+                                        : 'transparent',
                                   }}
+                                  onClick={() =>
+                                    setSelectedTrend(
+                                      selectedTrend?.text === text ? null : item
+                                    )
+                                  }
                                 >
-                                  {growth > 0 ? '+' : ''}
-                                  {(growth * 100).toFixed(1)}%
-                                </td>
-                                <td style={{ padding: '8px' }}>
-                                  {comp ? `${comp} (${idx ?? '-'})` : '-'}
-                                </td>
-                                <td
-                                  style={{ padding: '8px', textAlign: 'right' }}
-                                >
-                                  {formatMoney(low)}
-                                </td>
-                                <td
-                                  style={{ padding: '8px', textAlign: 'right' }}
-                                >
-                                  {formatMoney(high)}
-                                </td>
-                                <td
-                                  style={{ padding: '8px', textAlign: 'right' }}
-                                >
-                                  {formatMoney(cpc)}
-                                </td>
-                              </tr>
+                                  <td style={{ padding: '8px' }}>
+                                    <div
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                      }}
+                                    >
+                                      <span
+                                        className="material-icons-round"
+                                        style={{
+                                          fontSize: '1.2rem',
+                                          color: 'var(--primary)',
+                                          transition: 'transform 0.2s',
+                                          transform:
+                                            selectedTrend?.text === text
+                                              ? 'rotate(90deg)'
+                                              : 'rotate(0deg)',
+                                        }}
+                                      >
+                                        chevron_right
+                                      </span>
+                                      {text}
+                                    </div>
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: '8px',
+                                      textAlign: 'right',
+                                    }}
+                                  >
+                                    {vol != null ? vol.toLocaleString() : '-'}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: '8px',
+                                      textAlign: 'right',
+                                      color:
+                                        growth > 0
+                                          ? 'var(--success)'
+                                          : growth < 0
+                                            ? 'var(--error)'
+                                            : 'inherit',
+                                    }}
+                                  >
+                                    {growth > 0 ? '+' : ''}
+                                    {(growth * 100).toFixed(1)}%
+                                  </td>
+                                  <td style={{ padding: '8px' }}>
+                                    {comp ? `${comp} (${idx ?? '-'})` : '-'}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: '8px',
+                                      textAlign: 'right',
+                                    }}
+                                  >
+                                    {formatMoney(low)}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: '8px',
+                                      textAlign: 'right',
+                                    }}
+                                  >
+                                    {formatMoney(high)}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: '8px',
+                                      textAlign: 'right',
+                                    }}
+                                  >
+                                    {formatMoney(cpc)}
+                                  </td>
+                                </tr>
+                                {selectedTrend?.text === text && (
+                                  <tr
+                                    style={{
+                                      backgroundColor:
+                                        'rgba(37, 99, 235, 0.05)',
+                                    }}
+                                  >
+                                    <td colSpan={7} style={{ padding: '16px' }}>
+                                      <div className="grid-2 mb-4">
+                                        <div>
+                                          <strong>Total Volume:</strong>{' '}
+                                          {selectedTrend.latestSearchVolume?.toLocaleString() ??
+                                            '-'}
+                                        </div>
+                                        <div>
+                                          <strong>
+                                            {GROWTH_METRICS.find(
+                                              m => m.id === growthMetric
+                                            )?.name || 'Growth'}
+                                            :
+                                          </strong>{' '}
+                                          {(() => {
+                                            let val = 0;
+                                            if (growthMetric === 'yoy')
+                                              val =
+                                                selectedTrend.growthYoY || 0;
+                                            else if (growthMetric === 'mom')
+                                              val =
+                                                selectedTrend.growthMoM || 0;
+                                            else if (
+                                              growthMetric === 'latest_vs_avg'
+                                            )
+                                              val =
+                                                selectedTrend.growthLatestVsAvg ||
+                                                0;
+                                            else if (
+                                              growthMetric === 'latest_vs_max'
+                                            )
+                                              val =
+                                                selectedTrend.growthLatestVsMax ||
+                                                0;
+                                            return (val * 100).toFixed(1);
+                                          })()}
+                                          %
+                                        </div>
+                                      </div>
+                                      {selectedTrendChartData ? (
+                                        <ChartComponent
+                                          type="line"
+                                          data={selectedTrendChartData}
+                                          options={{
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: {
+                                              legend: { display: false },
+                                            },
+                                          }}
+                                        />
+                                      ) : (
+                                        <div
+                                          className="text-muted"
+                                          style={{
+                                            padding: '20px',
+                                            background: '#f1f5f9',
+                                            borderRadius: '8px',
+                                            textAlign: 'center',
+                                          }}
+                                        >
+                                          No historical data available for this
+                                          keyword. <br />
+                                          Please re-run the analysis to fetch
+                                          the latest data.
+                                        </div>
+                                      )}
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
                             );
                           })}
                         </tbody>
