@@ -15,7 +15,8 @@
     "pre-deploy": "npm run lint && npm run test && npm run build && ncp .clasp-dev.json .clasp.json",
     "pre-deploy:prod": "npm run lint && npm run test && npm run build && ncp .clasp-prod.json .clasp.json",
     "deploy": "npm run pre-deploy && clasp push -f",
-    "deploy:prod": "npm run lint && npm run test && npm run build && ncp .clasp-prod.json .clasp.json && clasp push"
+    "deploy:prod": "npm run lint && npm run test && npm run build && ncp .clasp-prod.json .clasp.json && clasp push",
+    "deploy:external": "npm run lint && npm run test && npm run build && ncp .clasp-external.json .clasp.json && clasp push"
   },
   "engines": {
     "node": ">=22"

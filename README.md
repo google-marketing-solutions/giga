@@ -66,7 +66,7 @@ This project utilizes the following Google services:
 To get started with GIGA:
 
 1. Make a copy of the Google AppsScript project
-   <a href="https://docs.google.com/spreadsheets/d/1iWP-yfSULrx9D7_8NGpAHK5fsQX8Gys9sASgNA4w_lA/copy" target="_blank" rel="noopener noreferrer">template</a>
+   <a href="https://script.google.com/corp/home/projects/1ISsbf-oDTHMzr-G6zIl3FmPz-ZkneTVQjfXehpG1mJLaFDTjyCvJprgA" target="_blank" rel="noopener noreferrer">template</a>
 <br><img src="assets/copy_button.png" alt="Copy Button" width="200"/>
 
 
