@@ -477,14 +477,6 @@ limitations under the License.
       );
     </script>
 
-    <script>
-      window.onload = () => {
-        google.script.url.getLocation(location =>
-          console.log(location.parameter['demo'] === 'true')
-        );
-      };
-    </script>
-
     <script type="text/babel">
       const { useState, useEffect, useRef, useMemo } = React;
 
