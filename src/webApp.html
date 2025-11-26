@@ -389,6 +389,64 @@ limitations under the License.
           transform: translateX(-10px) translateY(-50%);
         }
       }
+
+      /* Toggle Switch */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 24px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 24px;
+      }
+      .slider:before {
+        position: absolute;
+        content: '';
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: var(--primary);
+      }
+      input:focus + .slider {
+        box-shadow: 0 0 1px var(--primary);
+      }
+      input:checked + .slider:before {
+        transform: translateX(16px);
+      }
+
+      /* Warning Footer */
+      .warning-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #ef5350;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        font-weight: bold;
+        z-index: 2000;
+      }
     </style>
   </head>
   <body>
@@ -506,6 +564,8 @@ The Google Ads keyword ideas are:
         'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
       const LOCATION_INFO_URL =
         'https://developers.google.com/google-ads/api/reference/data/geotargets';
+      const GOOGLE_ADS_ID_HELP_URL =
+        'https://support.google.com/google-ads/answer/1704344?hl=en';
 
       // --- Components ---
 
@@ -690,8 +750,9 @@ The Google Ads keyword ideas are:
       };
 
       // --- Hooks ---
-      function useStickyState(defaultValue, key) {
+      function useStickyState(defaultValue, key, isReadOnly = false) {
         const [value, setValue] = useState(() => {
+          if (isReadOnly) return defaultValue;
           try {
             const stickyValue = window.localStorage.getItem(key);
             return stickyValue !== null
@@ -704,12 +765,13 @@ The Google Ads keyword ideas are:
           }
         });
         useEffect(() => {
+          if (isReadOnly) return;
           try {
             window.localStorage.setItem(key, JSON.stringify(value));
           } catch (error) {
             console.warn(`Error writing localStorage key "${key}":`, error);
           }
-        }, [key, value]);
+        }, [key, value, isReadOnly]);
         return [value, setValue];
       }
 
@@ -1069,7 +1131,7 @@ The Google Ads keyword ideas are:
       // --- Main App ---
 
       // eslint-disable-next-line no-unused-vars
-      const GigaApp = ({ onReset }) => {
+      const GigaApp = ({ onReset, isDemoMode }) => {
         const [activeTab, setActiveTab] = useStickyState(
           'explore',
           'giga_activeTab'
@@ -1084,7 +1146,8 @@ The Google Ads keyword ideas are:
         const [isTrendsRunning, setIsTrendsRunning] = useState(false);
         const [trendsResults, setTrendsResults] = useStickyState(
           [],
-          'giga_trendsResults'
+          'giga_trendsResults',
+          isDemoMode
         );
         const [trendsStatus, setTrendsStatus] = useState('');
         const [trendsPromptTemplate, setTrendsPromptTemplate] = useStickyState(
@@ -1109,17 +1172,25 @@ The Google Ads keyword ideas are:
         const [isExploring, setIsExploring] = useState(false);
         const [ideasData, setIdeasData] = useStickyState(
           null,
-          'giga_ideasData'
+          'giga_ideasData',
+          isDemoMode
         );
-        const [clusters, setClusters] = useStickyState(null, 'giga_clusters');
+        const [clusters, setClusters] = useStickyState(
+          null,
+          'giga_clusters',
+          isDemoMode
+        );
         const [relevantIdeas, setRelevantIdeas] = useStickyState(
           {},
-          'giga_relevantIdeas'
+          'giga_relevantIdeas',
+          isDemoMode
         );
         const [selectedCluster, setSelectedCluster] = useState(null);
+        const [selectedTrend, setSelectedTrend] = useState(null);
         const [chartLabels, setChartLabels] = useStickyState(
           [],
-          'giga_chartLabels'
+          'giga_chartLabels',
+          isDemoMode
         );
         const [minSearchVolume, setMinSearchVolume] = useStickyState(
           100,
@@ -1127,7 +1198,11 @@ The Google Ads keyword ideas are:
         );
 
         // Insights State
-        const [insights, setInsights] = useStickyState('', 'giga_insights');
+        const [insights, setInsights] = useStickyState(
+          '',
+          'giga_insights',
+          isDemoMode
+        );
         const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
         const [insightsStatus, setInsightsStatus] = useState('');
 
@@ -1144,6 +1219,230 @@ The Google Ads keyword ideas are:
         const [isGeneratingCampaigns, setIsGeneratingCampaigns] =
           useState(false);
         const [campaignStatus, setCampaignStatus] = useState('');
+
+        // Demo Mode Randomization
+        const [isRandomized, setIsRandomized] = useState(true);
+
+        const loadExploreDemoData = async (randomize, delay = 0) => {
+          if (!isDemoMode) return false;
+          try {
+            const cachedIdeas = localStorage.getItem('giga_ideasData');
+            const cachedClusters = localStorage.getItem('giga_clusters');
+            const cachedRelevantIdeas =
+              localStorage.getItem('giga_relevantIdeas');
+            const cachedLaels = localStorage.getItem('giga_chartLabels');
+
+            if (cachedIdeas && cachedClusters) {
+              if (delay > 0) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
+
+              let parsedIdeas = JSON.parse(cachedIdeas);
+              let parsedClusters = JSON.parse(cachedClusters);
+              let parsedRelevant = cachedRelevantIdeas
+                ? JSON.parse(cachedRelevantIdeas)
+                : {};
+
+              if (randomize) {
+                const generateSmoothSeries = originalSeries => {
+                  const length = Array.isArray(originalSeries)
+                    ? originalSeries.length
+                    : 12;
+                  const series = [];
+                  // Start between 10 and 100
+                  let current = Math.floor(Math.random() * 90) + 10;
+                  series.push(current);
+
+                  for (let i = 1; i < length; i++) {
+                    // Change by -15% to +15% approx, or fixed step
+                    // Let's use fixed step relative to current to simulate volatility
+                    const volatility = Math.max(5, Math.round(current * 0.2));
+                    const change =
+                      Math.floor(Math.random() * (volatility * 2 + 1)) -
+                      volatility;
+                    current = Math.max(0, current + change);
+                    series.push(current);
+                  }
+
+                  // 20% chance of a spike at the end (latest month)
+                  if (Math.random() < 0.2) {
+                    const lastIdx = series.length - 1;
+                    series[lastIdx] = Math.round(
+                      series[lastIdx] * (2 + Math.random() * 3)
+                    ); // 2x to 5x spike
+                  }
+                  return series;
+                };
+
+                const randomizeGrowth = val =>
+                  typeof val === 'number' ? val + (Math.random() - 0.5) : val;
+
+                parsedIdeas = parsedIdeas.map(idea => ({
+                  ...idea,
+                  searchVolume: Array.isArray(idea.searchVolume)
+                    ? generateSmoothSeries(idea.searchVolume)
+                    : idea.searchVolume,
+                }));
+
+                parsedClusters = parsedClusters.map(c => {
+                  const newHistory = Array.isArray(c.searchVolumeHistory)
+                    ? generateSmoothSeries(c.searchVolumeHistory)
+                    : c.searchVolumeHistory;
+                  // Calculate avg for scalar volume
+                  const avgVol =
+                    Array.isArray(newHistory) && newHistory.length > 0
+                      ? Math.round(
+                          newHistory.reduce((a, b) => a + b, 0) /
+                            newHistory.length
+                        )
+                      : 0;
+
+                  return {
+                    ...c,
+                    searchVolume: avgVol,
+                    searchVolumeHistory: newHistory,
+                    growthYoY: randomizeGrowth(c.growthYoY),
+                    growthMoM: randomizeGrowth(c.growthMoM),
+                    growthLatestVsAvg: randomizeGrowth(c.growthLatestVsAvg),
+                    growthLatestVsMax: randomizeGrowth(c.growthLatestVsMax),
+                  };
+                });
+
+                Object.keys(parsedRelevant).forEach(k => {
+                  if (Array.isArray(parsedRelevant[k])) {
+                    parsedRelevant[k] = generateSmoothSeries(parsedRelevant[k]);
+                  }
+                });
+              } else {
+                // Explicitly reload original data to be safe
+                parsedIdeas = JSON.parse(cachedIdeas);
+                parsedClusters = JSON.parse(cachedClusters);
+                parsedRelevant = cachedRelevantIdeas
+                  ? JSON.parse(cachedRelevantIdeas)
+                  : {};
+              }
+
+              setIdeasData(parsedIdeas);
+              setClusters(parsedClusters);
+              setRelevantIdeas(parsedRelevant);
+              if (cachedLaels) setChartLabels(JSON.parse(cachedLaels));
+
+              setExploreStatus('');
+              setIsExploring(false);
+              return true;
+            }
+          } catch (e) {
+            console.warn('Failed to load demo cache', e);
+          }
+          return false;
+        };
+
+        const loadTrendsDemoData = async (randomize, delay = 0) => {
+          if (!isDemoMode) return false;
+          try {
+            const c_trends = localStorage.getItem('giga_trendsResults');
+            if (c_trends) {
+              if (delay > 0) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
+
+              const randomizeVol = val => Math.floor(Math.random() * 101);
+              const randomizeMicros = () =>
+                Math.floor(Math.random() * 10000000) + 100000; // $0.10 - $10.10
+              const randomizeGrowth = val => Math.random() * 2 - 1; // -100% to +100%
+              const COMPETITION_LEVELS = [
+                'HIGH',
+                'MEDIUM',
+                'LOW',
+                'UNSPECIFIED',
+              ];
+
+              let parsedTrends = JSON.parse(c_trends);
+
+              if (randomize) {
+                parsedTrends = parsedTrends.map(t => ({
+                  ...t,
+                  latestSearchVolume: randomizeVol(),
+                  low_top_of_page_bid_micros: randomizeMicros(),
+                  high_top_of_page_bid_micros: randomizeMicros(),
+                  average_cpc_micros: randomizeMicros(),
+                  competition:
+                    COMPETITION_LEVELS[
+                      Math.floor(Math.random() * COMPETITION_LEVELS.length)
+                    ],
+                  competition_index: Math.floor(Math.random() * 101),
+                  growthYoY: randomizeGrowth(),
+                  growthMoM: randomizeGrowth(),
+                  growthLatestVsAvg: randomizeGrowth(),
+                  growthLatestVsMax: randomizeGrowth(),
+                }));
+              }
+
+              setTrendsResults(parsedTrends);
+              setIsTrendsRunning(false);
+              setTrendsStatus('');
+              return true;
+            }
+          } catch (e) {
+            console.warn(e);
+          }
+          return false;
+        };
+
+        const loadInsightsDemoData = async (randomize, delay = 0) => {
+          if (!isDemoMode) return;
+          try {
+            const key = randomize ? 'giga_insights_random' : 'giga_insights';
+            const cached = localStorage.getItem(key);
+
+            if (delay > 0) {
+              await new Promise(resolve => setTimeout(resolve, delay));
+            }
+
+            if (cached) {
+              setInsights(JSON.parse(cached));
+            } else {
+              // If no specific cache exists, clear to avoid mismatch
+              setInsights('');
+            }
+          } catch (e) {
+            console.warn(e);
+          }
+        };
+
+        useEffect(() => {
+          const updateData = async () => {
+            if (isDemoMode) {
+              if (ideasData) {
+                // setIsExploring(true);
+                // setExploreStatus('Updating demo data...');
+                await loadExploreDemoData(isRandomized, 0);
+              }
+              if (trendsResults && trendsResults.length > 0) {
+                // setIsTrendsRunning(true);
+                await loadTrendsDemoData(isRandomized, 0);
+              }
+              if (insights) {
+                await loadInsightsDemoData(isRandomized, 0);
+              }
+            }
+          };
+          updateData();
+        }, [isRandomized]);
+
+        useEffect(() => {
+          const handleKeyDown = e => {
+            if (!isDemoMode) return;
+            // Toggle on Shift + Alt + R
+            if (e.shiftKey && e.altKey && e.code === 'KeyR') {
+              console.log('Shortcut triggered: Toggling Randomization');
+              e.preventDefault();
+              setIsRandomized(prev => !prev);
+            }
+          };
+          window.addEventListener('keydown', handleKeyDown);
+          return () => window.removeEventListener('keydown', handleKeyDown);
+        }, [isDemoMode]);
 
         // Campaign Creation State
         const [creationAccountId, setCreationAccountId] = useStickyState(
@@ -1233,7 +1532,27 @@ The Google Ads keyword ideas are:
               let aValue, bValue;
 
               // Handle Growth special case
-              if (sortConfig.key === 'growth') {
+              if (sortConfig.key === 'competition') {
+                aValue =
+                  a.competition_index != null
+                    ? Number(a.competition_index)
+                    : null;
+                bValue =
+                  b.competition_index != null
+                    ? Number(b.competition_index)
+                    : null;
+              } else if (
+                [
+                  'low_top_of_page_bid_micros',
+                  'high_top_of_page_bid_micros',
+                  'average_cpc_micros',
+                ].includes(sortConfig.key)
+              ) {
+                const rawA = a[sortConfig.key];
+                const rawB = b[sortConfig.key];
+                aValue = rawA != null ? Number(rawA) : null;
+                bValue = rawB != null ? Number(rawB) : null;
+              } else if (sortConfig.key === 'growth') {
                 if (growthMetric === 'yoy') {
                   aValue = a.growthYoY;
                   bValue = b.growthYoY;
@@ -1418,8 +1737,16 @@ The Google Ads keyword ideas are:
           }
 
           setIsExploring(true);
-          setExploreStatus('Verifying configuration...');
 
+          if (isDemoMode) {
+            setExploreStatus('Getting keyword ideas...');
+
+            if (await loadExploreDemoData(isRandomized, 1500)) {
+              return;
+            }
+          }
+
+          setExploreStatus('Verifying configuration...');
           // Check properties on demand
           let currentStatus = configStatus;
           try {
@@ -1551,6 +1878,13 @@ The Google Ads keyword ideas are:
             return;
           }
           setIsTrendsRunning(true);
+
+          if (isDemoMode) {
+            if (await loadTrendsDemoData(isRandomized, 1500)) {
+              return;
+            }
+          }
+
           setTrendsResults([]);
           try {
             const keywords = trendsKeywords
@@ -1617,8 +1951,20 @@ The Google Ads keyword ideas are:
                   growthMoM,
                   growthLatestVsAvg,
                   growthLatestVsMax,
+                  searchVolumeHistory: volumes,
                 };
               });
+
+            if (
+              keywordData.length > 0 &&
+              metrics[0]?.keywordMetrics?.monthlySearchVolumes
+            ) {
+              const firstMetric =
+                metrics[0].keywordMetrics.monthlySearchVolumes;
+              setChartLabels(
+                firstMetric.map(item => `${item.month} ${item.year}`)
+              );
+            }
 
             setTrendsResults(keywordData);
             setTrendsStatus('');
@@ -1637,7 +1983,20 @@ The Google Ads keyword ideas are:
             return;
           }
           setIsGeneratingInsights(true);
-          setIsGeneratingInsights(true);
+
+          if (isDemoMode) {
+            const key = isRandomized ? 'giga_insights_random' : 'giga_insights';
+            const cached = localStorage.getItem(key);
+
+            if (cached) {
+              await new Promise(resolve => setTimeout(resolve, 1500));
+              setInsights(JSON.parse(cached));
+              setIsGeneratingInsights(false);
+              setInsightsStatus('');
+              return;
+            }
+          }
+
           setInsightsStatus('');
           try {
             const seedKeywords = keywords
@@ -1651,6 +2010,14 @@ The Google Ads keyword ideas are:
               geminiConfig
             );
             setInsights(result);
+
+            if (isDemoMode) {
+              const key = isRandomized
+                ? 'giga_insights_random'
+                : 'giga_insights';
+              localStorage.setItem(key, JSON.stringify(result));
+            }
+
             setInsightsStatus('');
           } catch (e) {
             setInsightsStatus(`Error: ${e.message}`);
@@ -1798,6 +2165,27 @@ The Google Ads keyword ideas are:
             ],
           };
         }, [selectedCluster, chartLabels]);
+
+        const selectedTrendChartData = useMemo(() => {
+          if (!selectedTrend || !chartLabels.length) return null;
+          if (!Array.isArray(selectedTrend.searchVolumeHistory)) return null;
+
+          const data = selectedTrend.searchVolumeHistory.slice();
+
+          return {
+            labels: chartLabels,
+            datasets: [
+              {
+                label: `Search Volume: ${selectedTrend.text}`,
+                data: data,
+                borderColor: COLOR_PALETTE[3],
+                backgroundColor: COLOR_PALETTE[3] + '1A',
+                fill: true,
+                tension: 0.3,
+              },
+            ],
+          };
+        }, [selectedTrend, chartLabels]);
 
         const seedChartData = useMemo(() => {
           if (!ideasData || !keywords || !chartLabels.length) return null;
@@ -2131,23 +2519,27 @@ The Google Ads keyword ideas are:
               }}
             >
               <h1>GIGA</h1>
-              <button
-                className="btn"
-                onClick={() => handleCustomOption('settings')}
-                style={{
-                  background: 'transparent',
-                  color: 'var(--text-secondary)',
-                  border: '1px solid var(--border-color)',
-                  padding: '8px',
-                }}
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
               >
-                <span
-                  className="material-icons-round"
-                  style={{ fontSize: '1.5rem' }}
+                <button
+                  className="btn"
+                  onClick={() => handleCustomOption('settings')}
+                  style={{
+                    background: 'transparent',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-color)',
+                    padding: '8px',
+                  }}
                 >
-                  settings
-                </span>
-              </button>
+                  <span
+                    className="material-icons-round"
+                    style={{ fontSize: '1.5rem' }}
+                  >
+                    settings
+                  </span>
+                </button>
+              </div>
             </div>
 
             <div className="tabs">
@@ -2592,16 +2984,6 @@ The Google Ads keyword ideas are:
                                 padding: '8px',
                                 cursor: 'pointer',
                               }}
-                              onClick={() => requestSort('competition_index')}
-                            >
-                              Index{getSortIndicator('competition_index')}
-                            </th>
-                            <th
-                              style={{
-                                textAlign: 'right',
-                                padding: '8px',
-                                cursor: 'pointer',
-                              }}
                               onClick={() =>
                                 requestSort('low_top_of_page_bid_micros')
                               }
@@ -2663,57 +3045,177 @@ The Google Ads keyword ideas are:
                                 : '-';
 
                             return (
-                              <tr
-                                key={index}
-                                style={{
-                                  borderBottom: '1px solid var(--border-color)',
-                                }}
-                              >
-                                <td style={{ padding: '8px' }}>{text}</td>
-                                <td
-                                  style={{ padding: '8px', textAlign: 'right' }}
-                                >
-                                  {vol != null ? vol.toLocaleString() : '-'}
-                                </td>
-                                <td
+                              <React.Fragment key={index}>
+                                <tr
                                   style={{
-                                    padding: '8px',
-                                    textAlign: 'right',
-                                    color:
-                                      growth > 0
-                                        ? 'var(--success)'
-                                        : growth < 0
-                                          ? 'var(--error)'
-                                          : 'inherit',
+                                    borderBottom:
+                                      '1px solid var(--border-color)',
+                                    cursor: 'pointer',
+                                    backgroundColor:
+                                      selectedTrend?.text === text
+                                        ? 'rgba(37, 99, 235, 0.05)'
+                                        : 'transparent',
                                   }}
+                                  onClick={() =>
+                                    setSelectedTrend(
+                                      selectedTrend?.text === text ? null : item
+                                    )
+                                  }
                                 >
-                                  {growth > 0 ? '+' : ''}
-                                  {(growth * 100).toFixed(1)}%
-                                </td>
-                                <td style={{ padding: '8px' }}>
-                                  {comp || '-'}
-                                </td>
-                                <td
-                                  style={{ padding: '8px', textAlign: 'right' }}
-                                >
-                                  {idx != null ? idx : '-'}
-                                </td>
-                                <td
-                                  style={{ padding: '8px', textAlign: 'right' }}
-                                >
-                                  {formatMoney(low)}
-                                </td>
-                                <td
-                                  style={{ padding: '8px', textAlign: 'right' }}
-                                >
-                                  {formatMoney(high)}
-                                </td>
-                                <td
-                                  style={{ padding: '8px', textAlign: 'right' }}
-                                >
-                                  {formatMoney(cpc)}
-                                </td>
-                              </tr>
+                                  <td style={{ padding: '8px' }}>
+                                    <div
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                      }}
+                                    >
+                                      <span
+                                        className="material-icons-round"
+                                        style={{
+                                          fontSize: '1.2rem',
+                                          color: 'var(--primary)',
+                                          transition: 'transform 0.2s',
+                                          transform:
+                                            selectedTrend?.text === text
+                                              ? 'rotate(90deg)'
+                                              : 'rotate(0deg)',
+                                        }}
+                                      >
+                                        chevron_right
+                                      </span>
+                                      {text}
+                                    </div>
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: '8px',
+                                      textAlign: 'right',
+                                    }}
+                                  >
+                                    {vol != null ? vol.toLocaleString() : '-'}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: '8px',
+                                      textAlign: 'right',
+                                      color:
+                                        growth > 0
+                                          ? 'var(--success)'
+                                          : growth < 0
+                                            ? 'var(--error)'
+                                            : 'inherit',
+                                    }}
+                                  >
+                                    {growth > 0 ? '+' : ''}
+                                    {(growth * 100).toFixed(1)}%
+                                  </td>
+                                  <td style={{ padding: '8px' }}>
+                                    {comp ? `${comp} (${idx ?? '-'})` : '-'}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: '8px',
+                                      textAlign: 'right',
+                                    }}
+                                  >
+                                    {formatMoney(low)}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: '8px',
+                                      textAlign: 'right',
+                                    }}
+                                  >
+                                    {formatMoney(high)}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: '8px',
+                                      textAlign: 'right',
+                                    }}
+                                  >
+                                    {formatMoney(cpc)}
+                                  </td>
+                                </tr>
+                                {selectedTrend?.text === text && (
+                                  <tr
+                                    style={{
+                                      backgroundColor:
+                                        'rgba(37, 99, 235, 0.05)',
+                                    }}
+                                  >
+                                    <td colSpan={7} style={{ padding: '16px' }}>
+                                      <div className="grid-2 mb-4">
+                                        <div>
+                                          <strong>Total Volume:</strong>{' '}
+                                          {selectedTrend.latestSearchVolume?.toLocaleString() ??
+                                            '-'}
+                                        </div>
+                                        <div>
+                                          <strong>
+                                            {GROWTH_METRICS.find(
+                                              m => m.id === growthMetric
+                                            )?.name || 'Growth'}
+                                            :
+                                          </strong>{' '}
+                                          {(() => {
+                                            let val = 0;
+                                            if (growthMetric === 'yoy')
+                                              val =
+                                                selectedTrend.growthYoY || 0;
+                                            else if (growthMetric === 'mom')
+                                              val =
+                                                selectedTrend.growthMoM || 0;
+                                            else if (
+                                              growthMetric === 'latest_vs_avg'
+                                            )
+                                              val =
+                                                selectedTrend.growthLatestVsAvg ||
+                                                0;
+                                            else if (
+                                              growthMetric === 'latest_vs_max'
+                                            )
+                                              val =
+                                                selectedTrend.growthLatestVsMax ||
+                                                0;
+                                            return (val * 100).toFixed(1);
+                                          })()}
+                                          %
+                                        </div>
+                                      </div>
+                                      {selectedTrendChartData ? (
+                                        <ChartComponent
+                                          type="line"
+                                          data={selectedTrendChartData}
+                                          options={{
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: {
+                                              legend: { display: false },
+                                            },
+                                          }}
+                                        />
+                                      ) : (
+                                        <div
+                                          className="text-muted"
+                                          style={{
+                                            padding: '20px',
+                                            background: '#f1f5f9',
+                                            borderRadius: '8px',
+                                            textAlign: 'center',
+                                          }}
+                                        >
+                                          No historical data available for this
+                                          keyword. <br />
+                                          Please re-run the analysis to fetch
+                                          the latest data.
+                                        </div>
+                                      )}
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
                             );
                           })}
                         </tbody>
@@ -2765,7 +3267,35 @@ The Google Ads keyword ideas are:
                 <h2>Campaign Suggestions</h2>
                 <div className="grid-2">
                   <InputField
-                    label="Google Ads Account ID"
+                    label={
+                      <span
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        Google Ads Account ID
+                        <a
+                          href={GOOGLE_ADS_ID_HELP_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            textDecoration: 'none',
+                            color: 'inherit',
+                            display: 'flex',
+                          }}
+                          title="Find your Google Ads customer ID"
+                        >
+                          <span
+                            className="material-icons-round"
+                            style={{ fontSize: '16px', cursor: 'pointer' }}
+                          >
+                            info
+                          </span>
+                        </a>
+                      </span>
+                    }
                     value={adsAccountId}
                     onChange={setAdsAccountId}
                     placeholder="123-456-7890"
@@ -2788,7 +3318,8 @@ The Google Ads keyword ideas are:
                 >
                   {isGeneratingCampaigns ? (
                     <>
-                      <div className="spinner"></div> Generating...
+                      <div className="spinner"></div>{' '}
+                      {campaignStatus || 'Generating...'}
                     </>
                   ) : (
                     <>
@@ -2797,9 +3328,6 @@ The Google Ads keyword ideas are:
                     </>
                   )}
                 </button>
-                {campaignStatus && (
-                  <div className="status-msg">{campaignStatus}</div>
-                )}
               </div>
             )}
 
@@ -2807,7 +3335,35 @@ The Google Ads keyword ideas are:
               <div className="card fade-in">
                 <h2>Campaign Creation</h2>
                 <InputField
-                  label="Google Ads Account ID"
+                  label={
+                    <span
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      Google Ads Account ID
+                      <a
+                        href={GOOGLE_ADS_ID_HELP_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          textDecoration: 'none',
+                          color: 'inherit',
+                          display: 'flex',
+                        }}
+                        title="Find your Google Ads customer ID"
+                      >
+                        <span
+                          className="material-icons-round"
+                          style={{ fontSize: '16px', cursor: 'pointer' }}
+                        >
+                          info
+                        </span>
+                      </a>
+                    </span>
+                  }
                   value={creationAccountId}
                   onChange={setCreationAccountId}
                 />
@@ -2888,6 +3444,12 @@ The Google Ads keyword ideas are:
               onClose={() => setErrorState({ ...errorState, isOpen: false })}
               error={errorState}
             />
+            {isDemoMode && isRandomized && (
+              <div className="warning-footer">
+                ⚠ Search volume and other metrics are randomized for
+                demonstration ⚠
+              </div>
+            )}
           </div>
         );
       };
@@ -2895,8 +3457,67 @@ The Google Ads keyword ideas are:
       // eslint-disable-next-line no-unused-vars
       const App = () => {
         const [resetKey, setResetKey] = useState(0);
+        const [isDemoMode, setIsDemoMode] = useState(false);
+        const [isReady, setIsReady] = useState(false);
+
+        useEffect(() => {
+          const checkDemo = () => {
+            if (
+              typeof google !== 'undefined' &&
+              google.script &&
+              google.script.url
+            ) {
+              try {
+                google.script.url.getLocation(location => {
+                  const demo = location.parameter['demo'] === 'true';
+                  console.log('Demo Mode:', demo);
+                  setIsDemoMode(demo);
+                  setIsReady(true);
+                });
+              } catch (e) {
+                console.warn('Error checking location:', e);
+                setIsReady(true);
+              }
+            } else {
+              setIsReady(true);
+            }
+          };
+
+          checkDemo();
+
+          // Safety timeout
+          const timer = setTimeout(() => {
+            if (!isReady) setIsReady(true);
+          }, 2000);
+          return () => clearTimeout(timer);
+        }, [isReady]);
+
         const handleReset = () => setResetKey(prev => prev + 1);
-        return <GigaApp key={resetKey} onReset={handleReset} />;
+
+        if (!isReady) {
+          return (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100vh',
+                fontFamily: 'sans-serif',
+                color: '#64748b',
+              }}
+            >
+              Loading GIGA...
+            </div>
+          );
+        }
+
+        return (
+          <GigaApp
+            key={resetKey}
+            onReset={handleReset}
+            isDemoMode={isDemoMode}
+          />
+        );
       };
 
       const root = ReactDOM.createRoot(document.getElementById('root'));

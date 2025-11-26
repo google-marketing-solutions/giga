@@ -24,14 +24,9 @@ By applying Gemini's AI capabilities, GIGA can cluster and intelligently
 interpret keyword data. This provides clients with actionable, strategic
 insights for making marketing decisions.
 
-## Get Started
+<img src="assets/screencast_demo_data.gif" alt="Demo Screencast" width="600"/>
 
-To get started with GIGA:
-
-1. Make a copy of the Google Sheets
-   <a href="https://docs.google.com/spreadsheets/d/1iWP-yfSULrx9D7_8NGpAHK5fsQX8Gys9sASgNA4w_lA/copy" target="_blank" rel="noopener noreferrer">spreadsheet template</a>
-
-1. Follow the instructions detailed in the `Getting Started` sheet
+*Please note: Search volume and other metrics are randomized for demonstration purposes.*
 
 ## Challenge Addressed
 
@@ -41,12 +36,50 @@ Clients want to stay ahead of current search/keyword trends and capitalize on th
 
 A clustering of all keyword ideas related to the input topic keywords. Also the solution provides an insights summary page and a recommendation for campaigns to be created to capture the current trending topics.
 
-This provides clients with actionable, strategic insights for making marketing decisions and create campaigns automatically based on the insights.
+This provides clients with actionable, strategic insights for making marketing decisions and help them create campaigns based on the insights.
 
-## Client Prerequisites
+Explore the search volume history of your seed keywords:
+<br><img src="assets/explore_search_volume.png" alt="Explore Search Volume" width="400"/>
 
-- Google Ads Account with a Developer Token
+
+Analyze generated clusters to identify trending topics:
+<br><img src="assets/explore_clusters.png" alt="Explore Clusters" width="400"/>
+
+Inspect trending keywords:
+<br><img src="assets/trends.png" alt="Explore Clusters" width="400"/>
+
+## Prerequisites
+
+- Google Ads Account with a Developer Token (needs **"Basic"** or **"Standard"** access level)
 - Google Cloud Project with Vertex AI enabled
-- Google Workspace access (to run Google Apps Script from a Google Spreadsheet)
+- Google Workspace (to run Google Apps Script)
+
+## Get Started
+
+To get started with GIGA:
+
+1. Make a copy of the Google AppsScript project
+   <a href="https://docs.google.com/spreadsheets/d/1iWP-yfSULrx9D7_8NGpAHK5fsQX8Gys9sASgNA4w_lA/copy" target="_blank" rel="noopener noreferrer">template</a>
+<br><img src="assets/copy_button.png" alt="Copy Button" width="200"/>
+
+
+1. Navigate to [Apps Script Settings](https://script.google.com/corp/home/usersettings) and ensure that the Apps Script API is enabled
+<br><img src="assets/apps_script_api.png" alt="Apps Script API" width="400"/>
+
+1. Link AppsScript to a Google Cloud Project. Therefore navigate to “Project Settings“ and add your project number (only numbers and not to be confused with the ID, full guide [here](https://developers.google.com/apps-script/guides/cloud-platform-projects)).
+<br><img src="assets/gcp_setup.png" alt="GCP Setup" width="400"/>
+
+1. Deploy the solution as a Web-App
+(see [this](https://developers.google.com/apps-script/guides/web#deploy_a_script_as_a_web_app) for details)
+<br><img src="assets/web_app_setup.png" alt="Setup" width="400"/><br>
+The user set in "Execute as" needs at least the Vertex AI User ([roles/aiplatform.user](https://docs.cloud.google.com/vertex-ai/docs/general/access-control#aiplatform.user)) IAM role as well as [read access](https://support.google.com/google-ads/answer/9978556) to the associated Google Ads Account.
+
+1. Setup
+ When you run the application the first time, it'll automatically show the settings screen where you need to specify your Google Ads account Id and the corresponding developer token.
+<br><img src="assets/setup.png" alt="Setup" width="400"/><br>
+Please note the following:
+- The developer token needs **"Basic"** or **"Standard"** access level ("Test Account Access" is not sufficient, see [access levels](https://developers.google.com/google-ads/api/docs/access-levels) for details).
+- A Google Cloud project can be associated with only one developer token (see [this](https://developers.google.com/google-ads/api/docs/get-started/common-errors) for details).
 
 **Disclaimer: This is not an official Google product.**
+
