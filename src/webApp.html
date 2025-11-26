@@ -2931,16 +2931,6 @@ The Google Ads keyword ideas are:
                                 padding: '8px',
                                 cursor: 'pointer',
                               }}
-                              onClick={() => requestSort('competition_index')}
-                            >
-                              Index{getSortIndicator('competition_index')}
-                            </th>
-                            <th
-                              style={{
-                                textAlign: 'right',
-                                padding: '8px',
-                                cursor: 'pointer',
-                              }}
                               onClick={() =>
                                 requestSort('low_top_of_page_bid_micros')
                               }
@@ -3031,11 +3021,6 @@ The Google Ads keyword ideas are:
                                 </td>
                                 <td style={{ padding: '8px' }}>
                                   {comp || '-'}
-                                </td>
-                                <td
-                                  style={{ padding: '8px', textAlign: 'right' }}
-                                >
-                                  {idx != null ? idx : '-'}
                                 </td>
                                 <td
                                   style={{ padding: '8px', textAlign: 'right' }}
