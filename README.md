@@ -24,6 +24,10 @@ By applying Gemini's AI capabilities, GIGA can cluster and intelligently
 interpret keyword data. This provides clients with actionable, strategic
 insights for making marketing decisions.
 
+<img src="assets/screencast_demo_data.gif" alt="Demo Screencast" width="600"/>
+
+Please note: Search volume and other metrics are randomized for demonstration purposes.
+
 ## Get Started
 
 To get started with GIGA:
@@ -41,12 +45,22 @@ Clients want to stay ahead of current search/keyword trends and capitalize on th
 
 A clustering of all keyword ideas related to the input topic keywords. Also the solution provides an insights summary page and a recommendation for campaigns to be created to capture the current trending topics.
 
-This provides clients with actionable, strategic insights for making marketing decisions and create campaigns automatically based on the insights.
+This provides clients with actionable, strategic insights for making marketing decisions and help them create campaigns based on the insights.
+
+Explore the search volume history of your seed keywords:<br>
+<img src="assets/explore_search_volume.png" alt="Explore Search Volume" width="400"/>
+
+
+Analyze generated clusters to identify trending topics:<br>
+<img src="assets/explore_clusters.png" alt="Explore Clusters" width="400"/>
+
+Inspect trending keywords:<br>
+<img src="assets/trends.png" alt="Explore Clusters" width="400"/>
 
 ## Client Prerequisites
 
 - Google Ads Account with a Developer Token
 - Google Cloud Project with Vertex AI enabled
-- Google Workspace access (to run Google Apps Script from a Google Spreadsheet)
+- Google Workspace (to run Google Apps Script)
 
 **Disclaimer: This is not an official Google product.**
