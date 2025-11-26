@@ -30,7 +30,7 @@ limitations under the License.
 
     <!-- Icons -->
     <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
       rel="stylesheet"
     />
 
@@ -635,7 +635,7 @@ The Google Ads keyword ideas are:
                 <h2>{title}</h2>
                 {showCloseButton && (
                   <button className="close-btn" onClick={onClose}>
-                    <span className="material-icons-round">close</span>
+                    <span className="material-symbols-outlined">close</span>
                   </button>
                 )}
               </div>
@@ -662,7 +662,7 @@ The Google Ads keyword ideas are:
               onClick={e => e.stopPropagation()}
             >
               <div className="error-header">
-                <span className="material-icons-round error-icon">
+                <span className="material-symbols-outlined error-icon">
                   error_outline
                 </span>
                 <h2 className="error-title">
@@ -679,7 +679,7 @@ The Google Ads keyword ideas are:
 
               <div className="error-actions">
                 <button className="btn btn-secondary" onClick={copyToClipboard}>
-                  <span className="material-icons-round">content_copy</span>
+                  <span className="material-symbols-outlined">content_copy</span>
                   Copy Details
                 </button>
                 <button className="btn btn-primary" onClick={onClose}>
@@ -794,6 +794,7 @@ The Google Ads keyword ideas are:
           configStatus.adsAccountId || ''
         );
         const [localDevToken, setLocalDevToken] = useState('');
+        const [localSpreadsheetUrl, setLocalSpreadsheetUrl] = useState('');
         const [isSaving, setIsSaving] = useState(false);
         const adsInputRef = useRef(null);
 
@@ -802,10 +803,17 @@ The Google Ads keyword ideas are:
           if (isOpen) {
             setLocalGeminiConfig(geminiConfig);
             setLocalMinSearchVolume(minSearchVolume);
+            setLocalSpreadsheetUrl(modalConfig.spreadsheetUrl || '');
             setLocalAdsId(configStatus.adsAccountId || '');
             setLocalDevToken('');
           }
-        }, [isOpen, geminiConfig, minSearchVolume, configStatus]);
+        }, [
+          isOpen,
+          geminiConfig,
+          minSearchVolume,
+          configStatus,
+          modalConfig.spreadsheetUrl,
+        ]);
 
         // Focus Ads Account ID if highlighted
         useEffect(() => {
@@ -821,6 +829,21 @@ The Google Ads keyword ideas are:
           }
         }, [isOpen, modalConfig.highlight]);
 
+        // Close on ESC
+        useEffect(() => {
+          const handleEsc = event => {
+            if (event.key === 'Escape') {
+              onClose();
+            }
+          };
+          if (isOpen) {
+            window.addEventListener('keydown', handleEsc);
+          }
+          return () => {
+            window.removeEventListener('keydown', handleEsc);
+          };
+        }, [isOpen, onClose]);
+
         const handleSave = async () => {
           setIsSaving(true);
           try {
@@ -829,6 +852,7 @@ The Google Ads keyword ideas are:
               minSearchVolume: localMinSearchVolume,
               adsAccountId: localAdsId,
               devToken: localDevToken,
+              spreadsheetUrl: localSpreadsheetUrl,
             });
           } catch (error) {
             console.error('Failed to save settings', error);
@@ -939,6 +963,23 @@ The Google Ads keyword ideas are:
                 }}
               />
               <div className="input-group">
+                <label>Export Spreadsheet URL</label>
+                <input
+                  type="text"
+                  value={localSpreadsheetUrl}
+                  onChange={e => setLocalSpreadsheetUrl(e.target.value)}
+                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                />
+              </div>
+
+              <hr
+                style={{
+                  margin: '20px 0',
+                  border: '0',
+                  borderTop: '1px solid var(--border-color)',
+                }}
+              />
+              <div className="input-group">
                 <label>Application Data</label>
                 <div
                   style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
@@ -965,7 +1006,7 @@ The Google Ads keyword ideas are:
                     title="Clear Cache"
                   >
                     <span
-                      className="material-icons-round"
+                      className="material-symbols-outlined"
                       style={{ fontSize: '1.2rem' }}
                     >
                       delete_outline
@@ -1008,13 +1049,13 @@ The Google Ads keyword ideas are:
                   }}
                 >
                   <span
-                    className="material-icons-round"
+                    className="material-symbols-outlined"
                     style={{ fontSize: '1.2rem' }}
                   >
                     expand_more
                   </span>
                   <span
-                    className="material-icons-round"
+                    className="material-symbols-outlined"
                     style={{ fontSize: '1.2rem' }}
                   >
                     settings
@@ -1197,6 +1238,11 @@ The Google Ads keyword ideas are:
           'giga_minSearchVolume'
         );
 
+        const [spreadsheetUrl, setSpreadsheetUrl] = useStickyState(
+          '',
+          'giga_spreadsheetUrl'
+        );
+
         // Insights State
         const [insights, setInsights] = useStickyState(
           '',
@@ -1222,6 +1268,153 @@ The Google Ads keyword ideas are:
 
         // Demo Mode Randomization
         const [isRandomized, setIsRandomized] = useState(true);
+
+        // --- Sheet Export Helper ---
+        const [isExporting, setIsExporting] = useState(false);
+
+        const handleSheetExport = async (
+          sheetName,
+          header,
+          rows,
+          columnFormats = []
+        ) => {
+          setIsExporting(true);
+          try {
+            let targetUrl = spreadsheetUrl;
+            let isNewSheet = false;
+            if (!targetUrl) {
+              targetUrl =
+                await googleScriptRun.createSpreadsheet('Giga Export');
+              setSpreadsheetUrl(targetUrl);
+              isNewSheet = true;
+            }
+            await googleScriptRun.exportToSheet(
+              targetUrl,
+              sheetName,
+              header,
+              rows,
+              isNewSheet,
+              columnFormats
+            );
+            if (isNewSheet) {
+              showAlert(
+                'Successfully exported to a new spreadsheet. You can change the destination URL in Settings.',
+                targetUrl
+              );
+            } else {
+              showAlert('Successfully exported to:', targetUrl);
+            }
+          } catch (e) {
+            showError('Export Failed', e);
+          } finally {
+            setIsExporting(false);
+          }
+        };
+
+        const handleExportExploreToSheet = () => {
+          if (!clusters) return;
+          const headers = [
+            'Cluster Topic',
+            'Keyword',
+            'Latest Search Volume',
+            'Cluster Growth YoY',
+            'Cluster Growth MoM',
+          ];
+          const rows = [];
+
+          clusters.forEach(cluster => {
+            cluster.keywords.forEach(kw => {
+              const history = relevantIdeas[kw];
+              const vol = history && history.length > 0 ? history[0] : 0;
+              rows.push([
+                cluster.topic,
+                kw,
+                vol,
+                cluster.growthYoY,
+                cluster.growthMoM,
+              ]);
+            });
+          });
+
+          const columnFormats = [
+            { colIndex: 2, numberFormat: '#,##0' },
+            { colIndex: 3, numberFormat: '0.00%' },
+            { colIndex: 4, numberFormat: '0.00%' },
+          ];
+
+          handleSheetExport('Explore', headers, rows, columnFormats);
+        };
+
+        const handleExportTrendsToSheet = () => {
+          if (!trendsResults || trendsResults.length === 0) return;
+          const headers = [
+            'Keyword',
+            'Latest Volume',
+            'Growth YoY',
+            'Growth MoM',
+            'Competition',
+            'Low Bid (Micros)',
+            'High Bid (Micros)',
+            'Avg CPC (Micros)',
+          ];
+
+          const rows = sortedTrendsResults.map(t => [
+            t.text,
+            t.latestSearchVolume,
+            t.growthYoY,
+            t.growthMoM,
+            t.competition,
+            t.low_top_of_page_bid_micros,
+            t.high_top_of_page_bid_micros,
+            t.average_cpc_micros,
+          ]);
+
+          const columnFormats = [
+            { colIndex: 1, numberFormat: '#,##0' },
+            { colIndex: 2, numberFormat: '0.00%' },
+            { colIndex: 3, numberFormat: '0.00%' },
+            {
+              colIndex: 5,
+              numberFormat: '"$"#,##0.00',
+              scale: 0.000001,
+              headerRename: 'Low Bid (USD)',
+            },
+            {
+              colIndex: 6,
+              numberFormat: '"$"#,##0.00',
+              scale: 0.000001,
+              headerRename: 'High Bid (USD)',
+            },
+            {
+              colIndex: 7,
+              numberFormat: '"$"#,##0.00',
+              scale: 0.000001,
+              headerRename: 'Avg CPC (USD)',
+            },
+          ];
+
+          handleSheetExport('Trends', headers, rows, columnFormats);
+        };
+
+        const handleExportInsightsToSheet = () => {
+          if (!insights) return;
+          // Just put the markdown text in one cell
+          const rows = [[htmlToMarkdown(insights)]];
+          handleSheetExport('Insights', ['Insights Content'], rows);
+        };
+
+        const handleExportCampaignsToSheet = () => {
+          if (!campaignSuggestions) return;
+          // Just put the markdown text in one cell
+          const rows = [[htmlToMarkdown(campaignSuggestions)]];
+          handleSheetExport('Campaign Suggestions', ['Campaign Content'], rows);
+        };
+
+        const handleDownloadCampaigns = () => {
+          if (!campaignSuggestions) return;
+          const md = htmlToMarkdown(campaignSuggestions);
+          downloadFile(md, 'giga_campaign_suggestions.md', 'text/markdown');
+        };
 
         const loadExploreDemoData = async (randomize, delay = 0) => {
           if (!isDemoMode) return false;
@@ -1608,6 +1801,9 @@ The Google Ads keyword ideas are:
               if (status.adsAccountId) {
                 setAdsAccountId(status.adsAccountId);
               }
+              if (status.spreadsheetUrl) {
+                setSpreadsheetUrl(status.spreadsheetUrl);
+              }
             })
             .catch(console.error);
         }, []);
@@ -1679,14 +1875,16 @@ The Google Ads keyword ideas are:
           type: '',
           value: '',
           message: '',
+          link: '',
         });
 
-        const showAlert = message => {
+        const showAlert = (message, link = '') => {
           setModalConfig({
             isOpen: true,
             type: 'alert',
             message: message,
             value: '',
+            link: link,
           });
         };
 
@@ -2264,11 +2462,133 @@ The Google Ads keyword ideas are:
           [growthMetric, clusters]
         );
 
+        // --- Download Helpers ---
+        const downloadFile = (content, filename, mimeType) => {
+          const blob = new Blob([content], { type: mimeType });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        };
+
+        const convertToCSV = (headers, rows) => {
+          const headerRow = headers.join(',');
+          const bodyRows = rows.map(row =>
+            row
+              .map(cell => {
+                const val = String(cell ?? '').replace(/"/g, '""');
+                return `"${val}"`;
+              })
+              .join(',')
+          );
+          return [headerRow, ...bodyRows].join('\n');
+        };
+
+        const htmlToMarkdown = html => {
+          let md = html;
+          // Simple replacements for common tags
+          md = md.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
+          md = md.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
+          md = md.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
+          md = md.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
+          md = md.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
+          md = md.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*');
+          md = md.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*');
+          md = md.replace(/<ul[^>]*>/gi, '\n');
+          md = md.replace(/<\/ul>/gi, '\n');
+          md = md.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n');
+          md = md.replace(/<p[^>]*>/gi, '\n\n');
+          md = md.replace(/<\/p>/gi, '');
+          md = md.replace(/<br\s*\/?>/gi, '\n');
+          // Strip remaining tags
+          md = md.replace(/<[^>]+>/g, '');
+          // Decode entities
+          md = md.replace(/&nbsp;/g, ' ');
+          md = md.replace(/&amp;/g, '&');
+          md = md.replace(/&lt;/g, '<');
+          md = md.replace(/&gt;/g, '>');
+          return md.trim();
+        };
+
+        const handleDownloadExplore = () => {
+          if (!clusters) return;
+          const headers = [
+            'Cluster Topic',
+            'Keyword',
+            'Latest Search Volume',
+            'Cluster Growth YoY',
+            'Cluster Growth MoM',
+          ];
+          const rows = [];
+
+          clusters.forEach(cluster => {
+            cluster.keywords.forEach(kw => {
+              const history = relevantIdeas[kw];
+              const vol = history && history.length > 0 ? history[0] : 0;
+              rows.push([
+                cluster.topic,
+                kw,
+                vol,
+                (cluster.growthYoY * 100).toFixed(1) + '%',
+                (cluster.growthMoM * 100).toFixed(1) + '%',
+              ]);
+            });
+          });
+
+          const csv = convertToCSV(headers, rows);
+          downloadFile(csv, 'giga_explore_clusters.csv', 'text/csv');
+        };
+
+        const handleDownloadTrends = () => {
+          if (!trendsResults || trendsResults.length === 0) return;
+          const headers = [
+            'Keyword',
+            'Latest Volume',
+            'Growth YoY',
+            'Growth MoM',
+            'Competition',
+            'Low Bid (USD)',
+            'High Bid (USD)',
+            'Avg CPC (USD)',
+          ];
+
+          const rows = sortedTrendsResults.map(t => [
+            t.text,
+            t.latestSearchVolume,
+            (t.growthYoY * 100).toFixed(1) + '%',
+            (t.growthMoM * 100).toFixed(1) + '%',
+            t.competition,
+            t.low_top_of_page_bid_micros
+              ? (t.low_top_of_page_bid_micros / 1000000).toFixed(2)
+              : '',
+            t.high_top_of_page_bid_micros
+              ? (t.high_top_of_page_bid_micros / 1000000).toFixed(2)
+              : '',
+            t.average_cpc_micros
+              ? (t.average_cpc_micros / 1000000).toFixed(2)
+              : '',
+          ]);
+
+          const csv = convertToCSV(headers, rows);
+          downloadFile(csv, 'giga_trends.csv', 'text/csv');
+        };
+
+        const handleDownloadInsights = () => {
+          if (!insights) return;
+          const md = htmlToMarkdown(insights);
+          downloadFile(md, 'giga_insights.md', 'text/markdown');
+        };
+
         // --- Render ---
 
         const handleSettingsSave = async newSettings => {
           setGeminiConfig(newSettings.geminiConfig);
           setMinSearchVolume(newSettings.minSearchVolume);
+          setSpreadsheetUrl(newSettings.spreadsheetUrl);
 
           const promises = [];
           if (newSettings.adsAccountId !== configStatus.adsAccountId) {
@@ -2309,7 +2629,7 @@ The Google Ads keyword ideas are:
                   style={{ marginLeft: '4px', verticalAlign: 'middle' }}
                 >
                   <span
-                    className="material-icons-round"
+                    className="material-symbols-outlined"
                     style={{ fontSize: '16px' }}
                   >
                     info
@@ -2354,6 +2674,18 @@ The Google Ads keyword ideas are:
           >
             <div className="modal-body">
               <p>{modalConfig.message}</p>
+              {modalConfig.link && (
+                <p>
+                  <a
+                    href={modalConfig.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ wordBreak: 'break-all' }}
+                  >
+                    {modalConfig.link}
+                  </a>
+                </p>
+              )}
               <div className="modal-actions">
                 <button
                   className="btn btn-primary"
@@ -2380,6 +2712,15 @@ The Google Ads keyword ideas are:
             showError('Error updating property', e);
             return false;
           }
+        };
+
+        const handleOpenSettings = () => {
+          setModalConfig({
+            isOpen: true,
+            type: 'settings',
+            value: '',
+            spreadsheetUrl: spreadsheetUrl,
+          });
         };
 
         const ConfigModal = () => {
@@ -2472,7 +2813,7 @@ The Google Ads keyword ideas are:
                   style={{ marginLeft: '4px', verticalAlign: 'middle' }}
                 >
                   <span
-                    className="material-icons-round"
+                    className="material-symbols-outlined"
                     style={{ fontSize: '16px' }}
                   >
                     info
@@ -2524,7 +2865,7 @@ The Google Ads keyword ideas are:
               >
                 <button
                   className="btn"
-                  onClick={() => handleCustomOption('settings')}
+                  onClick={handleOpenSettings}
                   style={{
                     background: 'transparent',
                     color: 'var(--text-secondary)',
@@ -2533,7 +2874,7 @@ The Google Ads keyword ideas are:
                   }}
                 >
                   <span
-                    className="material-icons-round"
+                    className="material-symbols-outlined"
                     style={{ fontSize: '1.5rem' }}
                   >
                     settings
@@ -2636,7 +2977,7 @@ The Google Ads keyword ideas are:
                     </>
                   ) : (
                     <>
-                      <span className="material-icons-round">
+                      <span className="material-symbols-outlined">
                         rocket_launch
                       </span>{' '}
                       Start
@@ -2679,13 +3020,58 @@ The Google Ads keyword ideas are:
                 )}
 
                 {clusters && (
-                  <div className="mt-4" style={{ maxWidth: '300px' }}>
-                    <SelectField
-                      label="Growth Metric"
-                      value={growthMetric}
-                      onChange={setGrowthMetric}
-                      options={GROWTH_METRICS}
-                    />
+                  <div
+                    className="mt-4"
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-end',
+                    }}
+                  >
+                    <div style={{ maxWidth: '300px' }}>
+                      <SelectField
+                        label="Growth Metric"
+                        value={growthMetric}
+                        onChange={setGrowthMetric}
+                        options={GROWTH_METRICS}
+                      />
+                    </div>
+                    <div>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={handleDownloadExplore}
+                        style={{
+                          background: 'white',
+                          border: '1px solid var(--border-color)',
+                        }}
+                        title="Download CSV"
+                      >
+                        <span className="material-symbols-outlined">download</span>
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={handleExportExploreToSheet}
+                        style={{
+                          background: 'white',
+                          border: '1px solid var(--border-color)',
+                          marginLeft: '8px',
+                        }}
+                        disabled={isExporting}
+                        title="Export to Sheet"
+                      >
+                        {isExporting ? (
+                          <div
+                            className="spinner"
+                            style={{
+                              borderColor: 'rgba(37, 99, 235, 0.3)',
+                              borderTopColor: '#2563eb',
+                            }}
+                          ></div>
+                        ) : (
+                          <span className="material-symbols-outlined">table</span>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -2865,7 +3251,7 @@ The Google Ads keyword ideas are:
                     </>
                   ) : (
                     <>
-                      <span className="material-icons-round">
+                      <span className="material-symbols-outlined">
                         rocket_launch
                       </span>{' '}
                       Start
@@ -2920,6 +3306,43 @@ The Google Ads keyword ideas are:
                           options={GROWTH_METRICS}
                         />
                       </div>
+                      <button
+                        className="btn"
+                        onClick={handleDownloadTrends}
+                        style={{
+                          background: 'white',
+                          border: '1px solid var(--border-color)',
+                          height: '42px',
+                          marginTop: '24px',
+                        }}
+                        title="Download CSV"
+                      >
+                        <span className="material-symbols-outlined">download</span>
+                      </button>
+                      <button
+                        className="btn"
+                        onClick={handleExportTrendsToSheet}
+                        style={{
+                          background: 'white',
+                          border: '1px solid var(--border-color)',
+                          height: '42px',
+                          marginTop: '24px',
+                        }}
+                        title="Export to Sheet"
+                        disabled={isExporting}
+                      >
+                        {isExporting ? (
+                          <div
+                            className="spinner"
+                            style={{
+                              borderColor: 'rgba(37, 99, 235, 0.3)',
+                              borderTopColor: '#2563eb',
+                            }}
+                          ></div>
+                        ) : (
+                          <span className="material-symbols-outlined">table</span>
+                        )}
+                      </button>
                     </div>
 
                     <div style={{ overflowX: 'auto' }}>
@@ -3071,7 +3494,7 @@ The Google Ads keyword ideas are:
                                       }}
                                     >
                                       <span
-                                        className="material-icons-round"
+                                        className="material-symbols-outlined"
                                         style={{
                                           fontSize: '1.2rem',
                                           color: 'var(--primary)',
@@ -3240,22 +3663,70 @@ The Google Ads keyword ideas are:
                   className="mb-4"
                   dangerouslySetInnerHTML={{ __html: insights }}
                 />
-                <button
-                  className="btn btn-primary"
-                  onClick={generateInsights}
-                  disabled={isGeneratingInsights}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: '16px',
+                  }}
                 >
-                  {isGeneratingInsights ? (
-                    <>
-                      <div className="spinner"></div> Generating Insights...
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-icons-round">lightbulb</span>{' '}
-                      Generate Insights
-                    </>
-                  )}
-                </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={generateInsights}
+                    disabled={isGeneratingInsights}
+                  >
+                    {isGeneratingInsights ? (
+                      <>
+                        <div className="spinner"></div> Generating Insights...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined">lightbulb</span>{' '}
+                        Generate Insights
+                      </>
+                    )}
+                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {insights && (
+                      <button
+                        className="btn btn-secondary"
+                        onClick={handleDownloadInsights}
+                        style={{
+                          background: 'white',
+                          border: '1px solid var(--border-color)',
+                        }}
+                        title="Download Markdown"
+                      >
+                        <span className="material-symbols-outlined">download</span>
+                      </button>
+                    )}
+                    {insights && (
+                      <button
+                        className="btn btn-secondary"
+                        onClick={handleExportInsightsToSheet}
+                        style={{
+                          background: 'white',
+                          border: '1px solid var(--border-color)',
+                        }}
+                        disabled={isExporting}
+                        title="Export to Sheet"
+                      >
+                        {isExporting ? (
+                          <div
+                            className="spinner"
+                            style={{
+                              borderColor: 'rgba(37, 99, 235, 0.3)',
+                              borderTopColor: '#2563eb',
+                            }}
+                          ></div>
+                        ) : (
+                          <span className="material-symbols-outlined">table</span>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
                 {insightsStatus && (
                   <div className="status-msg">{insightsStatus}</div>
                 )}
@@ -3288,7 +3759,7 @@ The Google Ads keyword ideas are:
                           title="Find your Google Ads customer ID"
                         >
                           <span
-                            className="material-icons-round"
+                            className="material-symbols-outlined"
                             style={{ fontSize: '16px', cursor: 'pointer' }}
                           >
                             info
@@ -3311,23 +3782,77 @@ The Google Ads keyword ideas are:
                   className="mb-4 mt-4"
                   dangerouslySetInnerHTML={{ __html: campaignSuggestions }}
                 />
-                <button
-                  className="btn btn-primary"
-                  onClick={generateCampaignSuggestions}
-                  disabled={isGeneratingCampaigns}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: '16px',
+                  }}
                 >
-                  {isGeneratingCampaigns ? (
-                    <>
-                      <div className="spinner"></div>{' '}
-                      {campaignStatus || 'Generating...'}
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-icons-round">campaign</span>{' '}
-                      Generate Suggestions
-                    </>
-                  )}
-                </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={generateCampaignSuggestions}
+                    disabled={isGeneratingCampaigns}
+                  >
+                    {isGeneratingCampaigns ? (
+                      <>
+                        <div className="spinner"></div>{' '}
+                        {campaignStatus || 'Generating...'}
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined">
+                          campaign
+                        </span>{' '}
+                        Generate Suggestions
+                      </>
+                    )}
+                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {campaignSuggestions && (
+                      <button
+                        className="btn btn-secondary"
+                        onClick={handleDownloadCampaigns}
+                        style={{
+                          background: 'white',
+                          border: '1px solid var(--border-color)',
+                        }}
+                        title="Download Markdown"
+                      >
+                        <span className="material-symbols-outlined">
+                          download
+                        </span>
+                      </button>
+                    )}
+                    {campaignSuggestions && (
+                      <button
+                        className="btn btn-secondary"
+                        onClick={handleExportCampaignsToSheet}
+                        style={{
+                          background: 'white',
+                          border: '1px solid var(--border-color)',
+                        }}
+                        disabled={isExporting}
+                        title="Export to Sheet"
+                      >
+                        {isExporting ? (
+                          <div
+                            className="spinner"
+                            style={{
+                              borderColor: 'rgba(37, 99, 235, 0.3)',
+                              borderTopColor: '#2563eb',
+                            }}
+                          ></div>
+                        ) : (
+                          <span className="material-symbols-outlined">
+                            table
+                          </span>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -3356,7 +3881,7 @@ The Google Ads keyword ideas are:
                         title="Find your Google Ads customer ID"
                       >
                         <span
-                          className="material-icons-round"
+                          className="material-symbols-outlined"
                           style={{ fontSize: '16px', cursor: 'pointer' }}
                         >
                           info
@@ -3414,7 +3939,7 @@ The Google Ads keyword ideas are:
                     disabled={isCreatingCampaign}
                   >
                     {isCreatingCampaign ? 'Creating...' : 'Generate Ad'}
-                    <span className="material-icons-round">add_circle</span>
+                    <span className="material-symbols-outlined">add_circle</span>
                   </button>
                 </div>
 

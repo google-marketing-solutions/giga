@@ -48,6 +48,13 @@ Analyze generated clusters to identify trending topics:
 Inspect trending keywords:
 <br><img src="assets/trends.png" alt="Explore Clusters" width="400"/>
 
+## Services Used
+
+This project utilizes the following Google services:
+
+*   **[Vertex AI](https://cloud.google.com/vertex-ai/docs):** Used for generating intelligent insights and clustering keywords using Gemini models.
+*   **[Google Ads API (Keyword Planner)](https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas):** Used for fetching keyword ideas, search volumes, and historical metrics.
+
 ## Prerequisites
 
 - Google Ads Account with a Developer Token (needs **"Basic"** or **"Standard"** access level)

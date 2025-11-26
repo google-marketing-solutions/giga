@@ -135,3 +135,106 @@ export const getGcpProjectDetails = () => {
     projectId: crmData.projectId,
   };
 };
+
+export const exportToSheet = (
+  spreadsheetUrl,
+  sheetName,
+  header,
+  rows,
+  applyFormatting = false,
+  columnFormats = []
+) => {
+  try {
+    const ss = SpreadsheetApp.openByUrl(spreadsheetUrl);
+    let sheet = ss.getSheetByName(sheetName);
+    const sheetAlreadyExists = !!sheet;
+
+    if (sheet) {
+      sheet.clearContents();
+    } else {
+      sheet = ss.insertSheet(sheetName);
+    }
+
+    const defaultSheet = ss.getSheetByName('Sheet1');
+    if (
+      defaultSheet &&
+      defaultSheet.getSheetId() !== sheet.getSheetId() &&
+      ss.getSheets().length > 1
+    ) {
+      ss.deleteSheet(defaultSheet);
+    }
+
+    let finalRows = rows;
+    let finalHeader = header;
+
+    if (
+      (applyFormatting || !sheetAlreadyExists) &&
+      columnFormats &&
+      columnFormats.length > 0
+    ) {
+      // Apply transformations
+      finalRows = rows.map(row =>
+        row.map((cell, colIndex) => {
+          const fmt = columnFormats.find(f => f.colIndex === colIndex);
+          if (fmt && fmt.scale !== undefined && typeof cell === 'number') {
+            return cell * fmt.scale;
+          }
+          return cell;
+        })
+      );
+
+      if (header) {
+        finalHeader = header.map((h, colIndex) => {
+          const fmt = columnFormats.find(f => f.colIndex === colIndex);
+          if (fmt && fmt.headerRename) {
+            return fmt.headerRename;
+          }
+          return h;
+        });
+      }
+    }
+
+    const data = [];
+    if (finalHeader && finalHeader.length > 0) {
+      data.push(finalHeader);
+    }
+    if (finalRows && finalRows.length > 0) {
+      finalRows.forEach(r => data.push(r));
+    }
+
+    if (data.length > 0) {
+      const range = sheet.getRange(1, 1, data.length, data[0].length);
+      range.setValues(data);
+
+      if (applyFormatting || !sheetAlreadyExists) {
+        range.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
+        if (finalHeader && finalHeader.length > 0) {
+          sheet.getRange(1, 1, 1, data[0].length).setFontWeight('bold');
+        }
+
+        if (columnFormats) {
+          const startRow = finalHeader && finalHeader.length > 0 ? 2 : 1;
+          if (finalRows.length > 0) {
+            columnFormats.forEach(fmt => {
+              if (fmt.numberFormat) {
+                sheet
+                  .getRange(startRow, fmt.colIndex + 1, finalRows.length, 1)
+                  .setNumberFormat(fmt.numberFormat);
+              }
+            });
+          }
+        }
+        sheet.autoResizeColumns(1, data[0].length);
+      }
+    }
+
+    return 'Success';
+  } catch (e) {
+    throw new Error(`Failed to export to sheet: ${e.message}`);
+  }
+};
+
+export const createSpreadsheet = name => {
+  const ss = SpreadsheetApp.create(name);
+  return ss.getUrl();
+};

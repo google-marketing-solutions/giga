@@ -20,6 +20,7 @@ import { getHistoricalMetrics } from './ideas';
 import { DEFAULT_STYLE_GUIDE } from './prompt';
 import { getTopPerformingAdsPrompt } from './reporting';
 import { generateTrendsKeywords } from './trends';
+import { exportToSheet, createSpreadsheet } from './util';
 
 // include references to prevent tree shaking due to methods being called in
 //  webApp.html with google script run dynamically
@@ -29,3 +30,5 @@ getHistoricalMetrics;
 generateTrendsKeywords;
 getTopPerformingAdsPrompt;
 DEFAULT_STYLE_GUIDE;
+exportToSheet;
+createSpreadsheet;
