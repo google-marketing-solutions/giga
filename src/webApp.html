@@ -1532,7 +1532,27 @@ The Google Ads keyword ideas are:
               let aValue, bValue;
 
               // Handle Growth special case
-              if (sortConfig.key === 'growth') {
+              if (sortConfig.key === 'competition') {
+                aValue =
+                  a.competition_index != null
+                    ? Number(a.competition_index)
+                    : null;
+                bValue =
+                  b.competition_index != null
+                    ? Number(b.competition_index)
+                    : null;
+              } else if (
+                [
+                  'low_top_of_page_bid_micros',
+                  'high_top_of_page_bid_micros',
+                  'average_cpc_micros',
+                ].includes(sortConfig.key)
+              ) {
+                const rawA = a[sortConfig.key];
+                const rawB = b[sortConfig.key];
+                aValue = rawA != null ? Number(rawA) : null;
+                bValue = rawB != null ? Number(rawB) : null;
+              } else if (sortConfig.key === 'growth') {
                 if (growthMetric === 'yoy') {
                   aValue = a.growthYoY;
                   bValue = b.growthYoY;
@@ -3020,7 +3040,7 @@ The Google Ads keyword ideas are:
                                   {(growth * 100).toFixed(1)}%
                                 </td>
                                 <td style={{ padding: '8px' }}>
-                                  {comp || '-'}
+                                  {comp ? `${comp} (${idx ?? '-'})` : '-'}
                                 </td>
                                 <td
                                   style={{ padding: '8px', textAlign: 'right' }}
@@ -3129,7 +3149,29 @@ The Google Ads keyword ideas are:
               <div className="card fade-in">
                 <h2>Campaign Creation</h2>
                 <InputField
-                  label="Google Ads Account ID"
+                  label={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      Google Ads Account ID
+                      <a
+                        href="https://support.google.com/google-ads/answer/1704344?hl=en"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          textDecoration: 'none',
+                          color: 'inherit',
+                          display: 'flex',
+                        }}
+                        title="Find your Google Ads customer ID"
+                      >
+                        <span
+                          className="material-icons-round"
+                          style={{ fontSize: '16px', cursor: 'pointer' }}
+                        >
+                          info
+                        </span>
+                      </a>
+                    </span>
+                  }
                   value={creationAccountId}
                   onChange={setCreationAccountId}
                 />
