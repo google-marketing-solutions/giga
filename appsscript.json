@@ -9,10 +9,8 @@
   "oauthScopes": [
     "https://www.googleapis.com/auth/script.external_request",
     "https://www.googleapis.com/auth/adwords",
-    "https://www.googleapis.com/auth/generative-language.retriever",
     "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/devstorage.read_only"
+    "https://www.googleapis.com/auth/spreadsheets"
   ],
   "runtimeVersion": "V8"
 }
