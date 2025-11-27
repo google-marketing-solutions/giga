@@ -70,15 +70,11 @@ This project utilizes the following Google services:
 
 To get started with GIGA:
 
-1. Make a copy of the Google AppsScript project
+1. Make a copy of the Google Apps Script project
    <a href="https://script.google.com/home/projects/1ISsbf-oDTHMzr-G6zIl3FmPz-ZkneTVQjfXehpG1mJLaFDTjyCvJprgA" target="_blank" rel="noopener noreferrer">template</a>
 <br><img src="assets/copy_button.png" alt="Copy Button" width="200"/>
 
-
-1. Navigate to [Apps Script Settings](https://script.google.com/corp/home/usersettings) and ensure that the Apps Script API is enabled
-<br><img src="assets/apps_script_api.png" alt="Apps Script API" width="400"/>
-
-1. Link AppsScript to a Google Cloud Project. Therefore navigate to “Project Settings“ and add your project number (only numbers and not to be confused with the ID, full guide [here](https://developers.google.com/apps-script/guides/cloud-platform-projects)).
+1. Link Apps Script to a Google Cloud Project. Therefore navigate to “Project Settings“ and add your project number (only numbers and not to be confused with the ID, full guide [here](https://developers.google.com/apps-script/guides/cloud-platform-projects)).
 <br><img src="assets/gcp_setup.png" alt="GCP Setup" width="400"/>
 
 1. Deploy the solution as a Web-App
