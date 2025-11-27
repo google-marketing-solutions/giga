@@ -145,23 +145,23 @@ export const exportToSheet = (
   columnFormats = []
 ) => {
   try {
-    const ss = SpreadsheetApp.openByUrl(spreadsheetUrl);
-    let sheet = ss.getSheetByName(sheetName);
+    const spreadsheet = SpreadsheetApp.openByUrl(spreadsheetUrl);
+    let sheet = spreadsheet.getSheetByName(sheetName);
     const sheetAlreadyExists = !!sheet;
 
     if (sheet) {
       sheet.clearContents();
     } else {
-      sheet = ss.insertSheet(sheetName);
+      sheet = spreadsheet.insertSheet(sheetName);
     }
 
-    const defaultSheet = ss.getSheetByName('Sheet1');
+    const defaultSheet = spreadsheet.getSheetByName('Sheet1');
     if (
       defaultSheet &&
       defaultSheet.getSheetId() !== sheet.getSheetId() &&
-      ss.getSheets().length > 1
+      spreadsheet.getSheets().length > 1
     ) {
-      ss.deleteSheet(defaultSheet);
+      spreadsheet.deleteSheet(defaultSheet);
     }
 
     let finalRows = rows;
@@ -235,6 +235,5 @@ export const exportToSheet = (
 };
 
 export const createSpreadsheet = name => {
-  const ss = SpreadsheetApp.create(name);
-  return ss.getUrl();
+  return SpreadsheetApp.create(name).getUrl();
 };
