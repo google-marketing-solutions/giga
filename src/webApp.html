@@ -2083,6 +2083,65 @@ The Google Ads keyword ideas are:
             }
           }
 
+          setTrendsStatus('Verifying configuration...');
+          // Check properties on demand
+          let currentStatus = configStatus;
+          try {
+            const status = await googleScriptRun.checkScriptProperties();
+            setConfigStatus({ ...status, checked: true });
+            if (status.adsAccountId) {
+              setAdsAccountId(status.adsAccountId);
+            }
+            currentStatus = status;
+          } catch (e) {
+            console.error('Failed to check script properties:', e);
+            // If we haven't checked successfully yet, we can't trust configStatus
+            if (!configStatus.checked) {
+              setIsTrendsRunning(false);
+              showAlert(
+                'Failed to verify configuration. Please check your connection and try again.'
+              );
+              return;
+            }
+            // If we have checked before, we use the cached status (currentStatus)
+          }
+
+          if (!currentStatus.hasDeveloperToken && !currentStatus.adsAccountId) {
+            setIsTrendsRunning(false);
+            setPendingAction(() => runTrends);
+            setModalConfig({
+              isOpen: true,
+              type: 'settings',
+              highlight: 'BOTH',
+              message:
+                'Please configure your Developer Token and Ads Account ID to proceed.',
+            });
+            return;
+          }
+
+          if (!currentStatus.hasDeveloperToken) {
+            setIsTrendsRunning(false);
+            setPendingAction(() => runTrends);
+            setModalConfig({
+              isOpen: true,
+              type: 'settings',
+              highlight: 'DEVELOPER_TOKEN',
+              message: 'Please configure your Developer Token to proceed.',
+            });
+            return;
+          }
+          if (!currentStatus.adsAccountId) {
+            setIsTrendsRunning(false);
+            setPendingAction(() => runTrends);
+            setModalConfig({
+              isOpen: true,
+              type: 'settings',
+              highlight: 'ADS_ACCOUNT_ID',
+              message: 'Please configure your Ads Account ID to proceed.',
+            });
+            return;
+          }
+
           setTrendsResults([]);
           try {
             const keywords = trendsKeywords
