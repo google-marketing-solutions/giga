@@ -266,10 +266,12 @@ export const getCampaigns = (
 export const checkScriptProperties = () => {
   const devToken = getScriptProperties('DEVELOPER_TOKEN');
   const adsAccountId = getScriptProperties('ADS_ACCOUNT_ID');
+  const spreadsheetUrl = getScriptProperties('SPREADSHEET_URL');
   return {
     hasDeveloperToken: !!devToken,
     hasAdsAccountId: !!adsAccountId,
     adsAccountId: adsAccountId || '',
+    spreadsheetUrl: spreadsheetUrl || '',
   };
 };
 

@@ -48,6 +48,18 @@ Analyze generated clusters to identify trending topics:
 Inspect trending keywords:
 <br><img src="assets/trends.png" alt="Explore Clusters" width="400"/>
 
+## Services Used
+
+This project utilizes the following Google services:
+
+*   **[Vertex AI](https://cloud.google.com/vertex-ai/docs):** Used for generating intelligent insights and clustering keywords using Gemini models.
+*   **[Google Ads API (Keyword Planner)](https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas):** Used for fetching keyword ideas, search volumes, and historical metrics.
+
+## Limitations
+
+*   **[Keyword Idea Service](https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas):** This service provides data based on full months. Consequently, data for the current month is not yet available; it becomes accessible only after the month has concluded. Additionally, there is a ≈10 days delay (e.g. on 10th March, data for complete February will be available).
+*   **[Keyword Volume](https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas#historical_metrics):** Please note that keyword volume figures are rounded.
+
 ## Prerequisites
 
 - Google Ads Account with a Developer Token (needs **"Basic"** or **"Standard"** access level)
@@ -59,7 +71,7 @@ Inspect trending keywords:
 To get started with GIGA:
 
 1. Make a copy of the Google AppsScript project
-   <a href="https://docs.google.com/spreadsheets/d/1iWP-yfSULrx9D7_8NGpAHK5fsQX8Gys9sASgNA4w_lA/copy" target="_blank" rel="noopener noreferrer">template</a>
+   <a href="https://script.google.com/home/projects/1ISsbf-oDTHMzr-G6zIl3FmPz-ZkneTVQjfXehpG1mJLaFDTjyCvJprgA" target="_blank" rel="noopener noreferrer">template</a>
 <br><img src="assets/copy_button.png" alt="Copy Button" width="200"/>
 
 
@@ -80,6 +92,13 @@ The user set in "Execute as" needs at least the Vertex AI User ([roles/aiplatfor
 Please note the following:
 - The developer token needs **"Basic"** or **"Standard"** access level ("Test Account Access" is not sufficient, see [access levels](https://developers.google.com/google-ads/api/docs/access-levels) for details).
 - A Google Cloud project can be associated with only one developer token (see [this](https://developers.google.com/google-ads/api/docs/get-started/common-errors) for details).
+
+## Troubleshooting
+
+If you encounter issues, please verify the following:
+*   **[Developer Token Access](https://developers.google.com/google-ads/api/docs/access-levels):** Ensure your developer token has at least **"Basic"** or **"Standard"** access level. Test account access is insufficient.
+*   **[GCP Project Binding](https://developers.google.com/google-ads/api/docs/get-started/common-errors):** Remember that a Google Cloud Project is permanently associated with the first developer token used. Ensure you haven't previously used a different token with this project.
+*   **Connection Test:** To verify your access to Vertex AI and the Google Ads API, you can make a copy of this [Test Spreadsheet](https://docs.google.com/spreadsheets/d/1ZUR1XxyCA48YhULFYUBOb86CMcgavD6boO5kNtb-kXk/view) and run the included tests.
 
 **Disclaimer: This is not an official Google product.**
 
