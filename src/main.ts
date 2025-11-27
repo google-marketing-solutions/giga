@@ -281,6 +281,6 @@ export const setScriptProperty = (key: string, value: string) => {
 };
 
 export const doGet = () =>
-  HtmlService.createTemplateFromFile('webApp').evaluate();
+  HtmlService.createTemplateFromFile('webApp').evaluate().setTitle('GIGA');
 
 export const main = null;
