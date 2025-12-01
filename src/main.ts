@@ -280,7 +280,10 @@ export const setScriptProperty = (key: string, value: string) => {
   return checkScriptProperties();
 };
 
-export const doGet = () =>
-  HtmlService.createTemplateFromFile('webApp').evaluate();
+export const doGet = () => {
+  const template = HtmlService.createTemplateFromFile('webApp');
+  template.userEmail = Session.getActiveUser().getEmail();
+  return template.evaluate().setTitle('GIGA');
+};
 
 export const main = null;
