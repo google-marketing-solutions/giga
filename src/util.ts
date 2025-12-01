@@ -235,5 +235,15 @@ export const exportToSheet = (
 };
 
 export const createSpreadsheet = name => {
-  return SpreadsheetApp.create(name).getUrl();
+  const spreadsheet = SpreadsheetApp.create(name);
+  const url = spreadsheet.getUrl();
+  const file = DriveApp.getFileById(spreadsheet.getId());
+  const activeUserEmail = Session.getActiveUser().getEmail();
+  const currentOwnerEmail = file.getOwner().getEmail();
+
+  if (activeUserEmail && currentOwnerEmail !== activeUserEmail) {
+    file.setOwner(activeUserEmail);
+    file.removeEditor(currentOwnerEmail);
+  }
+  return url;
 };
