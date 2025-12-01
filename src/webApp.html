@@ -452,6 +452,10 @@ limitations under the License.
   <body>
     <div id="root"></div>
 
+    <script>
+      const USER_EMAIL = <?= JSON.stringify(userEmail) ?>;
+    </script>
+
     <!-- Backend Proxy -->
     <script>
       const googleScriptRun = new Proxy(
@@ -972,6 +976,9 @@ The Google Ads keyword ideas are:
                   onChange={e => setLocalSpreadsheetUrl(e.target.value)}
                   placeholder="https://docs.google.com/spreadsheets/d/..."
                 />
+                <div className="text-sm text-muted mt-1">
+                  Note: The spreadsheet must be shared with <strong>{USER_EMAIL}</strong> with edit permissions.
+                </div>
               </div>
 
               <hr
@@ -1295,12 +1302,11 @@ The Google Ads keyword ideas are:
               sheetName,
               header,
               rows,
-              isNewSheet,
               columnFormats
             );
             if (isNewSheet) {
               showAlert(
-                'Successfully exported to a new spreadsheet. You can change the destination URL in Settings.',
+                `Successfully exported to a new spreadsheet. You can change the destination URL in Settings. Note: The user (${USER_EMAIL}) must have edit access to this spreadsheet for future exports.`,
                 targetUrl
               );
             } else {
@@ -1321,6 +1327,10 @@ The Google Ads keyword ideas are:
             'Latest Search Volume',
             'Cluster Growth YoY',
             'Cluster Growth MoM',
+            'Competition',
+            'Low Bid (Micros)',
+            'High Bid (Micros)',
+            'Avg CPC (Micros)',
           ];
           const rows = [];
 
@@ -1328,12 +1338,20 @@ The Google Ads keyword ideas are:
             cluster.keywords.forEach(kw => {
               const history = relevantIdeas[kw];
               const vol = history && history.length > 0 ? history[0] : 0;
+              const idea = ideasData
+                ? ideasData.find(i => i.text === kw)
+                : null;
+
               rows.push([
                 cluster.topic,
                 kw,
                 vol,
                 cluster.growthYoY,
                 cluster.growthMoM,
+                idea ? idea.competition : '',
+                idea ? idea.low_top_of_page_bid_micros : '',
+                idea ? idea.high_top_of_page_bid_micros : '',
+                idea ? idea.average_cpc_micros : '',
               ]);
             });
           });
@@ -1342,6 +1360,24 @@ The Google Ads keyword ideas are:
             { colIndex: 2, numberFormat: '#,##0' },
             { colIndex: 3, numberFormat: '0.00%' },
             { colIndex: 4, numberFormat: '0.00%' },
+            {
+              colIndex: 6,
+              numberFormat: '"$"#,##0.00',
+              scale: 0.000001,
+              headerRename: 'Low Bid (USD)',
+            },
+            {
+              colIndex: 7,
+              numberFormat: '"$"#,##0.00',
+              scale: 0.000001,
+              headerRename: 'High Bid (USD)',
+            },
+            {
+              colIndex: 8,
+              numberFormat: '"$"#,##0.00',
+              scale: 0.000001,
+              headerRename: 'Avg CPC (USD)',
+            },
           ];
 
           handleSheetExport('Explore', headers, rows, columnFormats);
@@ -1349,49 +1385,57 @@ The Google Ads keyword ideas are:
 
         const handleExportTrendsToSheet = () => {
           if (!trendsResults || trendsResults.length === 0) return;
+
+          // Find current growth metric label
+          const metricLabel =
+            GROWTH_METRICS.find(m => m.id === growthMetric)?.name || 'Growth';
+
           const headers = [
             'Keyword',
-            'Latest Volume',
-            'Growth YoY',
-            'Growth MoM',
+            'Search Vol',
+            `Growth (${metricLabel})`,
             'Competition',
-            'Low Bid (Micros)',
-            'High Bid (Micros)',
-            'Avg CPC (Micros)',
+            'Low Bid (USD)',
+            'High Bid (USD)',
+            'Avg CPC (USD)',
           ];
 
-          const rows = sortedTrendsResults.map(t => [
-            t.text,
-            t.latestSearchVolume,
-            t.growthYoY,
-            t.growthMoM,
-            t.competition,
-            t.low_top_of_page_bid_micros,
-            t.high_top_of_page_bid_micros,
-            t.average_cpc_micros,
-          ]);
+          const rows = sortedTrendsResults.map(t => {
+            let growth = 0;
+            if (growthMetric === 'yoy') growth = t.growthYoY || 0;
+            else if (growthMetric === 'mom') growth = t.growthMoM || 0;
+            else if (growthMetric === 'latest_vs_avg')
+              growth = t.growthLatestVsAvg || 0;
+            else if (growthMetric === 'latest_vs_max')
+              growth = t.growthLatestVsMax || 0;
+
+            return [
+              t.text,
+              t.latestSearchVolume,
+              growth,
+              t.competition
+                ? `${t.competition} (${t.competition_index ?? '-'})`
+                : '-',
+              formatMicrosToCurrency(t.low_top_of_page_bid_micros),
+              formatMicrosToCurrency(t.high_top_of_page_bid_micros),
+              formatMicrosToCurrency(t.average_cpc_micros),
+            ];
+          });
 
           const columnFormats = [
             { colIndex: 1, numberFormat: '#,##0' },
             { colIndex: 2, numberFormat: '0.00%' },
-            { colIndex: 3, numberFormat: '0.00%' },
+            {
+              colIndex: 4,
+              numberFormat: '"$"#,##0.00',
+            },
             {
               colIndex: 5,
               numberFormat: '"$"#,##0.00',
-              scale: 0.000001,
-              headerRename: 'Low Bid (USD)',
             },
             {
               colIndex: 6,
               numberFormat: '"$"#,##0.00',
-              scale: 0.000001,
-              headerRename: 'High Bid (USD)',
-            },
-            {
-              colIndex: 7,
-              numberFormat: '"$"#,##0.00',
-              scale: 0.000001,
-              headerRename: 'Avg CPC (USD)',
             },
           ];
 
@@ -2034,6 +2078,12 @@ The Google Ads keyword ideas are:
                 months: res.keywordIdeaMetrics.monthlySearchVolumes.map(
                   item => `${item.month} ${item.year}`
                 ),
+                competition: res.keywordIdeaMetrics.competition,
+                low_top_of_page_bid_micros:
+                  res.keywordIdeaMetrics.lowTopOfPageBidMicros,
+                high_top_of_page_bid_micros:
+                  res.keywordIdeaMetrics.highTopOfPageBidMicros,
+                average_cpc_micros: res.keywordIdeaMetrics.averageCpcMicros,
               }));
 
             if (processedIdeas.length > 0) {
@@ -2577,6 +2627,11 @@ The Google Ads keyword ideas are:
           return md.trim();
         };
 
+        const formatMicrosToCurrency = micros => {
+          if (micros == null) return '';
+          return (micros / 1000000).toFixed(2);
+        };
+
         const handleDownloadExplore = () => {
           if (!clusters) return;
           const headers = [
@@ -2585,6 +2640,10 @@ The Google Ads keyword ideas are:
             'Latest Search Volume',
             'Cluster Growth YoY',
             'Cluster Growth MoM',
+            'Competition',
+            'Low Bid (USD)',
+            'High Bid (USD)',
+            'Avg CPC (USD)',
           ];
           const rows = [];
 
@@ -2592,12 +2651,24 @@ The Google Ads keyword ideas are:
             cluster.keywords.forEach(kw => {
               const history = relevantIdeas[kw];
               const vol = history && history.length > 0 ? history[0] : 0;
+              const idea = ideasData
+                ? ideasData.find(i => i.text === kw)
+                : null;
+
               rows.push([
                 cluster.topic,
                 kw,
                 vol,
                 (cluster.growthYoY * 100).toFixed(1) + '%',
                 (cluster.growthMoM * 100).toFixed(1) + '%',
+                idea ? idea.competition : '',
+                idea
+                  ? formatMicrosToCurrency(idea.low_top_of_page_bid_micros)
+                  : '',
+                idea
+                  ? formatMicrosToCurrency(idea.high_top_of_page_bid_micros)
+                  : '',
+                idea ? formatMicrosToCurrency(idea.average_cpc_micros) : '',
               ]);
             });
           });
@@ -2625,15 +2696,9 @@ The Google Ads keyword ideas are:
             (t.growthYoY * 100).toFixed(1) + '%',
             (t.growthMoM * 100).toFixed(1) + '%',
             t.competition,
-            t.low_top_of_page_bid_micros
-              ? (t.low_top_of_page_bid_micros / 1000000).toFixed(2)
-              : '',
-            t.high_top_of_page_bid_micros
-              ? (t.high_top_of_page_bid_micros / 1000000).toFixed(2)
-              : '',
-            t.average_cpc_micros
-              ? (t.average_cpc_micros / 1000000).toFixed(2)
-              : '',
+            formatMicrosToCurrency(t.low_top_of_page_bid_micros),
+            formatMicrosToCurrency(t.high_top_of_page_bid_micros),
+            formatMicrosToCurrency(t.average_cpc_micros),
           ]);
 
           const csv = convertToCSV(headers, rows);

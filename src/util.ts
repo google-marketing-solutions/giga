@@ -141,16 +141,14 @@ export const exportToSheet = (
   sheetName,
   header,
   rows,
-  applyFormatting = false,
   columnFormats = []
 ) => {
   try {
     const spreadsheet = SpreadsheetApp.openByUrl(spreadsheetUrl);
     let sheet = spreadsheet.getSheetByName(sheetName);
-    const sheetAlreadyExists = !!sheet;
 
     if (sheet) {
-      sheet.clearContents();
+      sheet.clear();
     } else {
       sheet = spreadsheet.insertSheet(sheetName);
     }
@@ -167,11 +165,7 @@ export const exportToSheet = (
     let finalRows = rows;
     let finalHeader = header;
 
-    if (
-      (applyFormatting || !sheetAlreadyExists) &&
-      columnFormats &&
-      columnFormats.length > 0
-    ) {
+    if (columnFormats && columnFormats.length > 0) {
       // Apply transformations
       finalRows = rows.map(row =>
         row.map((cell, colIndex) => {
@@ -206,26 +200,11 @@ export const exportToSheet = (
       const range = sheet.getRange(1, 1, data.length, data[0].length);
       range.setValues(data);
 
-      if (applyFormatting || !sheetAlreadyExists) {
-        range.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
-        if (finalHeader && finalHeader.length > 0) {
-          sheet.getRange(1, 1, 1, data[0].length).setFontWeight('bold');
-        }
-
-        if (columnFormats) {
-          const startRow = finalHeader && finalHeader.length > 0 ? 2 : 1;
-          if (finalRows.length > 0) {
-            columnFormats.forEach(fmt => {
-              if (fmt.numberFormat) {
-                sheet
-                  .getRange(startRow, fmt.colIndex + 1, finalRows.length, 1)
-                  .setNumberFormat(fmt.numberFormat);
-              }
-            });
-          }
-        }
-        sheet.autoResizeColumns(1, data[0].length);
+      range.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
+      if (finalHeader && finalHeader.length > 0) {
+        sheet.getRange(1, 1, 1, data[0].length).setFontWeight('bold');
       }
+      sheet.autoResizeColumns(1, data[0].length);
     }
 
     return 'Success';
@@ -240,10 +219,10 @@ export const createSpreadsheet = name => {
   const file = DriveApp.getFileById(spreadsheet.getId());
   const activeUserEmail = Session.getActiveUser().getEmail();
   const currentOwnerEmail = file.getOwner().getEmail();
-
+  console.log({ currentOwnerEmail, activeUserEmail, url });
   if (activeUserEmail && currentOwnerEmail !== activeUserEmail) {
-    file.setOwner(activeUserEmail);
-    file.removeEditor(currentOwnerEmail);
+    const setOwnerRes = file.setOwner(activeUserEmail);
+    console.log(`Set new owner result: ${setOwnerRes}`);
   }
   return url;
 };
