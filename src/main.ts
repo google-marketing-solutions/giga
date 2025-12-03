@@ -88,7 +88,7 @@ export const calculateKeywordGrowth = (
       growth = max !== 0 ? (latest - max) / max : 0;
     } else if (growthMetric === 'three_months_vs_avg') {
       const last3Months = history.slice(-3);
-      const prevMonths = history.slice(0, -3);
+      const prevMonths = history.slice(-24, -3);
       const avgLast3 =
         last3Months.length > 0
           ? last3Months.reduce((a, b) => a + b, 0) / last3Months.length
@@ -233,7 +233,7 @@ export const getClusters = (
     cluster.growthLatestVsMax = max !== 0 ? (latest - max) / max : 0;
 
     const last3Months = history.slice(-3);
-    const prevMonths = history.slice(0, -3);
+    const prevMonths = history.slice(-24, -3);
     const avgLast3 =
       last3Months.length > 0
         ? last3Months.reduce((a, b) => a + b, 0) / last3Months.length
