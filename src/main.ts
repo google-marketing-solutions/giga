@@ -78,7 +78,7 @@ export const removeHTMLTicks = html => {
 export const getInsights = (
   ideas,
   seedKeywords,
-  growthMetric = 'yoy',
+  growthMetric = 'three_months_vs_avg',
   geminiConfig: Partial<GeminiConfig>
 ) => {
   const relevantIdeas = Object.entries(ideas).map(([idea, searchVolume]) => {
@@ -97,8 +97,22 @@ export const getInsights = (
       const avg = history.length > 0 ? totalSum / history.length : 0;
       growth = avg !== 0 ? (latest - avg) / avg : 0;
     } else if (growthMetric === 'latest_vs_max') {
-      const max = Math.max(...history);
+      const historyWithoutLatest = history.slice(0, -1);
+      const max =
+        historyWithoutLatest.length > 0 ? Math.max(...historyWithoutLatest) : 0;
       growth = max !== 0 ? (latest - max) / max : 0;
+    } else if (growthMetric === 'three_months_vs_avg') {
+      const last3Months = history.slice(-3);
+      const prevMonths = history.slice(0, -3);
+      const avgLast3 =
+        last3Months.length > 0
+          ? last3Months.reduce((a, b) => a + b, 0) / last3Months.length
+          : 0;
+      const avgPrev =
+        prevMonths.length > 0
+          ? prevMonths.reduce((a, b) => a + b, 0) / prevMonths.length
+          : 0;
+      growth = avgPrev !== 0 ? (avgLast3 - avgPrev) / avgPrev : 0;
     }
     return [idea, growth];
   });
@@ -109,6 +123,7 @@ export const getInsights = (
     mom: 'MoM',
     latest_vs_avg: 'Latest vs Average',
     latest_vs_max: 'Last Month vs Max',
+    three_months_vs_avg: 'Last 3 Months vs Prev Avg',
   };
   const metricName = metricNames[growthMetric] || 'YoY';
 
@@ -205,8 +220,23 @@ export const getClusters = (
     const avg = history.length > 0 ? totalSum / history.length : 0;
     cluster.growthLatestVsAvg = avg !== 0 ? (latest - avg) / avg : 0;
 
-    const max = Math.max(...history);
+    const historyWithoutLatest = history.slice(0, -1);
+    const max =
+      historyWithoutLatest.length > 0 ? Math.max(...historyWithoutLatest) : 0;
     cluster.growthLatestVsMax = max !== 0 ? (latest - max) / max : 0;
+
+    const last3Months = history.slice(-3);
+    const prevMonths = history.slice(0, -3);
+    const avgLast3 =
+      last3Months.length > 0
+        ? last3Months.reduce((a, b) => a + b, 0) / last3Months.length
+        : 0;
+    const avgPrev =
+      prevMonths.length > 0
+        ? prevMonths.reduce((a, b) => a + b, 0) / prevMonths.length
+        : 0;
+    cluster.growthThreeMonthsVsAvg =
+      avgPrev !== 0 ? (avgLast3 - avgPrev) / avgPrev : 0;
 
     return cluster;
   });

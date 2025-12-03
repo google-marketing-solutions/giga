@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script type="text/babel">
-  const { useState, useMemo } = React;
+  const { useState, useMemo, useEffect, useRef } = React;
   const { GROWTH_METRICS, LANGUAGES, COUNTRIES, COLOR_PALETTE } = window;
   const { InputField, SelectField, ChartComponent, Modal, ChipsInput } = window;
 
@@ -59,12 +59,24 @@ limitations under the License.
     geminiPrompt,
     setGeminiPrompt,
     useClustering,
-    setUseClustering
+    setUseClustering,
+    highlightKeywordSources,
+    setHighlightKeywordSources,
   }) => {
     const [activeInfoModal, setActiveInfoModal] = useState(null);
-    
+    const detailsRef = useRef(null);
+
+    useEffect(() => {
+      if (highlightKeywordSources && detailsRef.current) {
+        detailsRef.current.open = true;
+      }
+    }, [highlightKeywordSources]);
+
     // Keyword Table State
-    const [sortConfig, setSortConfig] = useState({ key: 'growth', direction: 'descending' });
+    const [sortConfig, setSortConfig] = useState({
+      key: 'growth',
+      direction: 'descending',
+    });
     const [filters, setFilters] = useState({ keyword: '', minVolume: '' });
     const [expandedIdea, setExpandedIdea] = useState(null);
 
@@ -82,13 +94,16 @@ limitations under the License.
     };
 
     const processedIdeas = useMemo(() => {
-       if (!ideasData) return [];
-       return ideasData;
+      if (!ideasData) return [];
+      return ideasData;
     }, [ideasData]);
 
     const filteredIdeas = useMemo(() => {
       return processedIdeas.filter(item => {
-        if (filters.keyword && !item.text.toLowerCase().includes(filters.keyword.toLowerCase())) {
+        if (
+          filters.keyword &&
+          !item.text.toLowerCase().includes(filters.keyword.toLowerCase())
+        ) {
           return false;
         }
         if (
@@ -107,26 +122,50 @@ limitations under the License.
         sortableItems.sort((a, b) => {
           let aValue, bValue;
           if (sortConfig.key === 'competition') {
-              aValue = a.competition_index != null ? Number(a.competition_index) : null;
-              bValue = b.competition_index != null ? Number(b.competition_index) : null;
-          } else if (['low_top_of_page_bid_micros', 'high_top_of_page_bid_micros', 'average_cpc_micros'].includes(sortConfig.key)) {
-              aValue = a[sortConfig.key] != null ? Number(a[sortConfig.key]) : null;
-              bValue = b[sortConfig.key] != null ? Number(b[sortConfig.key]) : null;
+            aValue =
+              a.competition_index != null ? Number(a.competition_index) : null;
+            bValue =
+              b.competition_index != null ? Number(b.competition_index) : null;
+          } else if (
+            [
+              'low_top_of_page_bid_micros',
+              'high_top_of_page_bid_micros',
+              'average_cpc_micros',
+            ].includes(sortConfig.key)
+          ) {
+            aValue =
+              a[sortConfig.key] != null ? Number(a[sortConfig.key]) : null;
+            bValue =
+              b[sortConfig.key] != null ? Number(b[sortConfig.key]) : null;
           } else if (sortConfig.key === 'growth') {
-             if (growthMetric === 'yoy') { aValue = a.growthYoY; bValue = b.growthYoY; }
-             else if (growthMetric === 'mom') { aValue = a.growthMoM; bValue = b.growthMoM; }
-             else if (growthMetric === 'latest_vs_avg') { aValue = a.growthLatestVsAvg; bValue = b.growthLatestVsAvg; }
-             else if (growthMetric === 'latest_vs_max') { aValue = a.growthLatestVsMax; bValue = b.growthLatestVsMax; }
+            if (growthMetric === 'yoy') {
+              aValue = a.growthYoY;
+              bValue = b.growthYoY;
+            } else if (growthMetric === 'mom') {
+              aValue = a.growthMoM;
+              bValue = b.growthMoM;
+            } else if (growthMetric === 'latest_vs_avg') {
+              aValue = a.growthLatestVsAvg;
+              bValue = b.growthLatestVsAvg;
+            } else if (growthMetric === 'latest_vs_max') {
+              aValue = a.growthLatestVsMax;
+              bValue = b.growthLatestVsMax;
+            } else if (growthMetric === 'three_months_vs_avg') {
+              aValue = a.growthThreeMonthsVsAvg;
+              bValue = b.growthThreeMonthsVsAvg;
+            }
           } else {
-              aValue = a[sortConfig.key];
-              bValue = b[sortConfig.key];
+            aValue = a[sortConfig.key];
+            bValue = b[sortConfig.key];
           }
-          
+
           if (aValue == null) return 1;
           if (bValue == null) return -1;
 
-          if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
-          if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
+          if (aValue < bValue)
+            return sortConfig.direction === 'ascending' ? -1 : 1;
+          if (aValue > bValue)
+            return sortConfig.direction === 'ascending' ? 1 : -1;
           return 0;
         });
       }
@@ -243,13 +282,14 @@ limitations under the License.
             marginBottom: '1rem',
           }}
         >
-          <h2 style={{ marginBottom: 0 }}>Explore Keywords</h2>
+          <h2 style={{ marginBottom: 0 }}>Explore trending topics</h2>
           <button
             className="btn-icon"
             onClick={() => {
               setIdeasData(null);
               setKeywords('');
               setExpandedIdea(null);
+              setClusters(null);
             }}
             title="Reset Explore Data"
           >
@@ -261,39 +301,50 @@ limitations under the License.
             </span>
           </button>
         </div>
-                  <ChipsInput
-                    label={
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        Seed Keywords
-                        <span
-                          className="material-symbols-outlined"
-                          style={{
-                            fontSize: '1rem',
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer',
-                          }}
-                          onClick={e => {
-                            e.preventDefault();
-                            setActiveInfoModal('seed_keywords');
-                          }}
-                        >
-                          info
-                        </span>
-                      </div>
-                    }
-                    value={keywords ? keywords.split(',').map(s => s.trim()).filter(s => s) : []}
-                    onChange={chips => setKeywords(chips.join(', '))}
-                    placeholder="Type a keyword and press Enter..."
-                    helpText="Type keywords and press Enter or Tab to add them. Press Enter again to start."
-                    onKeyDown={(e, newChips) => {
-                      if (e.key === 'Enter') {
-                         const keywordsToRun = newChips ? newChips.join(', ') : keywords;
-                         runExplore(keywordsToRun);
-                      }
-                    }}
-                  />
-                  <div className="grid-2">
-                    <SelectField                        label={              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <ChipsInput
+          label={
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Seed Keywords
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: '1rem',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+                onClick={e => {
+                  e.preventDefault();
+                  setActiveInfoModal('seed_keywords');
+                }}
+              >
+                info
+              </span>
+            </div>
+          }
+          value={
+            keywords
+              ? keywords
+                  .split(',')
+                  .map(s => s.trim())
+                  .filter(s => s)
+              : []
+          }
+          onChange={chips => setKeywords(chips.join(', '))}
+          placeholder="Type a keyword and press Enter..."
+          helpText="Type keywords and press Enter or Tab to add them. Press Enter again to start."
+          onKeyDown={(e, newChips) => {
+            if (e.key === 'Enter') {
+              const keywordsToRun = newChips ? newChips.join(', ') : keywords;
+              runExplore(keywordsToRun);
+            }
+          }}
+        />
+        <div className="grid-2">
+          <SelectField
+            label={
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
                 Language
                 <span
                   className="material-symbols-outlined"
@@ -318,7 +369,9 @@ limitations under the License.
           />
           <SelectField
             label={
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
                 Location
                 <span
                   className="material-symbols-outlined"
@@ -343,7 +396,7 @@ limitations under the License.
           />
         </div>
 
-        <details className="mb-4">
+        <details className="mb-4" ref={detailsRef}>
           <summary className="cursor-pointer text-sm font-medium text-primary">
             Advanced Config
           </summary>
@@ -352,74 +405,118 @@ limitations under the License.
               <label style={{ display: 'block', marginBottom: '8px' }}>
                 Keyword Sources
               </label>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={useKeywordPlanner}
-                    onChange={e => {
-                      if (!e.target.checked && !useGemini) return;
-                      setUseKeywordPlanner(e.target.checked);
-                    }}
-                  />
-                  Keyword Idea Service
-                  <span
-                    className="material-symbols-outlined"
+              <div
+                style={
+                  highlightKeywordSources
+                    ? {
+                        border: '2px solid #dc2626',
+                        borderRadius: '8px',
+                        padding: '4px',
+                        position: 'relative',
+                        width: 'fit-content',
+                      }
+                    : {}
+                }
+              >
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <label
                     style={{
-                      fontSize: '1rem',
-                      color: 'var(--text-secondary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
                       cursor: 'pointer',
-                      marginLeft: '4px',
-                    }}
-                    onClick={e => {
-                      e.preventDefault();
-                      setActiveInfoModal('keyword_planner');
                     }}
                   >
-                    info
-                  </span>
-                </label>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={useGemini}
-                    onChange={e => {
-                      if (!e.target.checked && !useKeywordPlanner) return;
-                      setUseGemini(e.target.checked);
-                    }}
-                  />
-                  Gemini
-                  <span
-                    className="material-symbols-outlined"
+                    <input
+                      type="checkbox"
+                      checked={useKeywordPlanner}
+                      onChange={e => {
+                        setUseKeywordPlanner(e.target.checked);
+                        if (e.target.checked && highlightKeywordSources) {
+                          setHighlightKeywordSources(false);
+                        }
+                      }}
+                    />
+                    Keyword Idea Service
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '1rem',
+                        color: 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        marginLeft: '4px',
+                      }}
+                      onClick={e => {
+                        e.preventDefault();
+                        setActiveInfoModal('keyword_planner');
+                      }}
+                    >
+                      info
+                    </span>
+                  </label>
+                  <label
                     style={{
-                      fontSize: '1rem',
-                      color: 'var(--text-secondary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
                       cursor: 'pointer',
-                      marginLeft: '4px',
-                    }}
-                    onClick={e => {
-                      e.preventDefault();
-                      setActiveInfoModal('gemini');
                     }}
                   >
-                    info
-                  </span>
-                </label>
+                    <input
+                      type="checkbox"
+                      checked={useGemini}
+                      onChange={e => {
+                        setUseGemini(e.target.checked);
+                        if (e.target.checked && highlightKeywordSources) {
+                          setHighlightKeywordSources(false);
+                        }
+                      }}
+                    />
+                    Gemini
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '1rem',
+                        color: 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        marginLeft: '4px',
+                      }}
+                      onClick={e => {
+                        e.preventDefault();
+                        setActiveInfoModal('gemini');
+                      }}
+                    >
+                      info
+                    </span>
+                  </label>
+                </div>
+                {highlightKeywordSources && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: '-60px',
+                      top: '50%',
+                      color: '#dc2626',
+                      fontSize: '48px',
+                      fontWeight: 'bold',
+                      animation: 'bounceHorizontal 1s infinite ease-in-out',
+                    }}
+                  >
+                    ←
+                  </div>
+                )}
               </div>
+              {!useKeywordPlanner && !useGemini && (
+                <div
+                  style={{
+                    color: 'var(--error)',
+                    marginTop: '8px',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  At least one source needs to be selected.
+                </div>
+              )}
             </div>
             {useGemini && (
               <div className="mt-4">
@@ -490,14 +587,11 @@ limitations under the License.
         >
           {isExploring ? (
             <>
-              <div className="spinner"></div>{' '}
-              {exploreStatus || 'Running...'}
+              <div className="spinner"></div> {exploreStatus || 'Running...'}
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined">
-                rocket_launch
-              </span>{' '}
+              <span className="material-symbols-outlined">rocket_launch</span>{' '}
               Start
             </>
           )}
@@ -519,7 +613,7 @@ limitations under the License.
           </div>
         )}
 
-        {clusters && (
+        {(clusters || (ideasData && ideasData.length > 0)) && (
           <div
             className="mt-4"
             style={{
@@ -537,44 +631,44 @@ limitations under the License.
               />
             </div>
             <div>
-              <button
-                className="btn btn-secondary"
-                onClick={handleDownloadExplore}
-                style={{
-                  background: 'white',
-                  border: '1px solid var(--border-color)',
-                }}
-                title="Download CSV"
-              >
-                <span className="material-symbols-outlined">
-                  download
-                </span>
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={handleExportExploreToSheet}
-                style={{
-                  background: 'white',
-                  border: '1px solid var(--border-color)',
-                  marginLeft: '8px',
-                }}
-                disabled={isExporting}
-                title="Export to Sheet"
-              >
-                {isExporting ? (
-                  <div
-                    className="spinner"
+              {clusters && (
+                <>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={handleDownloadExplore}
                     style={{
-                      borderColor: 'rgba(37, 99, 235, 0.3)',
-                      borderTopColor: '#2563eb',
+                      background: 'white',
+                      border: '1px solid var(--border-color)',
                     }}
-                  ></div>
-                ) : (
-                  <span className="material-symbols-outlined">
-                    table
-                  </span>
-                )}
-              </button>
+                    title="Download CSV"
+                  >
+                    <span className="material-symbols-outlined">download</span>
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={handleExportExploreToSheet}
+                    style={{
+                      background: 'white',
+                      border: '1px solid var(--border-color)',
+                      marginLeft: '8px',
+                    }}
+                    disabled={isExporting}
+                    title="Export to Sheet"
+                  >
+                    {isExporting ? (
+                      <div
+                        className="spinner"
+                        style={{
+                          borderColor: 'rgba(37, 99, 235, 0.3)',
+                          borderTopColor: '#2563eb',
+                        }}
+                      ></div>
+                    ) : (
+                      <span className="material-symbols-outlined">table</span>
+                    )}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -624,8 +718,8 @@ limitations under the License.
               </div>
               <div>
                 <strong>
-                  {GROWTH_METRICS.find(m => m.id === growthMetric)
-                    ?.name || 'Growth'}
+                  {GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
+                    'Growth'}
                   :
                 </strong>{' '}
                 {(() => {
@@ -641,6 +735,8 @@ limitations under the License.
                     val = selectedCluster.growthLatestVsAvg || 0;
                   else if (growthMetric === 'latest_vs_max')
                     val = selectedCluster.growthLatestVsMax || 0;
+                  else if (growthMetric === 'three_months_vs_avg')
+                    val = selectedCluster.growthThreeMonthsVsAvg || 0;
                   return (val * 100).toFixed(1);
                 })()}
                 %
@@ -767,9 +863,7 @@ limitations under the License.
                         padding: '8px',
                         cursor: 'pointer',
                       }}
-                      onClick={() =>
-                        requestSort('low_top_of_page_bid_micros')
-                      }
+                      onClick={() => requestSort('low_top_of_page_bid_micros')}
                     >
                       Low Bid
                       {getSortIndicator('low_top_of_page_bid_micros')}
@@ -780,9 +874,7 @@ limitations under the License.
                         padding: '8px',
                         cursor: 'pointer',
                       }}
-                      onClick={() =>
-                        requestSort('high_top_of_page_bid_micros')
-                      }
+                      onClick={() => requestSort('high_top_of_page_bid_micros')}
                     >
                       High Bid
                       {getSortIndicator('high_top_of_page_bid_micros')}
@@ -810,14 +902,15 @@ limitations under the License.
                     const cpc = item.average_cpc_micros;
 
                     let growth = 0;
-                    if (growthMetric === 'yoy')
-                      growth = item.growthYoY || 0;
+                    if (growthMetric === 'yoy') growth = item.growthYoY || 0;
                     else if (growthMetric === 'mom')
                       growth = item.growthMoM || 0;
                     else if (growthMetric === 'latest_vs_avg')
                       growth = item.growthLatestVsAvg || 0;
                     else if (growthMetric === 'latest_vs_max')
                       growth = item.growthLatestVsMax || 0;
+                    else if (growthMetric === 'three_months_vs_avg')
+                      growth = item.growthThreeMonthsVsAvg || 0;
 
                     const formatMoney = micros =>
                       micros != null
@@ -831,8 +924,7 @@ limitations under the License.
                       <React.Fragment key={index}>
                         <tr
                           style={{
-                            borderBottom:
-                              '1px solid var(--border-color)',
+                            borderBottom: '1px solid var(--border-color)',
                             cursor: 'pointer',
                             backgroundColor:
                               expandedIdea?.text === text
@@ -924,8 +1016,7 @@ limitations under the License.
                         {expandedIdea?.text === text && (
                           <tr
                             style={{
-                              backgroundColor:
-                                'rgba(37, 99, 235, 0.05)',
+                              backgroundColor: 'rgba(37, 99, 235, 0.05)',
                             }}
                           >
                             <td colSpan={7} style={{ padding: '16px' }}>
@@ -945,22 +1036,18 @@ limitations under the License.
                                   {(() => {
                                     let val = 0;
                                     if (growthMetric === 'yoy')
-                                      val =
-                                        expandedIdea.growthYoY || 0;
+                                      val = expandedIdea.growthYoY || 0;
                                     else if (growthMetric === 'mom')
-                                      val =
-                                        expandedIdea.growthMoM || 0;
+                                      val = expandedIdea.growthMoM || 0;
+                                    else if (growthMetric === 'latest_vs_avg')
+                                      val = expandedIdea.growthLatestVsAvg || 0;
+                                    else if (growthMetric === 'latest_vs_max')
+                                      val = expandedIdea.growthLatestVsMax || 0;
                                     else if (
-                                      growthMetric === 'latest_vs_avg'
+                                      growthMetric === 'three_months_vs_avg'
                                     )
                                       val =
-                                        expandedIdea.growthLatestVsAvg ||
-                                        0;
-                                    else if (
-                                      growthMetric === 'latest_vs_max'
-                                    )
-                                      val =
-                                        expandedIdea.growthLatestVsMax ||
+                                        expandedIdea.growthThreeMonthsVsAvg ||
                                         0;
                                     return (val * 100).toFixed(1);
                                   })()}
@@ -1024,14 +1111,14 @@ limitations under the License.
               activeInfoModal === 'keyword_planner'
                 ? 'Keyword Idea Service'
                 : activeInfoModal === 'gemini'
-                ? 'Gemini'
-                : activeInfoModal === 'seed_keywords'
-                ? 'Seed Keywords'
-                : activeInfoModal === 'location_info'
-                ? 'Location Settings'
-                : activeInfoModal === 'clustering_info'
-                ? 'Clustering Info'
-                : 'Language Settings'
+                  ? 'Gemini'
+                  : activeInfoModal === 'seed_keywords'
+                    ? 'Seed Keywords'
+                    : activeInfoModal === 'location_info'
+                      ? 'Location Settings'
+                      : activeInfoModal === 'clustering_info'
+                        ? 'Clustering Info'
+                        : 'Language Settings'
             }
           >
             {activeInfoModal === 'keyword_planner' ? (
@@ -1057,12 +1144,16 @@ limitations under the License.
                   your prompt.
                 </p>
                 <p>
-                  It uses <a
+                  It uses{' '}
+                  <a
                     href="https://ai.google.dev/gemini-api/docs/google-search"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: 'var(--primary)' }}
-                  >grounding with Google Search</a> to get the latest information for a topic.
+                  >
+                    grounding with Google Search
+                  </a>{' '}
+                  to get the latest information for a topic.
                 </p>
                 <p>
                   Once keywords are generated, the{' '}
@@ -1081,25 +1172,27 @@ limitations under the License.
             ) : activeInfoModal === 'seed_keywords' ? (
               <div>
                 <p>
-                  Enter one or more starting keywords here. These serve as the foundation for generating new keyword ideas and clusters.
+                  Enter one or more starting keywords here. These serve as the
+                  foundation for generating new keyword ideas and clusters.
                 </p>
                 <p>
-                  The tool will use these seeds to find related search terms and historical data to help expand your keyword research.
+                  The tool will use these seeds to find related search terms and
+                  historical data to help expand your keyword research.
                 </p>
               </div>
             ) : activeInfoModal === 'location_info' ? (
               <div>
+                <p>Select the geographic location for your keyword research.</p>
                 <p>
-                  Select the geographic location for your keyword research.
-                </p>
-                <p>
-                  The tool will only retrieve search volume and historical metrics specific to this location.
+                  The tool will only retrieve search volume and historical
+                  metrics specific to this location.
                 </p>
               </div>
             ) : activeInfoModal === 'clustering_info' ? (
               <div>
                 <p>
-                  Gemini is used to perform a semantic clustering based on the prompt.
+                  Gemini is used to perform a semantic clustering based on the
+                  prompt.
                 </p>
               </div>
             ) : (

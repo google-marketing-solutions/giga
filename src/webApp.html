@@ -99,7 +99,7 @@ limitations under the License.
         border: 1px solid rgba(255, 255, 255, 0.5);
         transition: transform 0.2s, box-shadow 0.2s;
       }
-      
+
       .chips-container {
         display: flex;
         flex-wrap: wrap;
@@ -263,6 +263,24 @@ limitations under the License.
 
       .btn-primary:active:not(:disabled) {
         transform: translateY(0);
+      }
+
+      .btn-icon {
+        cursor: pointer;
+        padding: 8px;
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid transparent;
+        border-radius: 8px;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn-icon:hover {
+        background: #f3f4f6;
+        border-color: #e5e7eb;
       }
 
       .btn:disabled {
@@ -652,11 +670,9 @@ limitations under the License.
       );
     </script>
 
-    <?!= include('utils'); ?>
-    <?!= include('components'); ?>
-    <?!= include('tabExplore'); ?>
-    <?!= include('tabInsights'); ?>
-    <?!= include('tabCampaigns'); ?>
+    <?!= include('utils'); ?> <?!= include('components'); ?> <?!=
+    include('tabExplore'); ?> <?!= include('tabInsights'); ?> <?!=
+    include('tabCampaigns'); ?>
 
     <script type="text/babel">
       const { useState, useEffect, useRef, useMemo } = React;
@@ -676,7 +692,7 @@ limitations under the License.
         formatMicrosToCurrency,
         htmlToMarkdown,
         convertToCSV,
-        downloadFile
+        downloadFile,
       } = window;
 
       const {
@@ -687,7 +703,7 @@ limitations under the License.
         SelectField,
         ChartComponent,
         SettingsModal,
-        AdPreview
+        AdPreview,
       } = window;
 
       const { ExploreTab, InsightsTab, CampaignsTab } = window;
@@ -760,6 +776,8 @@ limitations under the License.
           100,
           'giga_minSearchVolume'
         );
+        const [highlightKeywordSources, setHighlightKeywordSources] =
+          useState(false);
 
         const [spreadsheetUrl, setSpreadsheetUrl] = useStickyState(
           '',
@@ -822,7 +840,7 @@ limitations under the License.
             );
             if (isNewSheet) {
               showAlert(
-                `Successfully exported to a new spreadsheet. You can change the destination URL in Settings. Note: The user (${USER_EMAIL}) must have edit access to this spreadsheet for future exports.`, 
+                `Successfully exported to a new spreadsheet. You can change the destination URL in Settings. Note: The user (${USER_EMAIL}) must have edit access to this spreadsheet for future exports.`,
                 targetUrl
               );
             } else {
@@ -1113,7 +1131,7 @@ limitations under the License.
 
         // Campaign Creation State
         const [creationAccountId, setCreationAccountId] = useStickyState(
-          '111-222-3333',
+          '',
           'giga_creationAccountId'
         );
         const [creationPromptTemplate, setCreationPromptTemplate] =
@@ -1131,7 +1149,7 @@ limitations under the License.
           'giga_creationKeywords'
         );
         const [growthMetric, setGrowthMetric] = useStickyState(
-          'yoy',
+          'three_months_vs_avg',
           'growthMetric'
         );
 
@@ -1290,8 +1308,15 @@ limitations under the License.
           }
         }, [configStatus]);
 
-        const runExplore = async (overrideKeywords) => {
-          const keywordsToUse = typeof overrideKeywords === 'string' ? overrideKeywords : keywords;
+        const runExplore = async overrideKeywords => {
+          if (!useKeywordPlanner && !useGemini) {
+            setHighlightKeywordSources(true);
+            showAlert('At least one source needs to be selected.');
+            return;
+          }
+          setHighlightKeywordSources(false);
+          const keywordsToUse =
+            typeof overrideKeywords === 'string' ? overrideKeywords : keywords;
           if (!keywordsToUse.trim()) {
             showAlert('Please enter at least one seed keyword.');
             return;
@@ -1402,21 +1427,40 @@ limitations under the License.
                   const volumes = metrics.monthlySearchVolumes.map(item =>
                     Number(item.monthlySearches)
                   );
-                  
+
                   const len = volumes.length;
                   const latest = len > 0 ? volumes[len - 1] : 0;
                   const prevMonth = len > 1 ? volumes[len - 2] : 0;
                   const prevYear = len > 12 ? volumes[len - 13] : 0;
-                  
-                  const growthYoY = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
-                  const growthMoM = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
-                  
+
+                  const growthYoY =
+                    prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+                  const growthMoM =
+                    prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+
                   const totalSum = volumes.reduce((a, b) => a + b, 0);
                   const avg = len > 0 ? totalSum / len : 0;
-                  const growthLatestVsAvg = avg !== 0 ? (latest - avg) / avg : 0;
-                  
+                  const growthLatestVsAvg =
+                    avg !== 0 ? (latest - avg) / avg : 0;
+
                   const max = Math.max(...volumes);
-                  const growthLatestVsMax = max !== 0 ? (latest - max) / max : 0;
+                  const growthLatestVsMax =
+                    max !== 0 ? (latest - max) / max : 0;
+
+                  const last3Months = volumes.slice(-3);
+                  const prevMonths = volumes.slice(0, -3);
+                  const avgLast3 =
+                    last3Months.length > 0
+                      ? last3Months.reduce((a, b) => a + b, 0) /
+                        last3Months.length
+                      : 0;
+                  const avgPrev =
+                    prevMonths.length > 0
+                      ? prevMonths.reduce((a, b) => a + b, 0) /
+                        prevMonths.length
+                      : 0;
+                  const growthThreeMonthsVsAvg =
+                    avgPrev !== 0 ? (avgLast3 - avgPrev) / avgPrev : 0;
 
                   return {
                     text: k,
@@ -1429,6 +1473,7 @@ limitations under the License.
                     growthMoM,
                     growthLatestVsAvg,
                     growthLatestVsMax,
+                    growthThreeMonthsVsAvg,
                     competition: metrics.competition,
                     competition_index: metrics.competitionIndex,
                     low_top_of_page_bid_micros: metrics.lowTopOfPageBidMicros,
@@ -1443,11 +1488,15 @@ limitations under the License.
               setExploreStatus('Generating Gemini keywords...');
 
               let finalGeminiPrompt = geminiPrompt;
-              const langName = [...LANGUAGES, ...customLanguages].find(l => l.id === language)?.name;
+              const langName = [...LANGUAGES, ...customLanguages].find(
+                l => l.id === language
+              )?.name;
               if (langName) {
                 finalGeminiPrompt += `\n\nOutput in ${langName}`;
               }
-              const countryName = [...COUNTRIES, ...customCountries].find(c => c.id === country)?.name;
+              const countryName = [...COUNTRIES, ...customCountries].find(
+                c => c.id === country
+              )?.name;
               if (countryName) {
                 finalGeminiPrompt += `\nLocation: ${countryName}`;
               }
@@ -1471,23 +1520,42 @@ limitations under the License.
                   .map(metric => {
                     const hist = metric.keywordMetrics;
                     const volumes = (hist.monthlySearchVolumes || []).map(m =>
-                        Number(m.monthlySearches)
+                      Number(m.monthlySearches)
                     );
-                    
+
                     const len = volumes.length;
                     const latest = len > 0 ? volumes[len - 1] : 0;
                     const prevMonth = len > 1 ? volumes[len - 2] : 0;
                     const prevYear = len > 12 ? volumes[len - 13] : 0;
-                    
-                    const growthYoY = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
-                    const growthMoM = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
-                    
+
+                    const growthYoY =
+                      prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+                    const growthMoM =
+                      prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+
                     const totalSum = volumes.reduce((a, b) => a + b, 0);
                     const avg = len > 0 ? totalSum / len : 0;
-                    const growthLatestVsAvg = avg !== 0 ? (latest - avg) / avg : 0;
-                    
+                    const growthLatestVsAvg =
+                      avg !== 0 ? (latest - avg) / avg : 0;
+
                     const max = Math.max(...volumes);
-                    const growthLatestVsMax = max !== 0 ? (latest - max) / max : 0;
+                    const growthLatestVsMax =
+                      max !== 0 ? (latest - max) / max : 0;
+
+                    const last3Months = volumes.slice(-3);
+                    const prevMonths = volumes.slice(0, -3);
+                    const avgLast3 =
+                      last3Months.length > 0
+                        ? last3Months.reduce((a, b) => a + b, 0) /
+                          last3Months.length
+                        : 0;
+                    const avgPrev =
+                      prevMonths.length > 0
+                        ? prevMonths.reduce((a, b) => a + b, 0) /
+                          prevMonths.length
+                        : 0;
+                    const growthThreeMonthsVsAvg =
+                      avgPrev !== 0 ? (avgLast3 - avgPrev) / avgPrev : 0;
 
                     return {
                       text: metric.text,
@@ -1500,6 +1568,7 @@ limitations under the License.
                       growthMoM,
                       growthLatestVsAvg,
                       growthLatestVsMax,
+                      growthThreeMonthsVsAvg,
                       competition: hist.competition,
                       competition_index: hist.competitionIndex,
                       low_top_of_page_bid_micros: hist.lowTopOfPageBidMicros,
@@ -2179,6 +2248,8 @@ limitations under the License.
                 setGeminiPrompt={setGeminiPrompt}
                 useClustering={useClustering}
                 setUseClustering={setUseClustering}
+                highlightKeywordSources={highlightKeywordSources}
+                setHighlightKeywordSources={setHighlightKeywordSources}
               />
             )}
 
@@ -2235,7 +2306,7 @@ limitations under the License.
 
             {languageModal}
             {locationModal}
-            
+
             <SettingsModal
               isOpen={modalConfig.isOpen && modalConfig.type === 'settings'}
               onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}

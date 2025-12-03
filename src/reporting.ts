@@ -260,13 +260,7 @@ export const createAdSuggestion = (prompt, userKeywords, geminiConfig) => {
   );
 };
 
-export const createCampaignPrompt = (
-  cid,
-  promptTemplate,
-  styleGuide,
-  instructions,
-  keywords
-) => {
+export const createCampaignPrompt = cid => {
   const adsWithKeywords = getTopPerformingAdsAndKeywords(cid, 5);
   return getPromptTemplate(adsWithKeywords);
 };
