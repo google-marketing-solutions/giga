@@ -1448,7 +1448,7 @@ limitations under the License.
                     max !== 0 ? (latest - max) / max : 0;
 
                   const last3Months = volumes.slice(-3);
-                  const prevMonths = volumes.slice(0, -3);
+                  const prevMonths = volumes.slice(-24, -3);
                   const avgLast3 =
                     last3Months.length > 0
                       ? last3Months.reduce((a, b) => a + b, 0) /
@@ -1543,7 +1543,7 @@ limitations under the License.
                       max !== 0 ? (latest - max) / max : 0;
 
                     const last3Months = volumes.slice(-3);
-                    const prevMonths = volumes.slice(0, -3);
+                    const prevMonths = volumes.slice(-24, -3);
                     const avgLast3 =
                       last3Months.length > 0
                         ? last3Months.reduce((a, b) => a + b, 0) /
@@ -1797,6 +1797,8 @@ limitations under the License.
                 yValue = c.growthLatestVsAvg || 0;
               } else if (growthMetric === 'latest_vs_max') {
                 yValue = c.growthLatestVsMax || 0;
+              } else if (growthMetric === 'three_months_vs_avg') {
+                yValue = c.growthThreeMonthsVsAvg || 0;
               }
 
               return {

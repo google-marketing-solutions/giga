@@ -62,44 +62,53 @@ export const getYoYGrowth = searchVolumes => {
   return latestVolume / previousYearVolume - 1;
 };
 
+export const calculateGrowthMetrics = (history: number[]) => {
+  const latest = history[history.length - 1] || 0;
+  const prevMonth = history[history.length - 2] || 0;
+  const prevYear = history[history.length - 13] || 0;
+
+  const yoy = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+  const mom = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+
+  const totalSum = history.reduce((a, b) => a + b, 0);
+  const avg = history.length > 0 ? totalSum / history.length : 0;
+  const latest_vs_avg = avg !== 0 ? (latest - avg) / avg : 0;
+
+  const historyWithoutLatest = history.slice(0, -1);
+  const max =
+    historyWithoutLatest.length > 0 ? Math.max(...historyWithoutLatest) : 0;
+  const latest_vs_max = max !== 0 ? (latest - max) / max : 0;
+
+  const last3Months = history.slice(-3);
+  const prevMonths = history.slice(-24, -3);
+  const avgLast3 =
+    last3Months.length > 0
+      ? last3Months.reduce((a, b) => a + b, 0) / last3Months.length
+      : 0;
+  const avgPrev =
+    prevMonths.length > 0
+      ? prevMonths.reduce((a, b) => a + b, 0) / prevMonths.length
+      : 0;
+  const three_months_vs_avg =
+    avgPrev !== 0 ? (avgLast3 - avgPrev) / avgPrev : 0;
+
+  return {
+    yoy,
+    mom,
+    latest_vs_avg,
+    latest_vs_max,
+    three_months_vs_avg,
+  };
+};
+
 export const calculateKeywordGrowth = (
   ideas: Record<string, number[]>,
   growthMetric = 'three_months_vs_avg'
 ): [string, number][] => {
   return Object.entries(ideas).map(([idea, searchVolume]) => {
     const history = searchVolume as number[];
-    const latest = history[history.length - 1] || 0;
-    const prevMonth = history[history.length - 2] || 0;
-    const prevYear = history[history.length - 13] || 0;
-
-    let growth = 0;
-    if (growthMetric === 'yoy') {
-      growth = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
-    } else if (growthMetric === 'mom') {
-      growth = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
-    } else if (growthMetric === 'latest_vs_avg') {
-      const totalSum = history.reduce((a, b) => a + b, 0);
-      const avg = history.length > 0 ? totalSum / history.length : 0;
-      growth = avg !== 0 ? (latest - avg) / avg : 0;
-    } else if (growthMetric === 'latest_vs_max') {
-      const historyWithoutLatest = history.slice(0, -1);
-      const max =
-        historyWithoutLatest.length > 0 ? Math.max(...historyWithoutLatest) : 0;
-      growth = max !== 0 ? (latest - max) / max : 0;
-    } else if (growthMetric === 'three_months_vs_avg') {
-      const last3Months = history.slice(-3);
-      const prevMonths = history.slice(-24, -3);
-      const avgLast3 =
-        last3Months.length > 0
-          ? last3Months.reduce((a, b) => a + b, 0) / last3Months.length
-          : 0;
-      const avgPrev =
-        prevMonths.length > 0
-          ? prevMonths.reduce((a, b) => a + b, 0) / prevMonths.length
-          : 0;
-      growth = avgPrev !== 0 ? (avgLast3 - avgPrev) / avgPrev : 0;
-    }
-    return [idea, growth];
+    const metrics = calculateGrowthMetrics(history);
+    return [idea, metrics[growthMetric] || 0];
   });
 };
 
@@ -232,36 +241,18 @@ export const getClusters = (
     cluster.searchVolume = sum(cluster.latestSearchVolumes);
 
     const history = cluster.searchVolumeHistory;
-    const latest = history[history.length - 1] || 0;
-    const prevMonth = history[history.length - 2] || 0;
-    const prevYear = history[history.length - 13] || 0; // 12 months ago
+    const metrics = calculateGrowthMetrics(history);
 
-    cluster.growthYoY = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+    cluster.growthYoY = metrics.yoy;
     cluster.yearOverYearGrowth = cluster.growthYoY;
 
-    cluster.growthMoM = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+    cluster.growthMoM = metrics.mom;
 
-    const totalSum = history.reduce((a, b) => a + b, 0);
-    const avg = history.length > 0 ? totalSum / history.length : 0;
-    cluster.growthLatestVsAvg = avg !== 0 ? (latest - avg) / avg : 0;
+    cluster.growthLatestVsAvg = metrics.latest_vs_avg;
 
-    const historyWithoutLatest = history.slice(0, -1);
-    const max =
-      historyWithoutLatest.length > 0 ? Math.max(...historyWithoutLatest) : 0;
-    cluster.growthLatestVsMax = max !== 0 ? (latest - max) / max : 0;
+    cluster.growthLatestVsMax = metrics.latest_vs_max;
 
-    const last3Months = history.slice(-3);
-    const prevMonths = history.slice(-24, -3);
-    const avgLast3 =
-      last3Months.length > 0
-        ? last3Months.reduce((a, b) => a + b, 0) / last3Months.length
-        : 0;
-    const avgPrev =
-      prevMonths.length > 0
-        ? prevMonths.reduce((a, b) => a + b, 0) / prevMonths.length
-        : 0;
-    cluster.growthThreeMonthsVsAvg =
-      avgPrev !== 0 ? (avgLast3 - avgPrev) / avgPrev : 0;
+    cluster.growthThreeMonthsVsAvg = metrics.three_months_vs_avg;
 
     return cluster;
   });
