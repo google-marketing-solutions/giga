@@ -16,7 +16,7 @@ limitations under the License.
 
 <img align="left" width="150" src="assets/logo.png" alt="logo" />
 
-# Giga: Gemini Insights Generation Analysis
+# GIGA: Gemini Insights Generation Analysis
 
 ## Overview
 

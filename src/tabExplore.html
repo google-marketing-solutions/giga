@@ -631,7 +631,7 @@ limitations under the License.
               />
             </div>
             <div>
-              {clusters && (
+              {useClustering && clusters && (
                 <>
                   <button
                     className="btn btn-secondary"
@@ -673,7 +673,7 @@ limitations under the License.
           </div>
         )}
 
-        {clustersChartData && (
+        {useClustering && clustersChartData && (
           <div className="mt-4">
             <h3>Clusters</h3>
             <div className="text-sm text-muted mb-2">
@@ -689,7 +689,7 @@ limitations under the License.
           </div>
         )}
 
-        {selectedCluster && selectedClusterChartData && (
+        {useClustering && selectedCluster && selectedClusterChartData && (
           <div
             id="cluster-details"
             className="mt-4 card"
