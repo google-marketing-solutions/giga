@@ -191,7 +191,25 @@ export const getClusters = (
     `Starting to cluster ${Object.keys(ideas).length} ideas (${keywords.length} characters)`
   );
   const prompt = `${promptTemplate}\n${keywords}\n${PROMPT_DATA_FORMAT_SUFFIX}`;
-  const config = createGeminiConfig(geminiConfig, 'application/json');
+  const responseSchema: ResponseSchema = {
+    type: 'ARRAY',
+    items: {
+      type: 'OBJECT',
+      properties: {
+        topic: { type: 'STRING' },
+        keywords: {
+          type: 'ARRAY',
+          items: { type: 'STRING' },
+        },
+      },
+      required: ['topic', 'keywords'],
+    },
+  };
+  const config = createGeminiConfig(
+    geminiConfig,
+    'application/json',
+    responseSchema
+  );
   const clusters = gemini(config)(prompt).map(cluster => {
     const [keywordIdeas, hallucinations] = partition(
       cluster.keywords,
