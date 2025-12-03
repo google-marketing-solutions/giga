@@ -1,0 +1,194 @@
+<!--
+Copyright 2025 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<script type="text/babel">
+  // --- Constants & Data ---
+  window.COLOR_PALETTE = [
+    '#4f6d7a',
+    '#c0d6df',
+    '#dbe9ee',
+    '#4a6fa5',
+    '#166088',
+  ];
+
+  window.LANGUAGES = [
+    { id: '1000', name: 'English' },
+    { id: '1001', name: 'German' },
+    { id: '1002', name: 'French' },
+    { id: '1003', name: 'Spanish' },
+    { id: '1004', name: 'Italian' },
+    { id: '1009', name: 'Danish' },
+    { id: '1010', name: 'Dutch' },
+    { id: '1011', name: 'Finnish' },
+    { id: '1015', name: 'Swedish' },
+    { id: '1020', name: 'Bulgarian' },
+    { id: '1021', name: 'Czech' },
+    { id: '1022', name: 'Greek' },
+    { id: '1024', name: 'Hungarian' },
+    { id: '1028', name: 'Latvian' },
+    { id: '1029', name: 'Lithuanian' },
+    { id: '1030', name: 'Polish' },
+    { id: '1031', name: 'Russian' },
+    { id: '1032', name: 'Romanian' },
+    { id: '1033', name: 'Slovak' },
+    { id: '1034', name: 'Slovenian' },
+    { id: '1036', name: 'Ukrainian' },
+    { id: '1038', name: 'Catalan' },
+    { id: '1039', name: 'Croatian' },
+    { id: '1043', name: 'Estonian' },
+    { id: '1064', name: 'Persian' },
+  ];
+
+  window.COUNTRIES = [
+    { id: '', name: 'Worldwide' },
+    { id: '2276', name: 'Germany' },
+    { id: '2826', name: 'UK' },
+    { id: '2250', name: 'France' },
+    { id: '2380', name: 'Italy' },
+    { id: '2756', name: 'Switzerland' },
+    { id: '2724', name: 'Spain' },
+    { id: '2616', name: 'Poland' },
+    { id: '2642', name: 'Romania' },
+    { id: '2528', name: 'Netherlands' },
+    { id: '2056', name: 'Belgium' },
+    { id: '2203', name: 'Czechia' },
+    { id: '2300', name: 'Greece' },
+    { id: '2620', name: 'Portugal' },
+    { id: '2752', name: 'Sweden' },
+    { id: '2348', name: 'Hungary' },
+    { id: '2040', name: 'Austria' },
+    { id: '2100', name: 'Bulgaria' },
+    { id: '2208', name: 'Denmark' },
+    { id: '2703', name: 'Slovakia' },
+    { id: '2246', name: 'Finland' },
+    { id: '2372', name: 'Ireland' },
+    { id: '2191', name: 'Croatia' },
+    { id: '2440', name: 'Lithuania' },
+    { id: '2705', name: 'Slovenia' },
+    { id: '2428', name: 'Latvia' },
+    { id: '2233', name: 'Estonia' },
+    { id: '2196', name: 'Cyprus' },
+    { id: '2442', name: 'Luxembourg' },
+    { id: '2470', name: 'Malta' },
+  ];
+
+  window.DEFAULT_PROMPT = `You are given a list of Google Ads keyword ideas.
+Your task is to create 10 clusters. For each cluster use only up to 20 keywords that are most representative of that cluster.
+Make sure to only assign the keywords provided to the cluster and do not invent new keywords.
+All keywords assigned to a cluster must be exactly the same (e.g. same case, same spacing, same accents).
+
+The Google Ads keyword ideas are:
+`;
+
+  window.DEFAULT_TRENDS_PROMPT = `Provide a list of around 100 Google Ads broad match keywords that represent trends regarding the topics/keywords mentioned below.`;
+
+  window.LANGUAGE_INFO_URL = 
+    'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
+  window.LOCATION_INFO_URL = 
+    'https://developers.google.com/google-ads/api/reference/data/geotargets';
+  window.GOOGLE_ADS_ID_HELP_URL = 
+    'https://support.google.com/google-ads/answer/1704344?hl=en';
+    
+  window.GROWTH_METRICS = [
+    { id: 'yoy', name: 'Year over Year' },
+    { id: 'mom', name: 'Month over Month' },
+    { id: 'latest_vs_avg', name: 'Latest vs Average' },
+    { id: 'latest_vs_max', name: 'Last Month vs Max' },
+  ];
+
+  // --- Hooks ---
+  window.useStickyState = (defaultValue, key, isReadOnly = false) => {
+    const { useState, useEffect } = React;
+    const [value, setValue] = useState(() => {
+      if (isReadOnly) return defaultValue;
+      try {
+        const stickyValue = window.localStorage.getItem(key);
+        return stickyValue !== null
+          ? JSON.parse(stickyValue)
+          : defaultValue;
+      } catch (error) {
+        console.warn(`Error reading localStorage key "${key}":`, error);
+        window.localStorage.removeItem(key);
+        return defaultValue;
+      }
+    });
+    useEffect(() => {
+      if (isReadOnly) return;
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+      } catch (error) {
+        console.warn(`Error writing localStorage key "${key}":`, error);
+      }
+    }, [key, value, isReadOnly]);
+    return [value, setValue];
+  };
+
+  // --- Helpers ---
+  window.formatMicrosToCurrency = micros => {
+    if (micros == null) return '';
+    return (micros / 1000000).toFixed(2);
+  };
+  
+  window.htmlToMarkdown = html => {
+    let md = html;
+    // Simple replacements for common tags
+    md = md.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
+    md = md.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
+    md = md.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
+    md = md.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
+    md = md.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
+    md = md.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*');
+    md = md.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*');
+    md = md.replace(/<ul[^>]*>/gi, '\n');
+    md = md.replace(/<\/ul>/gi, '\n');
+    md = md.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n');
+    md = md.replace(/<p[^>]*>/gi, '\n\n');
+    md = md.replace(/<\/p>/gi, '');
+    md = md.replace(/<br\s*\/?>/gi, '\n');
+    // Strip remaining tags
+    md = md.replace(/<[^>]+>/g, '');
+    // Decode entities
+    md = md.replace(/&nbsp;/g, ' ');
+    md = md.replace(/&amp;/g, '&');
+    md = md.replace(/&lt;/g, '<');
+    md = md.replace(/&gt;/g, '>');
+    return md.trim();
+  };
+
+  window.convertToCSV = (headers, rows) => {
+    const headerRow = headers.join(',');
+    const bodyRows = rows.map(row =>
+      row
+        .map(cell => {
+          const val = String(cell ?? '').replace(/"/g, '""');
+          return `"${val}"`;
+        })
+        .join(',')
+    );
+    return [headerRow, ...bodyRows].join('\n');
+  };
+
+  window.downloadFile = (content, filename, mimeType) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+</script>

@@ -167,8 +167,11 @@ const getSearchTermReportDiff = (
 const getPromptKeywordsTemplate = keywords => `
 *User:*
 
-Please write an ad with 15 headlines and 4 descriptions for the following keywords:
+Please write 3 distinct ads, each with 15 headlines and 4 descriptions for the following keywords:
 [${keywords.join(', ')}]
+
+Make sure the ads are different from each other to cover different angles.
+Output strictly as a JSON array of objects, where each object has 'headlines' (array of strings) and 'descriptions' (array of strings) properties.
 
 *Model:*
 `;
@@ -255,4 +258,15 @@ export const createAdSuggestion = (prompt, userKeywords, geminiConfig) => {
   return gemini(config)(
     `${prompt}\n${getPromptKeywordsTemplate(userKeywords)}`
   );
+};
+
+export const createCampaignPrompt = (
+  cid,
+  promptTemplate,
+  styleGuide,
+  instructions,
+  keywords
+) => {
+  const adsWithKeywords = getTopPerformingAdsAndKeywords(cid, 5);
+  return getPromptTemplate(adsWithKeywords);
 };

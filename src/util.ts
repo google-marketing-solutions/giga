@@ -219,10 +219,8 @@ export const createSpreadsheet = name => {
   const file = DriveApp.getFileById(spreadsheet.getId());
   const activeUserEmail = Session.getActiveUser().getEmail();
   const currentOwnerEmail = file.getOwner().getEmail();
-  console.log({ currentOwnerEmail, activeUserEmail, url });
   if (activeUserEmail && currentOwnerEmail !== activeUserEmail) {
-    const setOwnerRes = file.setOwner(activeUserEmail);
-    console.log(`Set new owner result: ${setOwnerRes}`);
+    file.setOwner(activeUserEmail);
   }
   return url;
 };

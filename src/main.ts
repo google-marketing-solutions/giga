@@ -25,11 +25,15 @@ import {
   setScriptProperties,
   sum,
 } from './util';
-import { gemini, GeminiConfig, getGcpProjectId } from './vertex';
+import {
+  gemini,
+  GeminiConfig,
+  getGcpProjectId,
+  ResponseSchema,
+} from './vertex';
 
 const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 100;
 
-// TODO remove MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH and let frontend handle this?
 export const convertIdeasToRows = ideas =>
   ideas
     .filter(
@@ -140,7 +144,8 @@ const getSearchVolumeRow = res => {
  */
 export const createGeminiConfig = (
   config: Partial<GeminiConfig>,
-  responseType = 'application/json'
+  responseType = 'application/json',
+  responseSchema?: ResponseSchema
 ): GeminiConfig => {
   return {
     modelId: config.modelId,
@@ -149,6 +154,7 @@ export const createGeminiConfig = (
     temperature: config.temperature,
     topP: config.topP,
     responseType,
+    responseSchema,
   };
 };
 
@@ -165,54 +171,40 @@ export const getClusters = (
   const prompt = `${promptTemplate}\n${keywords}\n${PROMPT_DATA_FORMAT_SUFFIX}`;
   const config = createGeminiConfig(geminiConfig, 'application/json');
   const clusters = gemini(config)(prompt).map(cluster => {
-    // TODO lookup all keywords again in keyword planner since gemini could have combined keywords into more generic broad match keywords that did not show up in ideas
-    // remove keywords not found in ideas (hallucinations)
     const [keywordIdeas, hallucinations] = partition(
       cluster.keywords,
       keyword => keyword.toLowerCase() in ideas
     );
     cluster.keywords = keywordIdeas;
 
-    // check hallucinations
     if (hallucinations.length > 0) {
       console.log(
         `WARNING: Gemini Clustering produced the following keywords for cluster ${cluster.topic} which could not be found in ideas: ${hallucinations.join(', ')}`
       );
     }
 
-    // add search volume stats
     cluster.searchVolumes = cluster.keywords.map(k => ideas[k]);
     cluster.latestSearchVolumes = cluster.searchVolumes.map(
       v => v[v.length - 1]
     );
 
-    // add sum of all keywords over time
     cluster.searchVolumeHistory = columnWiseSum(cluster.searchVolumes);
-
-    // get latest search volume sum of cluster
     cluster.searchVolume = sum(cluster.latestSearchVolumes);
 
-    // Calculate Growth Metrics
     const history = cluster.searchVolumeHistory;
     const latest = history[history.length - 1] || 0;
     const prevMonth = history[history.length - 2] || 0;
     const prevYear = history[history.length - 13] || 0; // 12 months ago
 
-    // Year over Year
-    // Note: Original logic used sum of previousYearVolumes for individual keywords, which is mathematically equivalent to history.at(-13) if history is sum.
-    // However, let's stick to the history array for consistency.
     cluster.growthYoY = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
-    cluster.yearOverYearGrowth = cluster.growthYoY; // Keep for backward compatibility
+    cluster.yearOverYearGrowth = cluster.growthYoY;
 
-    // Month over Month
     cluster.growthMoM = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
 
-    // Latest vs Average
     const totalSum = history.reduce((a, b) => a + b, 0);
     const avg = history.length > 0 ? totalSum / history.length : 0;
     cluster.growthLatestVsAvg = avg !== 0 ? (latest - avg) / avg : 0;
 
-    // Latest vs Max
     const max = Math.max(...history);
     cluster.growthLatestVsMax = max !== 0 ? (latest - max) / max : 0;
 
@@ -240,6 +232,7 @@ export const getCampaigns = (
   language,
   brandName,
   adExamples,
+  styleGuide,
   geminiConfig: Partial<GeminiConfig>
 ) => {
   const prompt = ` I am a SEA manager working for ${brandName} and I want to create new Google Ads search campaigns based on the following input.
@@ -248,19 +241,53 @@ export const getCampaigns = (
   Ensure the new created ads are following the style, wording, tonality of the following ad examples:
   ${adExamples}
 
-  Output as HTML with standard HTML elements like <h1> and <ul> for captions or lists
+  Also adhere to the following Style Guide:
+  ${styleGuide}
 
   Create the Campaigns in ${language}.
-  Please style the Ad examples so that they look like text ads shown on google.com
 
   Insights:
 
   ${insights}
 
   `;
-  return removeHTMLTicks(
-    gemini(createGeminiConfig(geminiConfig, 'text/plain'))(prompt)
-  );
+  const responseSchema: ResponseSchema = {
+    type: 'ARRAY',
+    items: {
+      type: 'OBJECT',
+      properties: {
+        campaignName: { type: 'STRING' },
+        adGroups: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              name: { type: 'STRING' },
+              keywords: { type: 'ARRAY', items: { type: 'STRING' } },
+              ads: {
+                type: 'ARRAY',
+                items: {
+                  type: 'OBJECT',
+                  properties: {
+                    headlines: { type: 'ARRAY', items: { type: 'STRING' } },
+                    descriptions: { type: 'ARRAY', items: { type: 'STRING' } },
+                  },
+                  required: ['headlines', 'descriptions'],
+                },
+              },
+            },
+            required: ['name', 'keywords', 'ads'],
+          },
+        },
+      },
+      required: ['campaignName', 'adGroups'],
+    },
+  };
+
+  const result = gemini(
+    createGeminiConfig(geminiConfig, 'application/json', responseSchema)
+  )(prompt);
+  return result;
 };
 
 export const checkScriptProperties = () => {
@@ -283,6 +310,9 @@ export const setScriptProperty = (key: string, value: string) => {
 export const doGet = () => {
   const template = HtmlService.createTemplateFromFile('webApp');
   template.userEmail = Session.getActiveUser().getEmail();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (template as any).include = (filename: string) =>
+    HtmlService.createHtmlOutputFromFile(filename).getContent();
   return template.evaluate().setTitle('GIGA');
 };
 

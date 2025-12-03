@@ -49,8 +49,6 @@ limitations under the License.
 
     <!-- Chart.js & React Chart.js 2 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- We'll use raw Chart.js in React for simplicity with CDN, or we can try react-chartjs-2 if we load it right.
-         For stability in CDN usage, direct Chart.js usage inside useEffect is often safer/easier than configuring UMD for react-chartjs-2. -->
 
     <style>
       :root {
@@ -99,7 +97,67 @@ limitations under the License.
         padding: 24px;
         margin-bottom: 24px;
         border: 1px solid rgba(255, 255, 255, 0.5);
-        transition:
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      
+      .chips-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-color);
+        min-height: 42px;
+        align-items: center;
+        cursor: text;
+        transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+      }
+      .chips-container:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        background: white;
+      }
+      .chip {
+        background-color: rgba(37, 99, 235, 0.1);
+        color: var(--primary);
+        padding: 4px 8px 4px 12px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        font-size: 0.95rem;
+        font-weight: 500;
+      }
+      .chip .close-icon {
+        font-size: 16px;
+        margin-left: 4px;
+        cursor: pointer;
+        color: var(--primary);
+        opacity: 0.7;
+        border-radius: 50%;
+        padding: 2px;
+      }
+      .chip .close-icon:hover {
+        opacity: 1;
+        background-color: rgba(37, 99, 235, 0.1);
+      }
+      input.chips-input-field {
+        border: none;
+        border-radius: 0;
+        outline: none;
+        background: transparent;
+        box-shadow: none;
+        flex: 1;
+        min-width: 60px;
+        font-size: 1rem;
+        padding: 4px;
+        color: var(--text-main);
+      }
+      input.chips-input-field:focus {
+        box-shadow: none;
+        border: none;
+        background: transparent;
+      }
           transform 0.2s ease,
           box-shadow 0.2s ease;
       }
@@ -317,6 +375,8 @@ limitations under the License.
         width: 90%;
         max-width: 500px;
         animation: slideUp 0.2s ease-out;
+        max-height: 90vh;
+        overflow-y: auto;
       }
       @keyframes fadeIn {
         from {
@@ -327,14 +387,21 @@ limitations under the License.
         }
       }
 
+      .error-message {
+        word-break: break-word;
+        margin-bottom: 1rem;
+      }
+
       .error-details {
         font-family: monospace;
         font-size: 0.875rem;
-        white-space: pre-wrap;
-        word-break: break-word;
+        white-space: pre;
         color: #991b1b;
         max-height: 200px;
-        overflow-y: auto;
+        overflow: auto;
+        padding: 8px;
+        background: rgba(153, 27, 27, 0.05);
+        border-radius: 4px;
       }
 
       .error-actions {
@@ -447,13 +514,117 @@ limitations under the License.
         font-weight: bold;
         z-index: 2000;
       }
+
+      /* Header Action Button (Reset) */
+      .header-action-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .header-action-btn:hover {
+        background: #f3f4f6;
+        border-color: #e5e7eb;
+        color: var(--text-main);
+      }
+
+      /* Ad Preview */
+      .ad-preview {
+        font-family: arial, sans-serif;
+        padding: 16px;
+        background: #fff;
+        border: 1px solid #dfe1e5;
+        border-radius: 8px;
+        margin-top: 16px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      .ad-label {
+        font-weight: bold;
+        color: #202124;
+        font-size: 12px;
+        margin-right: 8px;
+      }
+      .ad-url {
+        color: #202124;
+        font-size: 12px;
+        display: inline-block;
+      }
+      .ad-headline {
+        color: #1a0dab;
+        font-size: 20px;
+        line-height: 1.3;
+        cursor: pointer;
+        margin: 4px 0 2px 0;
+        display: flex;
+        align-items: center;
+      }
+      .ad-headline:hover {
+        text-decoration: underline;
+      }
+      .ad-description {
+        color: #4d5156;
+        font-size: 14px;
+        line-height: 1.58;
+        display: flex;
+        align-items: center;
+      }
+      .preview-controls {
+        display: flex;
+        gap: 4px;
+        margin-left: 8px;
+        opacity: 0.3;
+        transition: opacity 0.2s;
+      }
+      .ad-headline:hover .preview-controls,
+      .ad-description:hover .preview-controls {
+        opacity: 1;
+        text-decoration: none;
+      }
+      .control-btn {
+        background: none;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        padding: 0 4px;
+        display: flex;
+        align-items: center;
+        color: #555;
+      }
+      .control-btn:hover {
+        background: #f1f1f1;
+        color: #000;
+      }
+      .error-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 1rem;
+      }
+      .error-title {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #dc2626;
+      }
+      .error-icon {
+        font-size: 2rem;
+        color: #dc2626;
+      }
     </style>
   </head>
   <body>
     <div id="root"></div>
 
     <script>
-      const USER_EMAIL = <?= JSON.stringify(userEmail) ?>;
+      const USER_EMAIL = <?= userEmail ?>;
     </script>
 
     <!-- Backend Proxy -->
@@ -481,702 +652,45 @@ limitations under the License.
       );
     </script>
 
+    <?!= include('utils'); ?>
+    <?!= include('components'); ?>
+    <?!= include('tabExplore'); ?>
+    <?!= include('tabInsights'); ?>
+    <?!= include('tabCampaigns'); ?>
+
     <script type="text/babel">
       const { useState, useEffect, useRef, useMemo } = React;
 
-      // --- Constants & Data ---
-      const COLOR_PALETTE = [
-        '#4f6d7a',
-        '#c0d6df',
-        '#dbe9ee',
-        '#4a6fa5',
-        '#166088',
-      ];
+      // Load Globals from Window
+      const {
+        COLOR_PALETTE,
+        LANGUAGES,
+        COUNTRIES,
+        DEFAULT_PROMPT,
+        DEFAULT_TRENDS_PROMPT,
+        LANGUAGE_INFO_URL,
+        LOCATION_INFO_URL,
+        GOOGLE_ADS_ID_HELP_URL,
+        GROWTH_METRICS,
+        useStickyState,
+        formatMicrosToCurrency,
+        htmlToMarkdown,
+        convertToCSV,
+        downloadFile
+      } = window;
 
-      const LANGUAGES = [
-        { id: '1000', name: 'English' },
-        { id: '1001', name: 'German' },
-        { id: '1002', name: 'French' },
-        { id: '1003', name: 'Spanish' },
-        { id: '1004', name: 'Italian' },
-        { id: '1009', name: 'Danish' },
-        { id: '1010', name: 'Dutch' },
-        { id: '1011', name: 'Finnish' },
-        { id: '1015', name: 'Swedish' },
-        { id: '1020', name: 'Bulgarian' },
-        { id: '1021', name: 'Czech' },
-        { id: '1022', name: 'Greek' },
-        { id: '1024', name: 'Hungarian' },
-        { id: '1028', name: 'Latvian' },
-        { id: '1029', name: 'Lithuanian' },
-        { id: '1030', name: 'Polish' },
-        { id: '1031', name: 'Russian' },
-        { id: '1032', name: 'Romanian' },
-        { id: '1033', name: 'Slovak' },
-        { id: '1034', name: 'Slovenian' },
-        { id: '1036', name: 'Ukrainian' },
-        { id: '1038', name: 'Catalan' },
-        { id: '1039', name: 'Croatian' },
-        { id: '1043', name: 'Estonian' },
-        { id: '1064', name: 'Persian' },
-      ];
+      const {
+        TabButton,
+        InputField,
+        Modal,
+        ErrorModal,
+        SelectField,
+        ChartComponent,
+        SettingsModal,
+        AdPreview
+      } = window;
 
-      const COUNTRIES = [
-        { id: '', name: 'Worldwide' },
-        { id: '2276', name: 'Germany' },
-        { id: '2826', name: 'UK' },
-        { id: '2250', name: 'France' },
-        { id: '2380', name: 'Italy' },
-        { id: '2756', name: 'Switzerland' },
-        { id: '2724', name: 'Spain' },
-        { id: '2616', name: 'Poland' },
-        { id: '2642', name: 'Romania' },
-        { id: '2528', name: 'Netherlands' },
-        { id: '2056', name: 'Belgium' },
-        { id: '2203', name: 'Czechia' },
-        { id: '2300', name: 'Greece' },
-        { id: '2620', name: 'Portugal' },
-        { id: '2752', name: 'Sweden' },
-        { id: '2348', name: 'Hungary' },
-        { id: '2040', name: 'Austria' },
-        { id: '2100', name: 'Bulgaria' },
-        { id: '2208', name: 'Denmark' },
-        { id: '2703', name: 'Slovakia' },
-        { id: '2246', name: 'Finland' },
-        { id: '2372', name: 'Ireland' },
-        { id: '2191', name: 'Croatia' },
-        { id: '2440', name: 'Lithuania' },
-        { id: '2705', name: 'Slovenia' },
-        { id: '2428', name: 'Latvia' },
-        { id: '2233', name: 'Estonia' },
-        { id: '2196', name: 'Cyprus' },
-        { id: '2442', name: 'Luxembourg' },
-        { id: '2470', name: 'Malta' },
-      ];
-
-      const DEFAULT_PROMPT = `You are given a list of Google Ads keyword ideas.
-Your task is to create 10 clusters. For each cluster use only up to 20 keywords that are most representative of that cluster.
-Make sure to only assign the keywords provided to the cluster and do not invent new keywords.
-All keywords assigned to a cluster must be exactly the same (e.g. same case, same spacing, same accents).
-
-The Google Ads keyword ideas are:
-`;
-
-      const DEFAULT_TRENDS_PROMPT = `Provide a list of around 100 Google Ads broad match keywords that represent trends regarding the topics/keywords mentioned below.`;
-
-      const LANGUAGE_INFO_URL =
-        'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
-      const LOCATION_INFO_URL =
-        'https://developers.google.com/google-ads/api/reference/data/geotargets';
-      const GOOGLE_ADS_ID_HELP_URL =
-        'https://support.google.com/google-ads/answer/1704344?hl=en';
-
-      // --- Components ---
-
-      // eslint-disable-next-line no-unused-vars
-      const TabButton = ({ active, onClick, children }) => (
-        <button
-          className={`tab-btn ${active ? 'active' : ''}`}
-          onClick={onClick}
-        >
-          {children}
-        </button>
-      );
-
-      // eslint-disable-next-line no-unused-vars
-      const InputField = ({
-        label,
-        type = 'text',
-        value,
-        onChange,
-        placeholder,
-        rows,
-        helpText,
-        onKeyDown,
-      }) => (
-        <div className="input-group">
-          <label>{label}</label>
-          {type === 'textarea' ? (
-            <textarea
-              rows={rows || 4}
-              value={value}
-              onChange={e => onChange(e.target.value)}
-              placeholder={placeholder}
-              onKeyDown={onKeyDown}
-            />
-          ) : (
-            <input
-              type={type}
-              value={value}
-              onChange={e => onChange(e.target.value)}
-              placeholder={placeholder}
-              onKeyDown={onKeyDown}
-            />
-          )}
-          {helpText && (
-            <div className="text-sm text-muted mt-1">{helpText}</div>
-          )}
-        </div>
-      );
-
-      // eslint-disable-next-line no-unused-vars
-      const Modal = ({
-        isOpen,
-        onClose,
-        title,
-        children,
-        className = '',
-        showCloseButton = true,
-      }) => {
-        if (!isOpen) return null;
-        return (
-          <div className="modal-overlay" onClick={onClose}>
-            <div
-              className={`modal-content ${className}`}
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="modal-header">
-                <h2>{title}</h2>
-                {showCloseButton && (
-                  <button className="close-btn" onClick={onClose}>
-                    <span className="material-symbols-outlined">close</span>
-                  </button>
-                )}
-              </div>
-              {children}
-            </div>
-          </div>
-        );
-      };
-
-      const ErrorModal = ({ isOpen, onClose, error }) => {
-        if (!isOpen || !error) return null;
-
-        const copyToClipboard = () => {
-          const text = `Error: ${error.title}\nMessage: ${error.message}\n\nStack Trace:\n${error.stack || 'N/A'}`;
-          navigator.clipboard.writeText(text).then(() => {
-            // Optional: Show a temporary "Copied!" tooltip or state
-          });
-        };
-
-        return (
-          <div className="modal-overlay" onClick={onClose}>
-            <div
-              className="modal-content error-modal-content"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="error-header">
-                <span className="material-symbols-outlined error-icon">
-                  error_outline
-                </span>
-                <h2 className="error-title">
-                  {error.title || 'An error occurred'}
-                </h2>
-              </div>
-
-              <div className="error-body">
-                <p className="error-message">{error.message}</p>
-                {error.stack && (
-                  <div className="error-details">{error.stack}</div>
-                )}
-              </div>
-
-              <div className="error-actions">
-                <button className="btn btn-secondary" onClick={copyToClipboard}>
-                  <span className="material-symbols-outlined">
-                    content_copy
-                  </span>
-                  Copy Details
-                </button>
-                <button className="btn btn-primary" onClick={onClose}>
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      };
-
-      // eslint-disable-next-line no-unused-vars
-      const SelectField = ({
-        label,
-        value,
-        onChange,
-        options,
-        onCustomOption,
-      }) => {
-        const handleChange = e => {
-          if (e.target.value === 'custom') {
-            onCustomOption();
-          } else {
-            onChange(e.target.value);
-          }
-        };
-        return (
-          <div className="input-group">
-            <label>{label}</label>
-            <div className="select-wrapper">
-              <select value={value} onChange={handleChange}>
-                {options.map(opt => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.name}
-                  </option>
-                ))}
-                {onCustomOption && <option value="custom">Custom ID...</option>}
-              </select>
-            </div>
-          </div>
-        );
-      };
-
-      // eslint-disable-next-line no-unused-vars
-      const ChartComponent = ({ type, data, options }) => {
-        const canvasRef = useRef(null);
-        const chartRef = useRef(null);
-
-        useEffect(() => {
-          if (canvasRef.current) {
-            if (chartRef.current) chartRef.current.destroy();
-            chartRef.current = new Chart(canvasRef.current, {
-              type,
-              data,
-              options,
-            });
-          }
-          return () => {
-            if (chartRef.current) chartRef.current.destroy();
-          };
-        }, [type, data, options]);
-
-        return (
-          <div className="chart-container">
-            <canvas ref={canvasRef} />
-          </div>
-        );
-      };
-
-      // --- Hooks ---
-      function useStickyState(defaultValue, key, isReadOnly = false) {
-        const [value, setValue] = useState(() => {
-          if (isReadOnly) return defaultValue;
-          try {
-            const stickyValue = window.localStorage.getItem(key);
-            return stickyValue !== null
-              ? JSON.parse(stickyValue)
-              : defaultValue;
-          } catch (error) {
-            console.warn(`Error reading localStorage key "${key}":`, error);
-            window.localStorage.removeItem(key);
-            return defaultValue;
-          }
-        });
-        useEffect(() => {
-          if (isReadOnly) return;
-          try {
-            window.localStorage.setItem(key, JSON.stringify(value));
-          } catch (error) {
-            console.warn(`Error writing localStorage key "${key}":`, error);
-          }
-        }, [key, value, isReadOnly]);
-        return [value, setValue];
-      }
-
-      // eslint-disable-next-line no-unused-vars
-      const SettingsModal = ({
-        isOpen,
-        onClose,
-        modalConfig,
-        geminiConfig,
-        minSearchVolume,
-        configStatus,
-        onSave,
-        onClearCache,
-      }) => {
-        const [localGeminiConfig, setLocalGeminiConfig] =
-          useState(geminiConfig);
-        const [localMinSearchVolume, setLocalMinSearchVolume] =
-          useState(minSearchVolume);
-        const [localAdsId, setLocalAdsId] = useState(
-          configStatus.adsAccountId || ''
-        );
-        const [localDevToken, setLocalDevToken] = useState('');
-        const [localSpreadsheetUrl, setLocalSpreadsheetUrl] = useState('');
-        const [isSaving, setIsSaving] = useState(false);
-        const adsInputRef = useRef(null);
-
-        // Sync with props when modal opens
-        useEffect(() => {
-          if (isOpen) {
-            setLocalGeminiConfig(geminiConfig);
-            setLocalMinSearchVolume(minSearchVolume);
-            setLocalSpreadsheetUrl(modalConfig.spreadsheetUrl || '');
-            setLocalAdsId(configStatus.adsAccountId || '');
-            setLocalDevToken('');
-          }
-        }, [
-          isOpen,
-          geminiConfig,
-          minSearchVolume,
-          configStatus,
-          modalConfig.spreadsheetUrl,
-        ]);
-
-        // Focus Ads Account ID if highlighted
-        useEffect(() => {
-          if (
-            isOpen &&
-            (modalConfig.highlight === 'ADS_ACCOUNT_ID' ||
-              modalConfig.highlight === 'BOTH') &&
-            adsInputRef.current
-          ) {
-            setTimeout(() => {
-              adsInputRef.current.focus();
-            }, 100);
-          }
-        }, [isOpen, modalConfig.highlight]);
-
-        // Close on ESC
-        useEffect(() => {
-          const handleEsc = event => {
-            if (event.key === 'Escape') {
-              onClose();
-            }
-          };
-          if (isOpen) {
-            window.addEventListener('keydown', handleEsc);
-          }
-          return () => {
-            window.removeEventListener('keydown', handleEsc);
-          };
-        }, [isOpen, onClose]);
-
-        const handleSave = async () => {
-          setIsSaving(true);
-          try {
-            await onSave({
-              geminiConfig: localGeminiConfig,
-              minSearchVolume: localMinSearchVolume,
-              adsAccountId: localAdsId,
-              devToken: localDevToken,
-              spreadsheetUrl: localSpreadsheetUrl,
-            });
-          } catch (error) {
-            console.error('Failed to save settings', error);
-          } finally {
-            setIsSaving(false);
-          }
-        };
-
-        return (
-          <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title="Settings"
-            showCloseButton={false}
-          >
-            <div className="modal-body">
-              {modalConfig.message && (
-                <div
-                  className="alert alert-warning mb-4"
-                  style={{
-                    color: '#dc2626',
-                    background: '#fee2e2',
-                    padding: '10px',
-                    borderRadius: '6px',
-                    fontSize: '0.9rem',
-                    border: '1px solid #fca5a5',
-                  }}
-                >
-                  {modalConfig.message}
-                </div>
-              )}
-              <div className="input-group">
-                <label>Gemini Model</label>
-                <div className="select-wrapper">
-                  <select
-                    value={localGeminiConfig.modelId}
-                    onChange={e =>
-                      setLocalGeminiConfig({
-                        ...localGeminiConfig,
-                        modelId: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid-2">
-                <div className="input-group">
-                  <label>Temperature: {localGeminiConfig.temperature}</label>
-                  <input
-                    type="range"
-                    step="0.1"
-                    min="0"
-                    max="2"
-                    value={localGeminiConfig.temperature}
-                    onChange={e =>
-                      setLocalGeminiConfig({
-                        ...localGeminiConfig,
-                        temperature: parseFloat(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <div className="input-group">
-                  <label>Top P: {localGeminiConfig.topP}</label>
-                  <input
-                    type="range"
-                    step="0.1"
-                    min="0"
-                    max="1"
-                    value={localGeminiConfig.topP}
-                    onChange={e =>
-                      setLocalGeminiConfig({
-                        ...localGeminiConfig,
-                        topP: parseFloat(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <hr
-                style={{
-                  margin: '20px 0',
-                  border: '0',
-                  borderTop: '1px solid var(--border-color)',
-                }}
-              />
-              <div className="input-group">
-                <label>Min Search Volume</label>
-                <input
-                  type="number"
-                  value={localMinSearchVolume}
-                  onChange={e =>
-                    setLocalMinSearchVolume(Number(e.target.value))
-                  }
-                  placeholder="100"
-                />
-              </div>
-
-              <hr
-                style={{
-                  margin: '20px 0',
-                  border: '0',
-                  borderTop: '1px solid var(--border-color)',
-                }}
-              />
-              <div className="input-group">
-                <label>Export Spreadsheet URL</label>
-                <input
-                  type="text"
-                  value={localSpreadsheetUrl}
-                  onChange={e => setLocalSpreadsheetUrl(e.target.value)}
-                  placeholder="https://docs.google.com/spreadsheets/d/..."
-                />
-                <div className="text-sm text-muted mt-1">
-                  Note: The spreadsheet must be shared with <strong>{USER_EMAIL}</strong> with edit permissions.
-                </div>
-              </div>
-
-              <hr
-                style={{
-                  margin: '20px 0',
-                  border: '0',
-                  borderTop: '1px solid var(--border-color)',
-                }}
-              />
-              <div className="input-group">
-                <label>Application Data</label>
-                <div
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
-                >
-                  <button
-                    className="btn"
-                    onClick={() => {
-                      onClearCache();
-                      onClose();
-                    }}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: '#f3f4f6',
-                      color: '#4b5563',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      flexShrink: 0,
-                    }}
-                    title="Clear Cache"
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontSize: '1.2rem' }}
-                    >
-                      delete_outline
-                    </span>
-                  </button>
-                  <div className="text-sm text-muted">
-                    Removes all locally saved data and resets the application
-                    state.
-                  </div>
-                </div>
-              </div>
-
-              <hr
-                style={{
-                  margin: '20px 0',
-                  border: '0',
-                  borderTop: '1px solid var(--border-color)',
-                }}
-              />
-
-              <details
-                className="advanced-settings"
-                open={!!modalConfig.highlight}
-                style={{
-                  background: '#f8fafc',
-                  padding: '15px',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                }}
-              >
-                <summary
-                  style={{
-                    color: '#475569',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '1rem',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: '1.2rem' }}
-                  >
-                    expand_more
-                  </span>
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: '1.2rem' }}
-                  >
-                    settings
-                  </span>
-                  Advanced Settings
-                </summary>
-                <div className="mt-4">
-                  <div className="input-group">
-                    <label>Ads Account ID</label>
-                    <div
-                      style={
-                        modalConfig.highlight === 'ADS_ACCOUNT_ID' ||
-                        modalConfig.highlight === 'BOTH'
-                          ? {
-                              border: '2px solid #dc2626',
-                              borderRadius: '8px',
-                              padding: '4px',
-                              position: 'relative',
-                            }
-                          : {}
-                      }
-                    >
-                      <input
-                        ref={adsInputRef}
-                        type="text"
-                        value={localAdsId}
-                        onChange={e => setLocalAdsId(e.target.value)}
-                        placeholder="e.g. 123-456-7890"
-                        style={{ width: '100%', boxSizing: 'border-box' }}
-                      />
-                      {(modalConfig.highlight === 'ADS_ACCOUNT_ID' ||
-                        modalConfig.highlight === 'BOTH') && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            right: '-40px',
-                            top: '50%',
-                            color: '#dc2626',
-                            fontSize: '32px',
-                            fontWeight: 'bold',
-                            animation:
-                              'bounceHorizontal 1s infinite ease-in-out',
-                          }}
-                        >
-                          ←
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="input-group">
-                    <label>Developer Token</label>
-                    <div
-                      style={
-                        modalConfig.highlight === 'DEVELOPER_TOKEN' ||
-                        modalConfig.highlight === 'BOTH'
-                          ? {
-                              border: '2px solid #dc2626',
-                              borderRadius: '8px',
-                              padding: '4px',
-                              position: 'relative',
-                            }
-                          : {}
-                      }
-                    >
-                      <input
-                        type="text"
-                        value={localDevToken}
-                        onChange={e => setLocalDevToken(e.target.value)}
-                        placeholder={
-                          configStatus.hasDeveloperToken
-                            ? 'Token is set (hidden for safety). Type to update.'
-                            : 'Enter Developer Token'
-                        }
-                        style={{ width: '100%', boxSizing: 'border-box' }}
-                      />
-                      {(modalConfig.highlight === 'DEVELOPER_TOKEN' ||
-                        modalConfig.highlight === 'BOTH') && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            right: '-40px',
-                            top: '50%',
-                            color: '#dc2626',
-                            fontSize: '32px',
-                            fontWeight: 'bold',
-                            animation:
-                              'bounceHorizontal 1s infinite ease-in-out',
-                          }}
-                        >
-                          ←
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </details>
-              <div className="modal-actions">
-                <button className="btn" onClick={onClose} disabled={isSaving}>
-                  Cancel
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                >
-                  {isSaving ? 'Saving...' : 'Save'}
-                </button>
-              </div>
-            </div>
-          </Modal>
-        );
-      };
+      const { ExploreTab, InsightsTab, CampaignsTab } = window;
 
       // --- Main App ---
 
@@ -1189,21 +703,6 @@ The Google Ads keyword ideas are:
 
         // Explore State
         const [keywords, setKeywords] = useStickyState('', 'giga_keywords');
-        const [trendsKeywords, setTrendsKeywords] = useStickyState(
-          '',
-          'giga_trendsKeywords'
-        );
-        const [isTrendsRunning, setIsTrendsRunning] = useState(false);
-        const [trendsResults, setTrendsResults] = useStickyState(
-          [],
-          'giga_trendsResults',
-          isDemoMode
-        );
-        const [trendsStatus, setTrendsStatus] = useState('');
-        const [trendsPromptTemplate, setTrendsPromptTemplate] = useStickyState(
-          DEFAULT_TRENDS_PROMPT,
-          'giga_trendsPromptTemplate'
-        );
         const [language, setLanguage] = useStickyState('1000', 'giga_language');
         const [country, setCountry] = useStickyState('', 'giga_country');
         const [customLanguages, setCustomLanguages] = useStickyState(
@@ -1217,6 +716,22 @@ The Google Ads keyword ideas are:
         const [promptTemplate, setPromptTemplate] = useStickyState(
           DEFAULT_PROMPT,
           'giga_promptTemplate'
+        );
+        const [geminiPrompt, setGeminiPrompt] = useStickyState(
+          DEFAULT_TRENDS_PROMPT,
+          'giga_geminiPrompt'
+        );
+        const [useKeywordPlanner, setUseKeywordPlanner] = useStickyState(
+          true,
+          'giga_useKeywordPlanner'
+        );
+        const [useGemini, setUseGemini] = useStickyState(
+          true,
+          'giga_useGemini'
+        );
+        const [useClustering, setUseClustering] = useStickyState(
+          true,
+          'giga_useClustering'
         );
         const [exploreStatus, setExploreStatus] = useState('');
         const [isExploring, setIsExploring] = useState(false);
@@ -1236,7 +751,6 @@ The Google Ads keyword ideas are:
           isDemoMode
         );
         const [selectedCluster, setSelectedCluster] = useState(null);
-        const [selectedTrend, setSelectedTrend] = useState(null);
         const [chartLabels, setChartLabels] = useStickyState(
           [],
           'giga_chartLabels',
@@ -1274,6 +788,8 @@ The Google Ads keyword ideas are:
         const [isGeneratingCampaigns, setIsGeneratingCampaigns] =
           useState(false);
         const [campaignStatus, setCampaignStatus] = useState('');
+        const [showIdInfo, setShowIdInfo] = useState(false);
+        const [showBrandInfo, setShowBrandInfo] = useState(false);
 
         // Demo Mode Randomization
         const [isRandomized, setIsRandomized] = useState(true);
@@ -1306,7 +822,7 @@ The Google Ads keyword ideas are:
             );
             if (isNewSheet) {
               showAlert(
-                `Successfully exported to a new spreadsheet. You can change the destination URL in Settings. Note: The user (${USER_EMAIL}) must have edit access to this spreadsheet for future exports.`,
+                `Successfully exported to a new spreadsheet. You can change the destination URL in Settings. Note: The user (${USER_EMAIL}) must have edit access to this spreadsheet for future exports.`, 
                 targetUrl
               );
             } else {
@@ -1383,65 +899,6 @@ The Google Ads keyword ideas are:
           handleSheetExport('Explore', headers, rows, columnFormats);
         };
 
-        const handleExportTrendsToSheet = () => {
-          if (!trendsResults || trendsResults.length === 0) return;
-
-          // Find current growth metric label
-          const metricLabel =
-            GROWTH_METRICS.find(m => m.id === growthMetric)?.name || 'Growth';
-
-          const headers = [
-            'Keyword',
-            'Search Vol',
-            `Growth (${metricLabel})`,
-            'Competition',
-            'Low Bid (USD)',
-            'High Bid (USD)',
-            'Avg CPC (USD)',
-          ];
-
-          const rows = sortedTrendsResults.map(t => {
-            let growth = 0;
-            if (growthMetric === 'yoy') growth = t.growthYoY || 0;
-            else if (growthMetric === 'mom') growth = t.growthMoM || 0;
-            else if (growthMetric === 'latest_vs_avg')
-              growth = t.growthLatestVsAvg || 0;
-            else if (growthMetric === 'latest_vs_max')
-              growth = t.growthLatestVsMax || 0;
-
-            return [
-              t.text,
-              t.latestSearchVolume,
-              growth,
-              t.competition
-                ? `${t.competition} (${t.competition_index ?? '-'})`
-                : '-',
-              formatMicrosToCurrency(t.low_top_of_page_bid_micros),
-              formatMicrosToCurrency(t.high_top_of_page_bid_micros),
-              formatMicrosToCurrency(t.average_cpc_micros),
-            ];
-          });
-
-          const columnFormats = [
-            { colIndex: 1, numberFormat: '#,##0' },
-            { colIndex: 2, numberFormat: '0.00%' },
-            {
-              colIndex: 4,
-              numberFormat: '"$"#,##0.00',
-            },
-            {
-              colIndex: 5,
-              numberFormat: '"$"#,##0.00',
-            },
-            {
-              colIndex: 6,
-              numberFormat: '"$"#,##0.00',
-            },
-          ];
-
-          handleSheetExport('Trends', headers, rows, columnFormats);
-        };
-
         const handleExportInsightsToSheet = () => {
           if (!insights) return;
           // Just put the markdown text in one cell
@@ -1449,17 +906,47 @@ The Google Ads keyword ideas are:
           handleSheetExport('Insights', ['Insights Content'], rows);
         };
 
+        const formatCampaignsForExport = campaigns => {
+          if (!campaigns) return '';
+          if (typeof campaigns === 'string') return htmlToMarkdown(campaigns);
+          if (!Array.isArray(campaigns))
+            return JSON.stringify(campaigns, null, 2);
+
+          return campaigns
+            .map(c => {
+              let text = `Campaign: ${c.campaignName}\n`;
+              if (c.adGroups) {
+                c.adGroups.forEach(ag => {
+                  text += `\nAd Group: ${ag.name}\n`;
+                  if (ag.keywords)
+                    text += `Keywords: ${ag.keywords.join(', ')}\n`;
+                  if (ag.ads) {
+                    ag.ads.forEach((ad, i) => {
+                      text += `\nAd ${i + 1}:\n`;
+                      if (ad.headlines)
+                        text += `  Headlines: ${ad.headlines.join(' | ')}\n`;
+                      if (ad.descriptions)
+                        text += `  Descriptions: ${ad.descriptions.join(' | ')}\n`;
+                    });
+                  }
+                });
+              }
+              return text;
+            })
+            .join('\n\n' + '-'.repeat(40) + '\n\n');
+        };
+
         const handleExportCampaignsToSheet = () => {
           if (!campaignSuggestions) return;
-          // Just put the markdown text in one cell
-          const rows = [[htmlToMarkdown(campaignSuggestions)]];
+          const text = formatCampaignsForExport(campaignSuggestions);
+          const rows = [[text]];
           handleSheetExport('Campaign Suggestions', ['Campaign Content'], rows);
         };
 
         const handleDownloadCampaigns = () => {
           if (!campaignSuggestions) return;
-          const md = htmlToMarkdown(campaignSuggestions);
-          downloadFile(md, 'giga_campaign_suggestions.md', 'text/markdown');
+          const text = formatCampaignsForExport(campaignSuggestions);
+          downloadFile(text, 'giga_campaign_suggestions.md', 'text/markdown');
         };
 
         const loadExploreDemoData = async (randomize, delay = 0) => {
@@ -1493,8 +980,6 @@ The Google Ads keyword ideas are:
                   series.push(current);
 
                   for (let i = 1; i < length; i++) {
-                    // Change by -15% to +15% approx, or fixed step
-                    // Let's use fixed step relative to current to simulate volatility
                     const volatility = Math.max(5, Math.round(current * 0.2));
                     const change =
                       Math.floor(Math.random() * (volatility * 2 + 1)) -
@@ -1503,12 +988,11 @@ The Google Ads keyword ideas are:
                     series.push(current);
                   }
 
-                  // 20% chance of a spike at the end (latest month)
                   if (Math.random() < 0.2) {
                     const lastIdx = series.length - 1;
                     series[lastIdx] = Math.round(
                       series[lastIdx] * (2 + Math.random() * 3)
-                    ); // 2x to 5x spike
+                    );
                   }
                   return series;
                 };
@@ -1576,58 +1060,6 @@ The Google Ads keyword ideas are:
           return false;
         };
 
-        const loadTrendsDemoData = async (randomize, delay = 0) => {
-          if (!isDemoMode) return false;
-          try {
-            const c_trends = localStorage.getItem('giga_trendsResults');
-            if (c_trends) {
-              if (delay > 0) {
-                await new Promise(resolve => setTimeout(resolve, delay));
-              }
-
-              const randomizeVol = val => Math.floor(Math.random() * 101);
-              const randomizeMicros = () =>
-                Math.floor(Math.random() * 10000000) + 100000; // $0.10 - $10.10
-              const randomizeGrowth = val => Math.random() * 2 - 1; // -100% to +100%
-              const COMPETITION_LEVELS = [
-                'HIGH',
-                'MEDIUM',
-                'LOW',
-                'UNSPECIFIED',
-              ];
-
-              let parsedTrends = JSON.parse(c_trends);
-
-              if (randomize) {
-                parsedTrends = parsedTrends.map(t => ({
-                  ...t,
-                  latestSearchVolume: randomizeVol(),
-                  low_top_of_page_bid_micros: randomizeMicros(),
-                  high_top_of_page_bid_micros: randomizeMicros(),
-                  average_cpc_micros: randomizeMicros(),
-                  competition:
-                    COMPETITION_LEVELS[
-                      Math.floor(Math.random() * COMPETITION_LEVELS.length)
-                    ],
-                  competition_index: Math.floor(Math.random() * 101),
-                  growthYoY: randomizeGrowth(),
-                  growthMoM: randomizeGrowth(),
-                  growthLatestVsAvg: randomizeGrowth(),
-                  growthLatestVsMax: randomizeGrowth(),
-                }));
-              }
-
-              setTrendsResults(parsedTrends);
-              setIsTrendsRunning(false);
-              setTrendsStatus('');
-              return true;
-            }
-          } catch (e) {
-            console.warn(e);
-          }
-          return false;
-        };
-
         const loadInsightsDemoData = async (randomize, delay = 0) => {
           if (!isDemoMode) return;
           try {
@@ -1657,10 +1089,6 @@ The Google Ads keyword ideas are:
                 // setExploreStatus('Updating demo data...');
                 await loadExploreDemoData(isRandomized, 0);
               }
-              if (trendsResults && trendsResults.length > 0) {
-                // setIsTrendsRunning(true);
-                await loadTrendsDemoData(isRandomized, 0);
-              }
               if (insights) {
                 await loadInsightsDemoData(isRandomized, 0);
               }
@@ -1689,13 +1117,13 @@ The Google Ads keyword ideas are:
           'giga_creationAccountId'
         );
         const [creationPromptTemplate, setCreationPromptTemplate] =
-          useStickyState('', 'giga_creationPromptTemplate');
+          useState('');
         const [creationStyleGuide, setCreationStyleGuide] = useStickyState(
           '<?= DEFAULT_STYLE_GUIDE ?>',
           'giga_creationStyleGuide'
         );
         const [creationInstructions, setCreationInstructions] = useStickyState(
-          'Created ads must be in German.',
+          '',
           'giga_creationInstructions'
         );
         const [creationKeywords, setCreationKeywords] = useStickyState(
@@ -1727,104 +1155,6 @@ The Google Ads keyword ideas are:
           key: 'growth',
           direction: 'descending',
         });
-
-        const processedTrendsData = useMemo(() => {
-          if (!trendsResults) return [];
-          return trendsResults.map(item => {
-            if (typeof item === 'string') {
-              return { text: item }; // minimal object
-            }
-            return item;
-          });
-        }, [trendsResults]);
-
-        // Filter State
-        const [trendsFilters, setTrendsFilters] = useState({
-          keyword: '',
-          minVolume: '',
-        });
-
-        const filteredTrendsResults = useMemo(() => {
-          console.log('Filtering with:', trendsFilters);
-          return processedTrendsData.filter(item => {
-            const text = item.text || '';
-            if (
-              trendsFilters.keyword &&
-              !text.toLowerCase().includes(trendsFilters.keyword.toLowerCase())
-            ) {
-              return false;
-            }
-            if (
-              trendsFilters.minVolume !== '' &&
-              (item.latestSearchVolume || 0) < Number(trendsFilters.minVolume)
-            ) {
-              return false;
-            }
-            return true;
-          });
-        }, [processedTrendsData, trendsFilters]);
-
-        const sortedTrendsResults = useMemo(() => {
-          let sortableItems = [...filteredTrendsResults];
-          if (sortConfig.key) {
-            sortableItems.sort((a, b) => {
-              let aValue, bValue;
-
-              // Handle Growth special case
-              if (sortConfig.key === 'competition') {
-                aValue =
-                  a.competition_index != null
-                    ? Number(a.competition_index)
-                    : null;
-                bValue =
-                  b.competition_index != null
-                    ? Number(b.competition_index)
-                    : null;
-              } else if (
-                [
-                  'low_top_of_page_bid_micros',
-                  'high_top_of_page_bid_micros',
-                  'average_cpc_micros',
-                ].includes(sortConfig.key)
-              ) {
-                const rawA = a[sortConfig.key];
-                const rawB = b[sortConfig.key];
-                aValue = rawA != null ? Number(rawA) : null;
-                bValue = rawB != null ? Number(rawB) : null;
-              } else if (sortConfig.key === 'growth') {
-                if (growthMetric === 'yoy') {
-                  aValue = a.growthYoY;
-                  bValue = b.growthYoY;
-                } else if (growthMetric === 'mom') {
-                  aValue = a.growthMoM;
-                  bValue = b.growthMoM;
-                } else if (growthMetric === 'latest_vs_avg') {
-                  aValue = a.growthLatestVsAvg;
-                  bValue = b.growthLatestVsAvg;
-                } else if (growthMetric === 'latest_vs_max') {
-                  aValue = a.growthLatestVsMax;
-                  bValue = b.growthLatestVsMax;
-                }
-              } else {
-                aValue = a[sortConfig.key];
-                bValue = b[sortConfig.key];
-              }
-
-              // Handle nulls/undefined - usually push to bottom
-              if (aValue == null) return 1;
-              if (bValue == null) return -1;
-
-              if (aValue < bValue) {
-                return sortConfig.direction === 'ascending' ? -1 : 1;
-              }
-              if (aValue > bValue) {
-                return sortConfig.direction === 'ascending' ? 1 : -1;
-              }
-              return 0;
-            });
-          }
-          return sortableItems;
-        }, [filteredTrendsResults, sortConfig, growthMetric]);
 
         const requestSort = key => {
           let direction = 'descending';
@@ -1900,15 +1230,9 @@ The Google Ads keyword ideas are:
           'giga_creationResult'
         );
         const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
+        const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
         const [pendingAction, setPendingAction] = useState(null);
         const [devTokenInput, setDevTokenInput] = useState('*****');
-
-        const GROWTH_METRICS = [
-          { id: 'yoy', name: 'Year over Year' },
-          { id: 'mom', name: 'Month over Month' },
-          { id: 'latest_vs_avg', name: 'Latest vs Average' },
-          { id: 'latest_vs_max', name: 'Last Month vs Max' },
-        ];
 
         const clearCache = () => {
           localStorage.clear();
@@ -1966,12 +1290,13 @@ The Google Ads keyword ideas are:
           }
         }, [configStatus]);
 
-        const runExplore = async () => {
-          if (!keywords.trim()) {
+        const runExplore = async (overrideKeywords) => {
+          const keywordsToUse = typeof overrideKeywords === 'string' ? overrideKeywords : keywords;
+          if (!keywordsToUse.trim()) {
             showAlert('Please enter at least one seed keyword.');
             return;
           }
-          const seedKeywords = keywords
+          const seedKeywords = keywordsToUse
             .split(',')
             .map(k => k.trim())
             .filter(Boolean);
@@ -1991,7 +1316,6 @@ The Google Ads keyword ideas are:
           }
 
           setExploreStatus('Verifying configuration...');
-          // Check properties on demand
           let currentStatus = configStatus;
           try {
             const status = await googleScriptRun.checkScriptProperties();
@@ -2002,7 +1326,6 @@ The Google Ads keyword ideas are:
             currentStatus = status;
           } catch (e) {
             console.error('Failed to check script properties:', e);
-            // If we haven't checked successfully yet, we can't trust configStatus
             if (!configStatus.checked) {
               setIsExploring(false);
               showAlert(
@@ -2010,7 +1333,6 @@ The Google Ads keyword ideas are:
               );
               return;
             }
-            // If we have checked before, we use the cached status (currentStatus)
           }
 
           if (!currentStatus.hasDeveloperToken && !currentStatus.adsAccountId) {
@@ -2055,36 +1377,150 @@ The Google Ads keyword ideas are:
           setSelectedCluster(null);
 
           try {
-            const ideas = await googleScriptRun.generateKeywordIdeas(
-              seedKeywords,
-              country || undefined,
-              language || undefined,
-              5000
-            );
+            let processedIdeas = [];
 
-            const validIdeas = ideas.filter(
-              res => res.keywordIdeaMetrics !== undefined
-            );
+            if (useKeywordPlanner) {
+              const ideas = await googleScriptRun.generateKeywordIdeas(
+                seedKeywords,
+                country || undefined,
+                language || undefined,
+                5000
+              );
 
-            const processedIdeas = validIdeas
-              .flatMap(idea =>
-                (idea.closeVariants || []).concat(idea.text).map(k => [k, idea])
-              )
-              .map(([k, res]) => ({
-                text: k,
-                searchVolume: res.keywordIdeaMetrics.monthlySearchVolumes.map(
-                  item => Number(item.monthlySearches)
-                ),
-                months: res.keywordIdeaMetrics.monthlySearchVolumes.map(
-                  item => `${item.month} ${item.year}`
-                ),
-                competition: res.keywordIdeaMetrics.competition,
-                low_top_of_page_bid_micros:
-                  res.keywordIdeaMetrics.lowTopOfPageBidMicros,
-                high_top_of_page_bid_micros:
-                  res.keywordIdeaMetrics.highTopOfPageBidMicros,
-                average_cpc_micros: res.keywordIdeaMetrics.averageCpcMicros,
-              }));
+              const validIdeas = ideas.filter(
+                res => res.keywordIdeaMetrics !== undefined
+              );
+
+              const plannerIdeas = validIdeas
+                .flatMap(idea =>
+                  (idea.closeVariants || [])
+                    .concat(idea.text)
+                    .map(k => [k, idea])
+                )
+                .map(([k, res]) => {
+                  const metrics = res.keywordIdeaMetrics;
+                  const volumes = metrics.monthlySearchVolumes.map(item =>
+                    Number(item.monthlySearches)
+                  );
+                  
+                  const len = volumes.length;
+                  const latest = len > 0 ? volumes[len - 1] : 0;
+                  const prevMonth = len > 1 ? volumes[len - 2] : 0;
+                  const prevYear = len > 12 ? volumes[len - 13] : 0;
+                  
+                  const growthYoY = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+                  const growthMoM = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+                  
+                  const totalSum = volumes.reduce((a, b) => a + b, 0);
+                  const avg = len > 0 ? totalSum / len : 0;
+                  const growthLatestVsAvg = avg !== 0 ? (latest - avg) / avg : 0;
+                  
+                  const max = Math.max(...volumes);
+                  const growthLatestVsMax = max !== 0 ? (latest - max) / max : 0;
+
+                  return {
+                    text: k,
+                    searchVolume: volumes,
+                    months: metrics.monthlySearchVolumes.map(
+                      item => `${item.month} ${item.year}`
+                    ),
+                    latestSearchVolume: latest,
+                    growthYoY,
+                    growthMoM,
+                    growthLatestVsAvg,
+                    growthLatestVsMax,
+                    competition: metrics.competition,
+                    competition_index: metrics.competitionIndex,
+                    low_top_of_page_bid_micros: metrics.lowTopOfPageBidMicros,
+                    high_top_of_page_bid_micros: metrics.highTopOfPageBidMicros,
+                    average_cpc_micros: metrics.averageCpcMicros,
+                  };
+                });
+              processedIdeas = processedIdeas.concat(plannerIdeas);
+            }
+
+            if (useGemini) {
+              setExploreStatus('Generating Gemini keywords...');
+
+              let finalGeminiPrompt = geminiPrompt;
+              const langName = [...LANGUAGES, ...customLanguages].find(l => l.id === language)?.name;
+              if (langName) {
+                finalGeminiPrompt += `\n\nOutput in ${langName}`;
+              }
+              const countryName = [...COUNTRIES, ...customCountries].find(c => c.id === country)?.name;
+              if (countryName) {
+                finalGeminiPrompt += `\nLocation: ${countryName}`;
+              }
+
+              const geminiKeywords =
+                await googleScriptRun.generateTrendsKeywords(
+                  seedKeywords,
+                  finalGeminiPrompt,
+                  geminiConfig
+                );
+
+              if (geminiKeywords && geminiKeywords.length > 0) {
+                setExploreStatus('Fetching metrics for Gemini keywords...');
+                const metrics = await googleScriptRun.getHistoricalMetrics(
+                  geminiKeywords,
+                  country || undefined
+                );
+
+                const geminiIdeas = metrics
+                  .filter(m => m && m.text && m.keywordMetrics)
+                  .map(metric => {
+                    const hist = metric.keywordMetrics;
+                    const volumes = (hist.monthlySearchVolumes || []).map(m =>
+                        Number(m.monthlySearches)
+                    );
+                    
+                    const len = volumes.length;
+                    const latest = len > 0 ? volumes[len - 1] : 0;
+                    const prevMonth = len > 1 ? volumes[len - 2] : 0;
+                    const prevYear = len > 12 ? volumes[len - 13] : 0;
+                    
+                    const growthYoY = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
+                    const growthMoM = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
+                    
+                    const totalSum = volumes.reduce((a, b) => a + b, 0);
+                    const avg = len > 0 ? totalSum / len : 0;
+                    const growthLatestVsAvg = avg !== 0 ? (latest - avg) / avg : 0;
+                    
+                    const max = Math.max(...volumes);
+                    const growthLatestVsMax = max !== 0 ? (latest - max) / max : 0;
+
+                    return {
+                      text: metric.text,
+                      searchVolume: volumes,
+                      months: (hist.monthlySearchVolumes || []).map(
+                        m => `${m.month} ${m.year}`
+                      ),
+                      latestSearchVolume: latest,
+                      growthYoY,
+                      growthMoM,
+                      growthLatestVsAvg,
+                      growthLatestVsMax,
+                      competition: hist.competition,
+                      competition_index: hist.competitionIndex,
+                      low_top_of_page_bid_micros: hist.lowTopOfPageBidMicros,
+                      high_top_of_page_bid_micros: hist.highTopOfPageBidMicros,
+                      average_cpc_micros: hist.averageCpcMicros,
+                    };
+                  });
+                processedIdeas = processedIdeas.concat(geminiIdeas);
+              }
+            }
+
+            // Deduplicate by text
+            const uniqueIdeas = [];
+            const seen = new Set();
+            for (const idea of processedIdeas) {
+              if (!seen.has(idea.text.toLowerCase())) {
+                seen.add(idea.text.toLowerCase());
+                uniqueIdeas.push(idea);
+              }
+            }
+            processedIdeas = uniqueIdeas;
 
             if (processedIdeas.length > 0) {
               setChartLabels(processedIdeas[0].months.slice());
@@ -2096,195 +1532,34 @@ The Google Ads keyword ideas are:
             const relevant = {};
             processedIdeas.forEach(idea => {
               if (idea.searchVolume.at(0) >= minSearchVolume) {
-                // Check latest (index 0 usually)
                 relevant[idea.text] = idea.searchVolume;
               }
             });
             setRelevantIdeas(relevant);
 
-            setExploreStatus(`Clustering ${processedIdeas.length} ideas...`);
+            if (useClustering) {
+              setExploreStatus(`Clustering ${processedIdeas.length} ideas...`);
 
-            const clusterResult = await googleScriptRun.getClusters(
-              relevant,
-              promptTemplate,
-              geminiConfig
-            );
-            setClusters(clusterResult);
-            setExploreStatus(
-              `Done. Clustered ${processedIdeas.length} keywords.`
-            );
+              const clusterResult = await googleScriptRun.getClusters(
+                relevant,
+                promptTemplate,
+                geminiConfig
+              );
+              setClusters(clusterResult);
+              setExploreStatus(
+                `Done. Clustered ${processedIdeas.length} keywords.`
+              );
+            } else {
+              setExploreStatus(
+                `Done. Found ${processedIdeas.length} keywords (Clustering skipped).`
+              );
+            }
           } catch (e) {
             console.error(e);
             setExploreStatus(`Error: ${e.message}`);
             showError('Error', e);
           } finally {
             setIsExploring(false);
-          }
-        };
-
-        const runTrends = async () => {
-          if (!trendsKeywords.trim()) {
-            showAlert('Please enter at least one seed keyword.');
-            return;
-          }
-          setIsTrendsRunning(true);
-
-          if (isDemoMode) {
-            if (await loadTrendsDemoData(isRandomized, 1500)) {
-              return;
-            }
-          }
-
-          setTrendsStatus('Verifying configuration...');
-          // Check properties on demand
-          let currentStatus = configStatus;
-          try {
-            const status = await googleScriptRun.checkScriptProperties();
-            setConfigStatus({ ...status, checked: true });
-            if (status.adsAccountId) {
-              setAdsAccountId(status.adsAccountId);
-            }
-            currentStatus = status;
-          } catch (e) {
-            console.error('Failed to check script properties:', e);
-            // If we haven't checked successfully yet, we can't trust configStatus
-            if (!configStatus.checked) {
-              setIsTrendsRunning(false);
-              showAlert(
-                'Failed to verify configuration. Please check your connection and try again.'
-              );
-              return;
-            }
-            // If we have checked before, we use the cached status (currentStatus)
-          }
-
-          if (!currentStatus.hasDeveloperToken && !currentStatus.adsAccountId) {
-            setIsTrendsRunning(false);
-            setPendingAction(() => runTrends);
-            setModalConfig({
-              isOpen: true,
-              type: 'settings',
-              highlight: 'BOTH',
-              message:
-                'Please configure your Developer Token and Ads Account ID to proceed.',
-            });
-            return;
-          }
-
-          if (!currentStatus.hasDeveloperToken) {
-            setIsTrendsRunning(false);
-            setPendingAction(() => runTrends);
-            setModalConfig({
-              isOpen: true,
-              type: 'settings',
-              highlight: 'DEVELOPER_TOKEN',
-              message: 'Please configure your Developer Token to proceed.',
-            });
-            return;
-          }
-          if (!currentStatus.adsAccountId) {
-            setIsTrendsRunning(false);
-            setPendingAction(() => runTrends);
-            setModalConfig({
-              isOpen: true,
-              type: 'settings',
-              highlight: 'ADS_ACCOUNT_ID',
-              message: 'Please configure your Ads Account ID to proceed.',
-            });
-            return;
-          }
-
-          setTrendsResults([]);
-          try {
-            setTrendsStatus('Generating trends keywords...');
-            const keywords = trendsKeywords
-              .split(',')
-              .map(k => k.trim())
-              .filter(Boolean);
-
-            const trendKeywords = await googleScriptRun.generateTrendsKeywords(
-              keywords,
-              trendsPromptTemplate,
-              geminiConfig
-            );
-            console.log('received trends result', trendKeywords);
-            setTrendsStatus('Fetching historical metrics...');
-            const criteriaId = undefined; // world
-            const metrics = await googleScriptRun.getHistoricalMetrics(
-              trendKeywords,
-              criteriaId
-            );
-
-            const keywordData = metrics
-              .filter(m => m && m.text && m.keywordMetrics)
-              .map(metric => {
-                const keywordText = metric.text;
-                const historicalMetrics = metric.keywordMetrics;
-
-                const volumes = (
-                  historicalMetrics?.monthlySearchVolumes || []
-                ).map(m => Number(m.monthlySearches));
-                const latestSearchVolume = volumes[volumes.length - 1] || 0;
-                const prevMonth = volumes[volumes.length - 2] || 0;
-                const prevYear = volumes[volumes.length - 13] || 0;
-
-                const growthYoY =
-                  prevYear !== 0
-                    ? (latestSearchVolume - prevYear) / prevYear
-                    : 0;
-                const growthMoM =
-                  prevMonth !== 0
-                    ? (latestSearchVolume - prevMonth) / prevMonth
-                    : 0;
-
-                const totalSum = volumes.reduce((a, b) => a + b, 0);
-                const avg = volumes.length > 0 ? totalSum / volumes.length : 0;
-                const growthLatestVsAvg =
-                  avg !== 0 ? (latestSearchVolume - avg) / avg : 0;
-
-                const max = Math.max(...volumes);
-                const growthLatestVsMax =
-                  max !== 0 ? (latestSearchVolume - max) / max : 0;
-
-                return {
-                  text: keywordText,
-                  latestSearchVolume,
-                  competition: historicalMetrics?.competition || null,
-                  competition_index:
-                    historicalMetrics?.competitionIndex || null,
-                  low_top_of_page_bid_micros:
-                    historicalMetrics?.lowTopOfPageBidMicros || null,
-                  high_top_of_page_bid_micros:
-                    historicalMetrics?.highTopOfPageBidMicros || null,
-                  average_cpc_micros:
-                    historicalMetrics?.averageCpcMicros || null,
-                  growthYoY,
-                  growthMoM,
-                  growthLatestVsAvg,
-                  growthLatestVsMax,
-                  searchVolumeHistory: volumes,
-                };
-              });
-
-            if (
-              keywordData.length > 0 &&
-              metrics[0]?.keywordMetrics?.monthlySearchVolumes
-            ) {
-              const firstMetric =
-                metrics[0].keywordMetrics.monthlySearchVolumes;
-              setChartLabels(
-                firstMetric.map(item => `${item.month} ${item.year}`)
-              );
-            }
-
-            setTrendsResults(keywordData);
-            setTrendsStatus('');
-          } catch (e) {
-            console.error(e);
-            setTrendsStatus(`Error: ${e.message}`);
-            showError('Error', e);
-          } finally {
-            setIsTrendsRunning(false);
           }
         };
 
@@ -2347,13 +1622,25 @@ The Google Ads keyword ideas are:
           setCampaignStatus('Generating suggestions...');
           try {
             let adExamples = '';
-            if (adsAccountId) {
+            let template = creationPromptTemplate;
+
+            // If prompt template is missing but account ID is present, try to generate it first
+            if (!template && creationAccountId.length >= 10) {
+              setCampaignStatus('Generating Prompt Template...');
+              template = await generatePrompt();
+            }
+
+            if (creationAccountId.length >= 10 && template) {
+              adExamples = template;
+            } else if (adsAccountId) {
               const ads = await googleScriptRun.getTopPerformingAdsAndKeywords(
                 adsAccountId.replaceAll('-', '').trim(),
                 10
               );
               adExamples = ads.map(ad => JSON.stringify(ad)).join('\n');
             }
+
+            setCampaignStatus('Generating suggestions...');
             const langName =
               [...LANGUAGES, ...customLanguages].find(l => l.id === language)
                 ?.name || language;
@@ -2362,6 +1649,7 @@ The Google Ads keyword ideas are:
               langName,
               brandName,
               adExamples,
+              creationStyleGuide,
               geminiConfig
             );
             setCampaignSuggestions(result);
@@ -2376,38 +1664,38 @@ The Google Ads keyword ideas are:
 
         const generatePrompt = async () => {
           const id = creationAccountId.replaceAll('-', '').trim();
-          if (!id) {
-            showAlert('Please enter a Google Ads Account ID.');
-            return;
-          }
-          setIsCreatingCampaign(true);
-          setCreationResult('Generating prompt...');
+          if (!id) return null;
+
+          setIsGeneratingPrompt(true);
           try {
-            const result = await googleScriptRun.createCampaignPrompt(
-              id,
-              creationPromptTemplate,
-              creationStyleGuide,
-              creationInstructions,
-              creationKeywords
-            );
-            setCreationResult(result);
+            const result = await googleScriptRun.createCampaignPrompt(id);
+            setCreationPromptTemplate(result);
+            setCreationResult('');
+            return result;
           } catch (e) {
             setCreationResult(`Error: ${e.message}`);
             showError('Error', e);
+            return null;
           } finally {
-            setIsCreatingCampaign(false);
+            setIsGeneratingPrompt(false);
           }
         };
 
         const generateNewCampaigns = async () => {
           setIsCreatingCampaign(true);
-          setCreationResult('Generating ad...');
           try {
+            let template = creationPromptTemplate;
+            if (!template && creationAccountId.length >= 10) {
+              setCreationResult('Generating Prompt Template...');
+              template = await generatePrompt();
+            }
+
+            setCreationResult('Generating Ad Suggestions...');
             const kws = creationKeywords
               .split(',')
               .map(k => k.trim())
               .filter(Boolean);
-            const prompt = `${creationStyleGuide}\n${creationInstructions}\n${creationPromptTemplate}`;
+            const prompt = `${creationStyleGuide}\n${creationInstructions}\n${template || ''}`;
             const result = await googleScriptRun.createAdSuggestion(
               prompt,
               kws,
@@ -2458,8 +1746,6 @@ The Google Ads keyword ideas are:
 
         const selectedClusterChartData = useMemo(() => {
           if (!selectedCluster || !chartLabels.length) return null;
-          // searchVolumeHistory is likely New->Old (index 0 is latest).
-          // We want Old->New (Left->Right), so we MUST reverse.
           const data = selectedCluster.searchVolumeHistory.slice();
 
           return {
@@ -2476,27 +1762,6 @@ The Google Ads keyword ideas are:
             ],
           };
         }, [selectedCluster, chartLabels]);
-
-        const selectedTrendChartData = useMemo(() => {
-          if (!selectedTrend || !chartLabels.length) return null;
-          if (!Array.isArray(selectedTrend.searchVolumeHistory)) return null;
-
-          const data = selectedTrend.searchVolumeHistory.slice();
-
-          return {
-            labels: chartLabels,
-            datasets: [
-              {
-                label: `Search Volume: ${selectedTrend.text}`,
-                data: data,
-                borderColor: COLOR_PALETTE[3],
-                backgroundColor: COLOR_PALETTE[3] + '1A',
-                fill: true,
-                tension: 0.3,
-              },
-            ],
-          };
-        }, [selectedTrend, chartLabels]);
 
         const seedChartData = useMemo(() => {
           if (!ideasData || !keywords || !chartLabels.length) return null;
@@ -2517,7 +1782,7 @@ The Google Ads keyword ideas are:
 
               return {
                 label: idea.text,
-                data: idea.searchVolume, // Already in correct order? Check runExplore. Yes, processedIdeas maps monthlySearchVolumes.
+                data: idea.searchVolume,
                 borderColor: color,
                 backgroundColor: color, // Same as border for legend
                 fill: false, // No fill
@@ -2559,8 +1824,6 @@ The Google Ads keyword ideas are:
             onClick: (evt, elements) => {
               if (elements.length > 0) {
                 const index = elements[0].datasetIndex;
-                // We need to access the current clusters state here.
-                // Since this function is inside useMemo, it will capture 'clusters' from the dependency array.
                 if (clusters && clusters[index]) {
                   setSelectedCluster(clusters[index]);
                   setTimeout(() => {
@@ -2574,63 +1837,6 @@ The Google Ads keyword ideas are:
           }),
           [growthMetric, clusters]
         );
-
-        // --- Download Helpers ---
-        const downloadFile = (content, filename, mimeType) => {
-          const blob = new Blob([content], { type: mimeType });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        };
-
-        const convertToCSV = (headers, rows) => {
-          const headerRow = headers.join(',');
-          const bodyRows = rows.map(row =>
-            row
-              .map(cell => {
-                const val = String(cell ?? '').replace(/"/g, '""');
-                return `"${val}"`;
-              })
-              .join(',')
-          );
-          return [headerRow, ...bodyRows].join('\n');
-        };
-
-        const htmlToMarkdown = html => {
-          let md = html;
-          // Simple replacements for common tags
-          md = md.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
-          md = md.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
-          md = md.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
-          md = md.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
-          md = md.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
-          md = md.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*');
-          md = md.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*');
-          md = md.replace(/<ul[^>]*>/gi, '\n');
-          md = md.replace(/<\/ul>/gi, '\n');
-          md = md.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n');
-          md = md.replace(/<p[^>]*>/gi, '\n\n');
-          md = md.replace(/<\/p>/gi, '');
-          md = md.replace(/<br\s*\/?>/gi, '\n');
-          // Strip remaining tags
-          md = md.replace(/<[^>]+>/g, '');
-          // Decode entities
-          md = md.replace(/&nbsp;/g, ' ');
-          md = md.replace(/&amp;/g, '&');
-          md = md.replace(/&lt;/g, '<');
-          md = md.replace(/&gt;/g, '>');
-          return md.trim();
-        };
-
-        const formatMicrosToCurrency = micros => {
-          if (micros == null) return '';
-          return (micros / 1000000).toFixed(2);
-        };
 
         const handleDownloadExplore = () => {
           if (!clusters) return;
@@ -2675,34 +1881,6 @@ The Google Ads keyword ideas are:
 
           const csv = convertToCSV(headers, rows);
           downloadFile(csv, 'giga_explore_clusters.csv', 'text/csv');
-        };
-
-        const handleDownloadTrends = () => {
-          if (!trendsResults || trendsResults.length === 0) return;
-          const headers = [
-            'Keyword',
-            'Latest Volume',
-            'Growth YoY',
-            'Growth MoM',
-            'Competition',
-            'Low Bid (USD)',
-            'High Bid (USD)',
-            'Avg CPC (USD)',
-          ];
-
-          const rows = sortedTrendsResults.map(t => [
-            t.text,
-            t.latestSearchVolume,
-            (t.growthYoY * 100).toFixed(1) + '%',
-            (t.growthMoM * 100).toFixed(1) + '%',
-            t.competition,
-            formatMicrosToCurrency(t.low_top_of_page_bid_micros),
-            formatMicrosToCurrency(t.high_top_of_page_bid_micros),
-            formatMicrosToCurrency(t.average_cpc_micros),
-          ]);
-
-          const csv = convertToCSV(headers, rows);
-          downloadFile(csv, 'giga_trends.csv', 'text/csv');
         };
 
         const handleDownloadInsights = () => {
@@ -2851,80 +2029,6 @@ The Google Ads keyword ideas are:
           });
         };
 
-        const ConfigModal = () => {
-          const [localDevToken, setLocalDevToken] = useState('');
-          const [localAdsId, setLocalAdsId] = useState('');
-          const [isSaving, setIsSaving] = useState(false);
-
-          if (!configStatus.checked) return null;
-          if (configStatus.hasDeveloperToken && configStatus.hasAdsAccountId)
-            return null;
-
-          const handleSave = async () => {
-            setIsSaving(true);
-            try {
-              if (!configStatus.hasDeveloperToken && localDevToken) {
-                await updateScriptProperty('DEVELOPER_TOKEN', localDevToken);
-              }
-              if (!configStatus.hasAdsAccountId && localAdsId) {
-                await updateScriptProperty('ADS_ACCOUNT_ID', localAdsId);
-              }
-            } finally {
-              setIsSaving(false);
-            }
-          };
-
-          return (
-            <Modal
-              isOpen={true}
-              onClose={() => {}}
-              title="Configuration Required"
-            >
-              <div className="modal-body">
-                <p className="text-sm text-muted mb-4">
-                  Please provide the following required configuration to
-                  proceed.
-                </p>
-                {!configStatus.hasDeveloperToken && (
-                  <div className="input-group">
-                    <label>Developer Token</label>
-                    <input
-                      type="password"
-                      value={localDevToken}
-                      onChange={e => setLocalDevToken(e.target.value)}
-                      placeholder="Enter Developer Token"
-                    />
-                  </div>
-                )}
-                {!configStatus.hasAdsAccountId && (
-                  <div className="input-group">
-                    <label>Ads Account ID</label>
-                    <input
-                      type="text"
-                      value={localAdsId}
-                      onChange={e => setLocalAdsId(e.target.value)}
-                      placeholder="e.g. 123-456-7890"
-                    />
-                  </div>
-                )}
-                <div className="modal-actions">
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleSave}
-                    disabled={
-                      isSaving ||
-                      (!configStatus.hasDeveloperToken && !localDevToken) ||
-                      (!configStatus.hasAdsAccountId && !localAdsId)
-                    }
-                  >
-                    {isSaving ? 'Saving...' : 'Save Configuration'}
-                  </button>
-                </div>
-              </div>
-            </Modal>
-          );
-        };
-
         const locationModal = (
           <Modal
             isOpen={modalConfig.isOpen && modalConfig.type === 'country'}
@@ -3019,12 +2123,6 @@ The Google Ads keyword ideas are:
                 Explore
               </TabButton>
               <TabButton
-                active={activeTab === 'trends'}
-                onClick={() => setActiveTab('trends')}
-              >
-                Trends
-              </TabButton>
-              <TabButton
                 active={activeTab === 'insights'}
                 onClick={() => setActiveTab('insights')}
               >
@@ -3034,1069 +2132,110 @@ The Google Ads keyword ideas are:
                 active={activeTab === 'campaigns'}
                 onClick={() => setActiveTab('campaigns')}
               >
-                Campaign Suggestions
-              </TabButton>
-              <TabButton
-                active={activeTab === 'creation'}
-                onClick={() => setActiveTab('creation')}
-              >
-                Campaign Creation
+                Campaigns
               </TabButton>
             </div>
 
             {activeTab === 'explore' && (
-              <div className="card fade-in">
-                <h2>Explore Keywords</h2>
-                <InputField
-                  label="Seed Keywords"
-                  value={keywords}
-                  onChange={setKeywords}
-                  placeholder="e.g. shoes, running shoes"
-                  helpText="Comma separated, up to 20"
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      runExplore();
-                    }
-                  }}
-                />
-                <div className="grid-2">
-                  <SelectField
-                    label="Language"
-                    value={language}
-                    onChange={setLanguage}
-                    options={[...LANGUAGES, ...customLanguages]}
-                    onCustomOption={() => handleCustomOption('language')}
-                  />
-                  <SelectField
-                    label="Location"
-                    value={country}
-                    onChange={setCountry}
-                    options={[...COUNTRIES, ...customCountries]}
-                    onCustomOption={() => handleCustomOption('country')}
-                  />
-                </div>
-
-                <details className="mb-4">
-                  <summary className="cursor-pointer text-sm font-medium text-primary">
-                    Advanced Config
-                  </summary>
-                  <div className="mt-4">
-                    <div className="mt-4">
-                      <InputField
-                        type="textarea"
-                        label="Clustering Prompt"
-                        value={promptTemplate}
-                        onChange={setPromptTemplate}
-                        rows={6}
-                      />
-                    </div>
-                  </div>
-                </details>
-
-                <button
-                  className="btn btn-primary"
-                  onClick={runExplore}
-                  disabled={isExploring}
-                >
-                  {isExploring ? (
-                    <>
-                      <div className="spinner"></div>{' '}
-                      {exploreStatus || 'Running...'}
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined">
-                        rocket_launch
-                      </span>{' '}
-                      Start
-                    </>
-                  )}
-                </button>
-
-                {seedChartData && (
-                  <div
-                    className="mt-4 card"
-                    style={{ border: '1px solid var(--primary)' }}
-                  >
-                    <h3>Seed Keywords Search Volume</h3>
-                    <div style={{ height: '400px' }}>
-                      <ChartComponent
-                        type="line"
-                        data={seedChartData}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: {
-                              position: 'bottom',
-                              labels: { boxWidth: 10, padding: 10 },
-                            },
-                            tooltip: { mode: 'index', intersect: false },
-                          },
-                          interaction: {
-                            mode: 'nearest',
-                            axis: 'x',
-                            intersect: false,
-                          },
-                          scales: {
-                            y: { beginAtZero: true },
-                          },
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {clusters && (
-                  <div
-                    className="mt-4"
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-end',
-                    }}
-                  >
-                    <div style={{ maxWidth: '300px' }}>
-                      <SelectField
-                        label="Growth Metric"
-                        value={growthMetric}
-                        onChange={setGrowthMetric}
-                        options={GROWTH_METRICS}
-                      />
-                    </div>
-                    <div>
-                      <button
-                        className="btn btn-secondary"
-                        onClick={handleDownloadExplore}
-                        style={{
-                          background: 'white',
-                          border: '1px solid var(--border-color)',
-                        }}
-                        title="Download CSV"
-                      >
-                        <span className="material-symbols-outlined">
-                          download
-                        </span>
-                      </button>
-                      <button
-                        className="btn btn-secondary"
-                        onClick={handleExportExploreToSheet}
-                        style={{
-                          background: 'white',
-                          border: '1px solid var(--border-color)',
-                          marginLeft: '8px',
-                        }}
-                        disabled={isExporting}
-                        title="Export to Sheet"
-                      >
-                        {isExporting ? (
-                          <div
-                            className="spinner"
-                            style={{
-                              borderColor: 'rgba(37, 99, 235, 0.3)',
-                              borderTopColor: '#2563eb',
-                            }}
-                          ></div>
-                        ) : (
-                          <span className="material-symbols-outlined">
-                            table
-                          </span>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {clustersChartData && (
-                  <div className="mt-4">
-                    <h3>Clusters</h3>
-                    <div className="text-sm text-muted mb-2">
-                      Click on a bubble to view details
-                    </div>
-                    <ChartComponent
-                      type="bubble"
-                      data={clustersChartData}
-                      options={bubbleChartOptions}
-                    />
-                  </div>
-                )}
-
-                {selectedCluster && selectedClusterChartData && (
-                  <div
-                    id="cluster-details"
-                    className="mt-4 card"
-                    style={{ border: '1px solid var(--primary)' }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <h3>Details: {selectedCluster.topic}</h3>
-                      <button
-                        onClick={() => setSelectedCluster(null)}
-                        className="btn"
-                        style={{ padding: '4px 8px' }}
-                      >
-                        &times;
-                      </button>
-                    </div>
-                    <div className="grid-2">
-                      <div>
-                        <strong>Total Volume:</strong>{' '}
-                        {selectedCluster.searchVolume.toLocaleString()}
-                      </div>
-                      <div>
-                        <strong>
-                          {GROWTH_METRICS.find(m => m.id === growthMetric)
-                            ?.name || 'Growth'}
-                          :
-                        </strong>{' '}
-                        {(() => {
-                          let val = 0;
-                          if (growthMetric === 'yoy')
-                            val =
-                              selectedCluster.growthYoY ||
-                              selectedCluster.yearOverYearGrowth ||
-                              0;
-                          else if (growthMetric === 'mom')
-                            val = selectedCluster.growthMoM || 0;
-                          else if (growthMetric === 'latest_vs_avg')
-                            val = selectedCluster.growthLatestVsAvg || 0;
-                          else if (growthMetric === 'latest_vs_max')
-                            val = selectedCluster.growthLatestVsMax || 0;
-                          return (val * 100).toFixed(1);
-                        })()}
-                        %
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <h4>Cluster Search Volume</h4>
-                      <ChartComponent
-                        type="line"
-                        data={selectedClusterChartData}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: { display: false },
-                          },
-                        }}
-                      />
-                    </div>
-                    <div className="mt-4">
-                      <h4>Keyword Search Volume</h4>
-                      <div style={{ height: '400px' }}>
-                        <ChartComponent
-                          type="line"
-                          data={{
-                            labels: chartLabels,
-                            datasets: selectedCluster.keywords.map((k, i) => {
-                              const volHistory = relevantIdeas[k]
-                                ? relevantIdeas[k]
-                                : [];
-                              const color =
-                                COLOR_PALETTE[i % COLOR_PALETTE.length];
-                              return {
-                                label: k,
-                                data: volHistory.slice(),
-                                borderColor: color,
-                                backgroundColor: color,
-                                fill: false,
-                                tension: 0.3,
-                                pointRadius: 2,
-                                pointHoverRadius: 5,
-                              };
-                            }),
-                          }}
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: {
-                                position: 'bottom',
-                                labels: { boxWidth: 10, padding: 10 },
-                              },
-                              tooltip: { mode: 'index', intersect: false },
-                            },
-                            interaction: {
-                              mode: 'nearest',
-                              axis: 'x',
-                              intersect: false,
-                            },
-                            scales: {
-                              y: { beginAtZero: true },
-                            },
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'trends' && (
-              <div className="card fade-in">
-                <h2>Trends Analysis</h2>
-                <InputField
-                  label="Seed Keywords"
-                  value={trendsKeywords}
-                  onChange={setTrendsKeywords}
-                  placeholder="e.g. shoes, running shoes"
-                  helpText=""
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      runTrends();
-                    }
-                  }}
-                />
-
-                <details className="mb-4">
-                  <summary className="cursor-pointer text-sm font-medium text-primary">
-                    Advanced Config
-                  </summary>
-                  <div className="mt-4">
-                    <div className="mt-4">
-                      <InputField
-                        type="textarea"
-                        label="Trends Prompt"
-                        value={trendsPromptTemplate}
-                        onChange={setTrendsPromptTemplate}
-                        rows={6}
-                      />
-                    </div>
-                  </div>
-                </details>
-
-                <button
-                  className="btn btn-primary"
-                  onClick={runTrends}
-                  disabled={isTrendsRunning}
-                >
-                  {isTrendsRunning ? (
-                    <>
-                      <div className="spinner"></div>{' '}
-                      {trendsStatus || 'Generating trends keywords...'}
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined">
-                        rocket_launch
-                      </span>{' '}
-                      Start
-                    </>
-                  )}
-                </button>
-                {trendsStatus && !isTrendsRunning && (
-                  <div className="status-msg">{trendsStatus}</div>
-                )}
-
-                {trendsResults && trendsResults.length > 0 && (
-                  <div style={{ marginTop: '32px' }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '16px',
-                        alignItems: 'flex-start',
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <InputField
-                          label="Filter by Keyword"
-                          value={trendsFilters.keyword}
-                          onChange={val =>
-                            setTrendsFilters(prev => ({
-                              ...prev,
-                              keyword: val,
-                            }))
-                          }
-                          placeholder="Search..."
-                        />
-                      </div>
-                      <div style={{ width: '150px' }}>
-                        <InputField
-                          type="number"
-                          label="Min Volume"
-                          value={trendsFilters.minVolume}
-                          onChange={val =>
-                            setTrendsFilters(prev => ({
-                              ...prev,
-                              minVolume: val,
-                            }))
-                          }
-                          placeholder="e.g. 100"
-                        />
-                      </div>
-                      <div style={{ width: '200px' }}>
-                        <SelectField
-                          label="Growth Metric"
-                          value={growthMetric}
-                          onChange={setGrowthMetric}
-                          options={GROWTH_METRICS}
-                        />
-                      </div>
-                      <button
-                        className="btn"
-                        onClick={handleDownloadTrends}
-                        style={{
-                          background: 'white',
-                          border: '1px solid var(--border-color)',
-                          height: '42px',
-                          marginTop: '24px',
-                        }}
-                        title="Download CSV"
-                      >
-                        <span className="material-symbols-outlined">
-                          download
-                        </span>
-                      </button>
-                      <button
-                        className="btn"
-                        onClick={handleExportTrendsToSheet}
-                        style={{
-                          background: 'white',
-                          border: '1px solid var(--border-color)',
-                          height: '42px',
-                          marginTop: '24px',
-                        }}
-                        title="Export to Sheet"
-                        disabled={isExporting}
-                      >
-                        {isExporting ? (
-                          <div
-                            className="spinner"
-                            style={{
-                              borderColor: 'rgba(37, 99, 235, 0.3)',
-                              borderTopColor: '#2563eb',
-                            }}
-                          ></div>
-                        ) : (
-                          <span className="material-symbols-outlined">
-                            table
-                          </span>
-                        )}
-                      </button>
-                    </div>
-
-                    <div style={{ overflowX: 'auto' }}>
-                      <table
-                        style={{
-                          width: '100%',
-                          borderCollapse: 'collapse',
-                          marginTop: '10px',
-                          fontSize: '0.9rem',
-                        }}
-                      >
-                        <thead>
-                          <tr
-                            style={{
-                              borderBottom: '2px solid var(--border-color)',
-                              color: 'var(--text-secondary)',
-                            }}
-                          >
-                            <th
-                              style={{
-                                textAlign: 'left',
-                                padding: '8px',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() => requestSort('text')}
-                            >
-                              Keyword{getSortIndicator('text')}
-                            </th>
-                            <th
-                              style={{
-                                textAlign: 'right',
-                                padding: '8px',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() => requestSort('latestSearchVolume')}
-                            >
-                              Search Vol{getSortIndicator('latestSearchVolume')}
-                            </th>
-                            <th
-                              style={{
-                                textAlign: 'right',
-                                padding: '8px',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() => requestSort('growth')}
-                            >
-                              Growth{getSortIndicator('growth')}
-                            </th>
-                            <th
-                              style={{
-                                textAlign: 'left',
-                                padding: '8px',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() => requestSort('competition')}
-                            >
-                              Competition{getSortIndicator('competition')}
-                            </th>
-                            <th
-                              style={{
-                                textAlign: 'right',
-                                padding: '8px',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() =>
-                                requestSort('low_top_of_page_bid_micros')
-                              }
-                            >
-                              Low Bid
-                              {getSortIndicator('low_top_of_page_bid_micros')}
-                            </th>
-                            <th
-                              style={{
-                                textAlign: 'right',
-                                padding: '8px',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() =>
-                                requestSort('high_top_of_page_bid_micros')
-                              }
-                            >
-                              High Bid
-                              {getSortIndicator('high_top_of_page_bid_micros')}
-                            </th>
-                            <th
-                              style={{
-                                textAlign: 'right',
-                                padding: '8px',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() => requestSort('average_cpc_micros')}
-                            >
-                              Avg CPC{getSortIndicator('average_cpc_micros')}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {sortedTrendsResults.map((item, index) => {
-                            const text = item.text;
-                            const vol = item.latestSearchVolume;
-                            const comp = item.competition;
-                            const idx = item.competition_index;
-                            const low = item.low_top_of_page_bid_micros;
-                            const high = item.high_top_of_page_bid_micros;
-                            const cpc = item.average_cpc_micros;
-
-                            let growth = 0;
-                            if (growthMetric === 'yoy')
-                              growth = item.growthYoY || 0;
-                            else if (growthMetric === 'mom')
-                              growth = item.growthMoM || 0;
-                            else if (growthMetric === 'latest_vs_avg')
-                              growth = item.growthLatestVsAvg || 0;
-                            else if (growthMetric === 'latest_vs_max')
-                              growth = item.growthLatestVsMax || 0;
-
-                            const formatMoney = micros =>
-                              micros != null
-                                ? (micros / 1000000).toLocaleString('en-US', {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                  })
-                                : '-';
-
-                            return (
-                              <React.Fragment key={index}>
-                                <tr
-                                  style={{
-                                    borderBottom:
-                                      '1px solid var(--border-color)',
-                                    cursor: 'pointer',
-                                    backgroundColor:
-                                      selectedTrend?.text === text
-                                        ? 'rgba(37, 99, 235, 0.05)'
-                                        : 'transparent',
-                                  }}
-                                  onClick={() =>
-                                    setSelectedTrend(
-                                      selectedTrend?.text === text ? null : item
-                                    )
-                                  }
-                                >
-                                  <td style={{ padding: '8px' }}>
-                                    <div
-                                      style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                      }}
-                                    >
-                                      <span
-                                        className="material-symbols-outlined"
-                                        style={{
-                                          fontSize: '1.2rem',
-                                          color: 'var(--primary)',
-                                          transition: 'transform 0.2s',
-                                          transform:
-                                            selectedTrend?.text === text
-                                              ? 'rotate(90deg)'
-                                              : 'rotate(0deg)',
-                                        }}
-                                      >
-                                        chevron_right
-                                      </span>
-                                      {text}
-                                    </div>
-                                  </td>
-                                  <td
-                                    style={{
-                                      padding: '8px',
-                                      textAlign: 'right',
-                                    }}
-                                  >
-                                    {vol != null ? vol.toLocaleString() : '-'}
-                                  </td>
-                                  <td
-                                    style={{
-                                      padding: '8px',
-                                      textAlign: 'right',
-                                      color:
-                                        growth > 0
-                                          ? 'var(--success)'
-                                          : growth < 0
-                                            ? 'var(--error)'
-                                            : 'inherit',
-                                    }}
-                                  >
-                                    {growth > 0 ? '+' : ''}
-                                    {(growth * 100).toFixed(1)}%
-                                  </td>
-                                  <td style={{ padding: '8px' }}>
-                                    {comp ? `${comp} (${idx ?? '-'})` : '-'}
-                                  </td>
-                                  <td
-                                    style={{
-                                      padding: '8px',
-                                      textAlign: 'right',
-                                    }}
-                                  >
-                                    {formatMoney(low)}
-                                  </td>
-                                  <td
-                                    style={{
-                                      padding: '8px',
-                                      textAlign: 'right',
-                                    }}
-                                  >
-                                    {formatMoney(high)}
-                                  </td>
-                                  <td
-                                    style={{
-                                      padding: '8px',
-                                      textAlign: 'right',
-                                    }}
-                                  >
-                                    {formatMoney(cpc)}
-                                  </td>
-                                </tr>
-                                {selectedTrend?.text === text && (
-                                  <tr
-                                    style={{
-                                      backgroundColor:
-                                        'rgba(37, 99, 235, 0.05)',
-                                    }}
-                                  >
-                                    <td colSpan={7} style={{ padding: '16px' }}>
-                                      <div className="grid-2 mb-4">
-                                        <div>
-                                          <strong>Total Volume:</strong>{' '}
-                                          {selectedTrend.latestSearchVolume?.toLocaleString() ??
-                                            '-'}
-                                        </div>
-                                        <div>
-                                          <strong>
-                                            {GROWTH_METRICS.find(
-                                              m => m.id === growthMetric
-                                            )?.name || 'Growth'}
-                                            :
-                                          </strong>{' '}
-                                          {(() => {
-                                            let val = 0;
-                                            if (growthMetric === 'yoy')
-                                              val =
-                                                selectedTrend.growthYoY || 0;
-                                            else if (growthMetric === 'mom')
-                                              val =
-                                                selectedTrend.growthMoM || 0;
-                                            else if (
-                                              growthMetric === 'latest_vs_avg'
-                                            )
-                                              val =
-                                                selectedTrend.growthLatestVsAvg ||
-                                                0;
-                                            else if (
-                                              growthMetric === 'latest_vs_max'
-                                            )
-                                              val =
-                                                selectedTrend.growthLatestVsMax ||
-                                                0;
-                                            return (val * 100).toFixed(1);
-                                          })()}
-                                          %
-                                        </div>
-                                      </div>
-                                      {selectedTrendChartData ? (
-                                        <ChartComponent
-                                          type="line"
-                                          data={selectedTrendChartData}
-                                          options={{
-                                            responsive: true,
-                                            maintainAspectRatio: false,
-                                            plugins: {
-                                              legend: { display: false },
-                                            },
-                                          }}
-                                        />
-                                      ) : (
-                                        <div
-                                          className="text-muted"
-                                          style={{
-                                            padding: '20px',
-                                            background: '#f1f5f9',
-                                            borderRadius: '8px',
-                                            textAlign: 'center',
-                                          }}
-                                        >
-                                          No historical data available for this
-                                          keyword. <br />
-                                          Please re-run the analysis to fetch
-                                          the latest data.
-                                        </div>
-                                      )}
-                                    </td>
-                                  </tr>
-                                )}
-                              </React.Fragment>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div
-                      className="text-sm text-muted mt-4"
-                      style={{ textAlign: 'right' }}
-                    >
-                      Trends Keywords ({sortedTrendsResults.length} /{' '}
-                      {trendsResults.length})
-                    </div>
-                  </div>
-                )}
-              </div>
+              <ExploreTab
+                keywords={keywords}
+                setKeywords={setKeywords}
+                runExplore={runExplore}
+                isExploring={isExploring}
+                exploreStatus={exploreStatus}
+                ideasData={ideasData}
+                setIdeasData={setIdeasData}
+                setClusters={setClusters}
+                setRelevantIdeas={setRelevantIdeas}
+                setChartLabels={setChartLabels}
+                setSelectedCluster={setSelectedCluster}
+                language={language}
+                setLanguage={setLanguage}
+                country={country}
+                setCountry={setCountry}
+                customLanguages={customLanguages}
+                customCountries={customCountries}
+                handleCustomOption={handleCustomOption}
+                promptTemplate={promptTemplate}
+                setPromptTemplate={setPromptTemplate}
+                seedChartData={seedChartData}
+                clusters={clusters}
+                growthMetric={growthMetric}
+                setGrowthMetric={setGrowthMetric}
+                handleDownloadExplore={handleDownloadExplore}
+                handleExportExploreToSheet={handleExportExploreToSheet}
+                isExporting={isExporting}
+                clustersChartData={clustersChartData}
+                bubbleChartOptions={bubbleChartOptions}
+                selectedCluster={selectedCluster}
+                selectedClusterChartData={selectedClusterChartData}
+                chartLabels={chartLabels}
+                relevantIdeas={relevantIdeas}
+                useKeywordPlanner={useKeywordPlanner}
+                setUseKeywordPlanner={setUseKeywordPlanner}
+                useGemini={useGemini}
+                setUseGemini={setUseGemini}
+                geminiPrompt={geminiPrompt}
+                setGeminiPrompt={setGeminiPrompt}
+                useClustering={useClustering}
+                setUseClustering={setUseClustering}
+              />
             )}
 
             {activeTab === 'insights' && (
-              <div className="card fade-in">
-                <h2>Insights</h2>
-                <div
-                  className="mb-4"
-                  dangerouslySetInnerHTML={{ __html: insights }}
-                />
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginTop: '16px',
-                  }}
-                >
-                  <button
-                    className="btn btn-primary"
-                    onClick={generateInsights}
-                    disabled={isGeneratingInsights}
-                  >
-                    {isGeneratingInsights ? (
-                      <>
-                        <div className="spinner"></div> Generating Insights...
-                      </>
-                    ) : (
-                      <>
-                        <span className="material-symbols-outlined">
-                          lightbulb
-                        </span>{' '}
-                        Generate Insights
-                      </>
-                    )}
-                  </button>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {insights && (
-                      <button
-                        className="btn btn-secondary"
-                        onClick={handleDownloadInsights}
-                        style={{
-                          background: 'white',
-                          border: '1px solid var(--border-color)',
-                        }}
-                        title="Download Markdown"
-                      >
-                        <span className="material-symbols-outlined">
-                          download
-                        </span>
-                      </button>
-                    )}
-                    {insights && (
-                      <button
-                        className="btn btn-secondary"
-                        onClick={handleExportInsightsToSheet}
-                        style={{
-                          background: 'white',
-                          border: '1px solid var(--border-color)',
-                        }}
-                        disabled={isExporting}
-                        title="Export to Sheet"
-                      >
-                        {isExporting ? (
-                          <div
-                            className="spinner"
-                            style={{
-                              borderColor: 'rgba(37, 99, 235, 0.3)',
-                              borderTopColor: '#2563eb',
-                            }}
-                          ></div>
-                        ) : (
-                          <span className="material-symbols-outlined">
-                            table
-                          </span>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {insightsStatus && (
-                  <div className="status-msg">{insightsStatus}</div>
-                )}
-              </div>
+              <InsightsTab
+                insights={insights}
+                setInsights={setInsights}
+                setInsightsStatus={setInsightsStatus}
+                generateInsights={generateInsights}
+                isGeneratingInsights={isGeneratingInsights}
+                handleDownloadInsights={handleDownloadInsights}
+                handleExportInsightsToSheet={handleExportInsightsToSheet}
+                isExporting={isExporting}
+                insightsStatus={insightsStatus}
+              />
             )}
 
             {activeTab === 'campaigns' && (
-              <div className="card fade-in">
-                <h2>Campaign Suggestions</h2>
-                <div className="grid-2">
-                  <InputField
-                    label={
-                      <span
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
-                        Google Ads Account ID
-                        <a
-                          href={GOOGLE_ADS_ID_HELP_URL}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            textDecoration: 'none',
-                            color: 'inherit',
-                            display: 'flex',
-                          }}
-                          title="Find your Google Ads customer ID"
-                        >
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ fontSize: '16px', cursor: 'pointer' }}
-                          >
-                            info
-                          </span>
-                        </a>
-                      </span>
-                    }
-                    value={adsAccountId}
-                    onChange={setAdsAccountId}
-                    placeholder="123-456-7890"
-                  />
-                  <InputField
-                    label="Brand Name"
-                    value={brandName}
-                    onChange={setBrandName}
-                    placeholder="My Brand"
-                  />
-                </div>
-                <div
-                  className="mb-4 mt-4"
-                  dangerouslySetInnerHTML={{ __html: campaignSuggestions }}
-                />
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginTop: '16px',
-                  }}
-                >
-                  <button
-                    className="btn btn-primary"
-                    onClick={generateCampaignSuggestions}
-                    disabled={isGeneratingCampaigns}
-                  >
-                    {isGeneratingCampaigns ? (
-                      <>
-                        <div className="spinner"></div>{' '}
-                        {campaignStatus || 'Generating...'}
-                      </>
-                    ) : (
-                      <>
-                        <span className="material-symbols-outlined">
-                          campaign
-                        </span>{' '}
-                        Generate Suggestions
-                      </>
-                    )}
-                  </button>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {campaignSuggestions && (
-                      <button
-                        className="btn btn-secondary"
-                        onClick={handleDownloadCampaigns}
-                        style={{
-                          background: 'white',
-                          border: '1px solid var(--border-color)',
-                        }}
-                        title="Download Markdown"
-                      >
-                        <span className="material-symbols-outlined">
-                          download
-                        </span>
-                      </button>
-                    )}
-                    {campaignSuggestions && (
-                      <button
-                        className="btn btn-secondary"
-                        onClick={handleExportCampaignsToSheet}
-                        style={{
-                          background: 'white',
-                          border: '1px solid var(--border-color)',
-                        }}
-                        disabled={isExporting}
-                        title="Export to Sheet"
-                      >
-                        {isExporting ? (
-                          <div
-                            className="spinner"
-                            style={{
-                              borderColor: 'rgba(37, 99, 235, 0.3)',
-                              borderTopColor: '#2563eb',
-                            }}
-                          ></div>
-                        ) : (
-                          <span className="material-symbols-outlined">
-                            table
-                          </span>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'creation' && (
-              <div className="card fade-in">
-                <h2>Campaign Creation</h2>
-                <InputField
-                  label={
-                    <span
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                      }}
-                    >
-                      Google Ads Account ID
-                      <a
-                        href={GOOGLE_ADS_ID_HELP_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          textDecoration: 'none',
-                          color: 'inherit',
-                          display: 'flex',
-                        }}
-                        title="Find your Google Ads customer ID"
-                      >
-                        <span
-                          className="material-symbols-outlined"
-                          style={{ fontSize: '16px', cursor: 'pointer' }}
-                        >
-                          info
-                        </span>
-                      </a>
-                    </span>
-                  }
-                  value={creationAccountId}
-                  onChange={setCreationAccountId}
-                />
-
-                <div className="grid-2">
-                  <div className="mt-4">
-                    <button
-                      className="btn btn-primary"
-                      onClick={generatePrompt}
-                    >
-                      Generate Pre-Prompt
-                    </button>
-                  </div>
-                </div>
-
-                <InputField
-                  type="textarea"
-                  label="Prompt Template"
-                  value={creationPromptTemplate}
-                  onChange={setCreationPromptTemplate}
-                  rows={6}
-                />
-                <InputField
-                  type="textarea"
-                  label="Style Guide"
-                  value={creationStyleGuide}
-                  onChange={setCreationStyleGuide}
-                  rows={6}
-                />
-                <InputField
-                  type="textarea"
-                  label="Instructions"
-                  value={creationInstructions}
-                  onChange={setCreationInstructions}
-                  rows={3}
-                />
-                <InputField
-                  label="Campaign Keywords"
-                  value={creationKeywords}
-                  onChange={setCreationKeywords}
-                  placeholder="keyword1, keyword2"
-                />
-
-                <div className="mt-4">
-                  <button
-                    className="btn btn-primary"
-                    onClick={generateNewCampaigns}
-                    disabled={isCreatingCampaign}
-                  >
-                    {isCreatingCampaign ? 'Creating...' : 'Generate Ad'}
-                    <span className="material-symbols-outlined">
-                      add_circle
-                    </span>
-                  </button>
-                </div>
-
-                {creationResult && (
-                  <pre className="mt-4 p-4 bg-gray-100 rounded overflow-auto">
-                    {creationResult}
-                  </pre>
-                )}
-              </div>
+              <CampaignsTab
+                campaignSuggestions={campaignSuggestions}
+                setCampaignSuggestions={setCampaignSuggestions}
+                setCampaignStatus={setCampaignStatus}
+                brandName={brandName}
+                setBrandName={setBrandName}
+                creationKeywords={creationKeywords}
+                setCreationKeywords={setCreationKeywords}
+                creationResult={creationResult}
+                setCreationResult={setCreationResult}
+                creationAccountId={creationAccountId}
+                setCreationAccountId={setCreationAccountId}
+                creationInstructions={creationInstructions}
+                setCreationInstructions={setCreationInstructions}
+                creationPromptTemplate={creationPromptTemplate}
+                setCreationPromptTemplate={setCreationPromptTemplate}
+                creationStyleGuide={creationStyleGuide}
+                setCreationStyleGuide={setCreationStyleGuide}
+                showIdInfo={showIdInfo}
+                setShowIdInfo={setShowIdInfo}
+                showBrandInfo={showBrandInfo}
+                setShowBrandInfo={setShowBrandInfo}
+                isGeneratingPrompt={isGeneratingPrompt}
+                isCreatingCampaign={isCreatingCampaign}
+                generatePrompt={generatePrompt}
+                generateNewCampaigns={generateNewCampaigns}
+                campaignStatus={campaignStatus}
+                isGeneratingCampaigns={isGeneratingCampaigns}
+                generateCampaignSuggestions={generateCampaignSuggestions}
+                handleDownloadCampaigns={handleDownloadCampaigns}
+                handleExportCampaignsToSheet={handleExportCampaignsToSheet}
+                isExporting={isExporting}
+                GOOGLE_ADS_ID_HELP_URL={GOOGLE_ADS_ID_HELP_URL}
+              />
             )}
 
             {languageModal}
             {locationModal}
+            
             <SettingsModal
               isOpen={modalConfig.isOpen && modalConfig.type === 'settings'}
               onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}

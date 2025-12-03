@@ -1,0 +1,1124 @@
+<!--
+Copyright 2025 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<script type="text/babel">
+  const { useState, useMemo } = React;
+  const { GROWTH_METRICS, LANGUAGES, COUNTRIES, COLOR_PALETTE } = window;
+  const { InputField, SelectField, ChartComponent, Modal, ChipsInput } = window;
+
+  window.ExploreTab = ({
+    keywords,
+    setKeywords,
+    runExplore,
+    isExploring,
+    exploreStatus,
+    ideasData,
+    setIdeasData,
+    setClusters,
+    setRelevantIdeas,
+    setChartLabels,
+    setSelectedCluster,
+    language,
+    setLanguage,
+    country,
+    setCountry,
+    customLanguages,
+    customCountries,
+    handleCustomOption,
+    promptTemplate,
+    setPromptTemplate,
+    seedChartData,
+    clusters,
+    growthMetric,
+    setGrowthMetric,
+    handleDownloadExplore,
+    handleExportExploreToSheet,
+    isExporting,
+    clustersChartData,
+    bubbleChartOptions,
+    selectedCluster,
+    selectedClusterChartData,
+    chartLabels,
+    relevantIdeas,
+    useKeywordPlanner,
+    setUseKeywordPlanner,
+    useGemini,
+    setUseGemini,
+    geminiPrompt,
+    setGeminiPrompt,
+    useClustering,
+    setUseClustering
+  }) => {
+    const [activeInfoModal, setActiveInfoModal] = useState(null);
+    
+    // Keyword Table State
+    const [sortConfig, setSortConfig] = useState({ key: 'growth', direction: 'descending' });
+    const [filters, setFilters] = useState({ keyword: '', minVolume: '' });
+    const [expandedIdea, setExpandedIdea] = useState(null);
+
+    const requestSort = key => {
+      let direction = 'descending';
+      if (sortConfig.key === key && sortConfig.direction === 'descending') {
+        direction = 'ascending';
+      }
+      setSortConfig({ key, direction });
+    };
+
+    const getSortIndicator = key => {
+      if (sortConfig.key !== key) return null;
+      return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
+    };
+
+    const processedIdeas = useMemo(() => {
+       if (!ideasData) return [];
+       return ideasData;
+    }, [ideasData]);
+
+    const filteredIdeas = useMemo(() => {
+      return processedIdeas.filter(item => {
+        if (filters.keyword && !item.text.toLowerCase().includes(filters.keyword.toLowerCase())) {
+          return false;
+        }
+        if (
+          filters.minVolume !== '' &&
+          (item.latestSearchVolume || 0) < Number(filters.minVolume)
+        ) {
+          return false;
+        }
+        return true;
+      });
+    }, [processedIdeas, filters]);
+
+    const sortedIdeas = useMemo(() => {
+      let sortableItems = [...filteredIdeas];
+      if (sortConfig.key) {
+        sortableItems.sort((a, b) => {
+          let aValue, bValue;
+          if (sortConfig.key === 'competition') {
+              aValue = a.competition_index != null ? Number(a.competition_index) : null;
+              bValue = b.competition_index != null ? Number(b.competition_index) : null;
+          } else if (['low_top_of_page_bid_micros', 'high_top_of_page_bid_micros', 'average_cpc_micros'].includes(sortConfig.key)) {
+              aValue = a[sortConfig.key] != null ? Number(a[sortConfig.key]) : null;
+              bValue = b[sortConfig.key] != null ? Number(b[sortConfig.key]) : null;
+          } else if (sortConfig.key === 'growth') {
+             if (growthMetric === 'yoy') { aValue = a.growthYoY; bValue = b.growthYoY; }
+             else if (growthMetric === 'mom') { aValue = a.growthMoM; bValue = b.growthMoM; }
+             else if (growthMetric === 'latest_vs_avg') { aValue = a.growthLatestVsAvg; bValue = b.growthLatestVsAvg; }
+             else if (growthMetric === 'latest_vs_max') { aValue = a.growthLatestVsMax; bValue = b.growthLatestVsMax; }
+          } else {
+              aValue = a[sortConfig.key];
+              bValue = b[sortConfig.key];
+          }
+          
+          if (aValue == null) return 1;
+          if (bValue == null) return -1;
+
+          if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
+          if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
+          return 0;
+        });
+      }
+      return sortableItems;
+    }, [filteredIdeas, sortConfig, growthMetric]);
+
+    // Memoize chart options to prevent re-renders/animations
+    const seedChartOptions = useMemo(
+      () => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 10, padding: 10 },
+          },
+          tooltip: { mode: 'index', intersect: false },
+        },
+        interaction: {
+          mode: 'nearest',
+          axis: 'x',
+          intersect: false,
+        },
+        scales: {
+          y: { beginAtZero: true },
+        },
+      }),
+      []
+    );
+
+    const clusterVolumeChartOptions = useMemo(
+      () => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+        },
+      }),
+      []
+    );
+
+    const keywordVolumeChartOptions = useMemo(
+      () => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 10, padding: 10 },
+          },
+          tooltip: { mode: 'index', intersect: false },
+        },
+        interaction: {
+          mode: 'nearest',
+          axis: 'x',
+          intersect: false,
+        },
+        scales: {
+          y: { beginAtZero: true },
+        },
+      }),
+      []
+    );
+
+    const keywordVolumeChartData = useMemo(() => {
+      if (!selectedCluster || !chartLabels) return null;
+      return {
+        labels: chartLabels,
+        datasets: selectedCluster.keywords.map((k, i) => {
+          const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
+          const color = COLOR_PALETTE[i % COLOR_PALETTE.length];
+          return {
+            label: k,
+            data: volHistory.slice(),
+            borderColor: color,
+            backgroundColor: color,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+          };
+        }),
+      };
+    }, [selectedCluster, chartLabels, relevantIdeas]);
+
+    const expandedIdeaChartData = useMemo(() => {
+      if (!expandedIdea || !chartLabels) return null;
+      // Verify lengths match or slice
+      // In ideasData, searchVolume matches months. chartLabels should match.
+      return {
+        labels: chartLabels,
+        datasets: [
+          {
+            label: expandedIdea.text,
+            data: expandedIdea.searchVolume,
+            borderColor: COLOR_PALETTE[0],
+            backgroundColor: COLOR_PALETTE[0],
+            fill: false,
+            tension: 0.3,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+          },
+        ],
+      };
+    }, [expandedIdea, chartLabels]);
+
+    return (
+      <div className="card fade-in">
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem',
+          }}
+        >
+          <h2 style={{ marginBottom: 0 }}>Explore Keywords</h2>
+          <button
+            className="btn-icon"
+            onClick={() => {
+              setIdeasData(null);
+              setKeywords('');
+              setExpandedIdea(null);
+            }}
+            title="Reset Explore Data"
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '1.2rem' }}
+            >
+              delete_outline
+            </span>
+          </button>
+        </div>
+                  <ChipsInput
+                    label={
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        Seed Keywords
+                        <span
+                          className="material-symbols-outlined"
+                          style={{
+                            fontSize: '1rem',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                          }}
+                          onClick={e => {
+                            e.preventDefault();
+                            setActiveInfoModal('seed_keywords');
+                          }}
+                        >
+                          info
+                        </span>
+                      </div>
+                    }
+                    value={keywords ? keywords.split(',').map(s => s.trim()).filter(s => s) : []}
+                    onChange={chips => setKeywords(chips.join(', '))}
+                    placeholder="Type a keyword and press Enter..."
+                    helpText="Type keywords and press Enter or Tab to add them. Press Enter again to start."
+                    onKeyDown={(e, newChips) => {
+                      if (e.key === 'Enter') {
+                         const keywordsToRun = newChips ? newChips.join(', ') : keywords;
+                         runExplore(keywordsToRun);
+                      }
+                    }}
+                  />
+                  <div className="grid-2">
+                    <SelectField                        label={              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Language
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: '1rem',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                  onClick={e => {
+                    e.preventDefault();
+                    setActiveInfoModal('language_info');
+                  }}
+                >
+                  info
+                </span>
+              </div>
+            }
+            value={language}
+            onChange={setLanguage}
+            options={[...LANGUAGES, ...customLanguages]}
+            onCustomOption={() => handleCustomOption('language')}
+          />
+          <SelectField
+            label={
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Location
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: '1rem',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                  onClick={e => {
+                    e.preventDefault();
+                    setActiveInfoModal('location_info');
+                  }}
+                >
+                  info
+                </span>
+              </div>
+            }
+            value={country}
+            onChange={setCountry}
+            options={[...COUNTRIES, ...customCountries]}
+            onCustomOption={() => handleCustomOption('country')}
+          />
+        </div>
+
+        <details className="mb-4">
+          <summary className="cursor-pointer text-sm font-medium text-primary">
+            Advanced Config
+          </summary>
+          <div className="mt-4">
+            <div className="mb-4">
+              <label style={{ display: 'block', marginBottom: '8px' }}>
+                Keyword Sources
+              </label>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={useKeywordPlanner}
+                    onChange={e => {
+                      if (!e.target.checked && !useGemini) return;
+                      setUseKeywordPlanner(e.target.checked);
+                    }}
+                  />
+                  Keyword Idea Service
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: '1rem',
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      marginLeft: '4px',
+                    }}
+                    onClick={e => {
+                      e.preventDefault();
+                      setActiveInfoModal('keyword_planner');
+                    }}
+                  >
+                    info
+                  </span>
+                </label>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={useGemini}
+                    onChange={e => {
+                      if (!e.target.checked && !useKeywordPlanner) return;
+                      setUseGemini(e.target.checked);
+                    }}
+                  />
+                  Gemini
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: '1rem',
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      marginLeft: '4px',
+                    }}
+                    onClick={e => {
+                      e.preventDefault();
+                      setActiveInfoModal('gemini');
+                    }}
+                  >
+                    info
+                  </span>
+                </label>
+              </div>
+            </div>
+            {useGemini && (
+              <div className="mt-4">
+                <InputField
+                  type="textarea"
+                  label="Gemini Prompt"
+                  value={geminiPrompt}
+                  onChange={setGeminiPrompt}
+                  rows={6}
+                />
+              </div>
+            )}
+            <div className="mt-4">
+              <label style={{ display: 'block', marginBottom: '8px' }}>
+                Clustering
+              </label>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={useClustering}
+                    onChange={e => setUseClustering(e.target.checked)}
+                  />
+                  Enable Clustering
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: '1rem',
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      marginLeft: '4px',
+                    }}
+                    onClick={e => {
+                      e.preventDefault();
+                      setActiveInfoModal('clustering_info');
+                    }}
+                  >
+                    info
+                  </span>
+                </label>
+              </div>
+            </div>
+            {useClustering && (
+              <div className="mt-4">
+                <InputField
+                  type="textarea"
+                  label="Clustering Prompt"
+                  value={promptTemplate}
+                  onChange={setPromptTemplate}
+                  rows={6}
+                />
+              </div>
+            )}
+          </div>
+        </details>
+
+        <button
+          className="btn btn-primary"
+          onClick={runExplore}
+          disabled={isExploring}
+        >
+          {isExploring ? (
+            <>
+              <div className="spinner"></div>{' '}
+              {exploreStatus || 'Running...'}
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined">
+                rocket_launch
+              </span>{' '}
+              Start
+            </>
+          )}
+        </button>
+
+        {seedChartData && (
+          <div
+            className="mt-4 card"
+            style={{ border: '1px solid var(--primary)' }}
+          >
+            <h3>Seed Keywords Search Volume</h3>
+            <div style={{ height: '400px' }}>
+              <ChartComponent
+                type="line"
+                data={seedChartData}
+                options={seedChartOptions}
+              />
+            </div>
+          </div>
+        )}
+
+        {clusters && (
+          <div
+            className="mt-4"
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+            }}
+          >
+            <div style={{ maxWidth: '300px' }}>
+              <SelectField
+                label="Growth Metric"
+                value={growthMetric}
+                onChange={setGrowthMetric}
+                options={GROWTH_METRICS}
+              />
+            </div>
+            <div>
+              <button
+                className="btn btn-secondary"
+                onClick={handleDownloadExplore}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border-color)',
+                }}
+                title="Download CSV"
+              >
+                <span className="material-symbols-outlined">
+                  download
+                </span>
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={handleExportExploreToSheet}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border-color)',
+                  marginLeft: '8px',
+                }}
+                disabled={isExporting}
+                title="Export to Sheet"
+              >
+                {isExporting ? (
+                  <div
+                    className="spinner"
+                    style={{
+                      borderColor: 'rgba(37, 99, 235, 0.3)',
+                      borderTopColor: '#2563eb',
+                    }}
+                  ></div>
+                ) : (
+                  <span className="material-symbols-outlined">
+                    table
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {clustersChartData && (
+          <div className="mt-4">
+            <h3>Clusters</h3>
+            <div className="text-sm text-muted mb-2">
+              Click on a bubble to view details
+            </div>
+            <div style={{ height: '400px' }}>
+              <ChartComponent
+                type="bubble"
+                data={clustersChartData}
+                options={bubbleChartOptions}
+              />
+            </div>
+          </div>
+        )}
+
+        {selectedCluster && selectedClusterChartData && (
+          <div
+            id="cluster-details"
+            className="mt-4 card"
+            style={{ border: '1px solid var(--primary)' }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h3>Details: {selectedCluster.topic}</h3>
+              <button
+                onClick={() => setSelectedCluster(null)}
+                className="btn"
+                style={{ padding: '4px 8px' }}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="grid-2">
+              <div>
+                <strong>Total Volume:</strong>{' '}
+                {selectedCluster.searchVolume.toLocaleString()}
+              </div>
+              <div>
+                <strong>
+                  {GROWTH_METRICS.find(m => m.id === growthMetric)
+                    ?.name || 'Growth'}
+                  :
+                </strong>{' '}
+                {(() => {
+                  let val = 0;
+                  if (growthMetric === 'yoy')
+                    val =
+                      selectedCluster.growthYoY ||
+                      selectedCluster.yearOverYearGrowth ||
+                      0;
+                  else if (growthMetric === 'mom')
+                    val = selectedCluster.growthMoM || 0;
+                  else if (growthMetric === 'latest_vs_avg')
+                    val = selectedCluster.growthLatestVsAvg || 0;
+                  else if (growthMetric === 'latest_vs_max')
+                    val = selectedCluster.growthLatestVsMax || 0;
+                  return (val * 100).toFixed(1);
+                })()}
+                %
+              </div>
+            </div>
+            <div className="mt-4">
+              <h4>Cluster Search Volume</h4>
+              <div style={{ height: '300px' }}>
+                <ChartComponent
+                  type="line"
+                  data={selectedClusterChartData}
+                  options={clusterVolumeChartOptions}
+                />
+              </div>
+            </div>
+            <div className="mt-4">
+              <h4>Keyword Search Volume</h4>
+              <div style={{ height: '400px' }}>
+                <ChartComponent
+                  type="line"
+                  data={keywordVolumeChartData}
+                  options={keywordVolumeChartOptions}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {ideasData && ideasData.length > 0 && (
+          <div
+            className="mt-4 card"
+            style={{ border: '1px solid var(--border-color)' }}
+          >
+            <h3>All Keywords ({ideasData.length})</h3>
+            <div
+              style={{
+                display: 'flex',
+                gap: '16px',
+                alignItems: 'flex-start',
+                marginBottom: '1rem',
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <InputField
+                  label="Filter by Keyword"
+                  value={filters.keyword}
+                  onChange={val =>
+                    setFilters(prev => ({ ...prev, keyword: val }))
+                  }
+                  placeholder="Search..."
+                />
+              </div>
+              <div style={{ width: '150px' }}>
+                <InputField
+                  type="number"
+                  label="Min Volume"
+                  value={filters.minVolume}
+                  onChange={val =>
+                    setFilters(prev => ({ ...prev, minVolume: val }))
+                  }
+                  placeholder="e.g. 100"
+                />
+              </div>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  marginTop: '10px',
+                  fontSize: '0.9rem',
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      borderBottom: '2px solid var(--border-color)',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    <th
+                      style={{
+                        textAlign: 'left',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('text')}
+                    >
+                      Keyword{getSortIndicator('text')}
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('latestSearchVolume')}
+                    >
+                      Search Vol{getSortIndicator('latestSearchVolume')}
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('growth')}
+                    >
+                      Growth{getSortIndicator('growth')}
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'left',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('competition')}
+                    >
+                      Competition{getSortIndicator('competition')}
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() =>
+                        requestSort('low_top_of_page_bid_micros')
+                      }
+                    >
+                      Low Bid
+                      {getSortIndicator('low_top_of_page_bid_micros')}
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() =>
+                        requestSort('high_top_of_page_bid_micros')
+                      }
+                    >
+                      High Bid
+                      {getSortIndicator('high_top_of_page_bid_micros')}
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('average_cpc_micros')}
+                    >
+                      Avg CPC{getSortIndicator('average_cpc_micros')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedIdeas.map((item, index) => {
+                    const text = item.text;
+                    const vol = item.latestSearchVolume;
+                    const comp = item.competition;
+                    const idx = item.competition_index;
+                    const low = item.low_top_of_page_bid_micros;
+                    const high = item.high_top_of_page_bid_micros;
+                    const cpc = item.average_cpc_micros;
+
+                    let growth = 0;
+                    if (growthMetric === 'yoy')
+                      growth = item.growthYoY || 0;
+                    else if (growthMetric === 'mom')
+                      growth = item.growthMoM || 0;
+                    else if (growthMetric === 'latest_vs_avg')
+                      growth = item.growthLatestVsAvg || 0;
+                    else if (growthMetric === 'latest_vs_max')
+                      growth = item.growthLatestVsMax || 0;
+
+                    const formatMoney = micros =>
+                      micros != null
+                        ? (micros / 1000000).toLocaleString('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                          })
+                        : '-';
+
+                    return (
+                      <React.Fragment key={index}>
+                        <tr
+                          style={{
+                            borderBottom:
+                              '1px solid var(--border-color)',
+                            cursor: 'pointer',
+                            backgroundColor:
+                              expandedIdea?.text === text
+                                ? 'rgba(37, 99, 235, 0.05)'
+                                : 'transparent',
+                          }}
+                          onClick={() =>
+                            setExpandedIdea(
+                              expandedIdea?.text === text ? null : item
+                            )
+                          }
+                        >
+                          <td style={{ padding: '8px' }}>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                              }}
+                            >
+                              <span
+                                className="material-symbols-outlined"
+                                style={{
+                                  fontSize: '1.2rem',
+                                  color: 'var(--primary)',
+                                  transition: 'transform 0.2s',
+                                  transform:
+                                    expandedIdea?.text === text
+                                      ? 'rotate(90deg)'
+                                      : 'rotate(0deg)',
+                                }}
+                              >
+                                chevron_right
+                              </span>
+                              {text}
+                            </div>
+                          </td>
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {vol != null ? vol.toLocaleString() : '-'}
+                          </td>
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                              color:
+                                growth > 0
+                                  ? 'var(--success)'
+                                  : growth < 0
+                                    ? 'var(--error)'
+                                    : 'inherit',
+                            }}
+                          >
+                            {growth > 0 ? '+' : ''}
+                            {(growth * 100).toFixed(1)}%
+                          </td>
+                          <td style={{ padding: '8px' }}>
+                            {comp ? `${comp} (${idx ?? '-'})` : '-'}
+                          </td>
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {formatMoney(low)}
+                          </td>
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {formatMoney(high)}
+                          </td>
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {formatMoney(cpc)}
+                          </td>
+                        </tr>
+                        {expandedIdea?.text === text && (
+                          <tr
+                            style={{
+                              backgroundColor:
+                                'rgba(37, 99, 235, 0.05)',
+                            }}
+                          >
+                            <td colSpan={7} style={{ padding: '16px' }}>
+                              <div className="grid-2 mb-4">
+                                <div>
+                                  <strong>Total Volume:</strong>{' '}
+                                  {expandedIdea.latestSearchVolume?.toLocaleString() ??
+                                    '-'}
+                                </div>
+                                <div>
+                                  <strong>
+                                    {GROWTH_METRICS.find(
+                                      m => m.id === growthMetric
+                                    )?.name || 'Growth'}
+                                    :
+                                  </strong>{' '}
+                                  {(() => {
+                                    let val = 0;
+                                    if (growthMetric === 'yoy')
+                                      val =
+                                        expandedIdea.growthYoY || 0;
+                                    else if (growthMetric === 'mom')
+                                      val =
+                                        expandedIdea.growthMoM || 0;
+                                    else if (
+                                      growthMetric === 'latest_vs_avg'
+                                    )
+                                      val =
+                                        expandedIdea.growthLatestVsAvg ||
+                                        0;
+                                    else if (
+                                      growthMetric === 'latest_vs_max'
+                                    )
+                                      val =
+                                        expandedIdea.growthLatestVsMax ||
+                                        0;
+                                    return (val * 100).toFixed(1);
+                                  })()}
+                                  %
+                                </div>
+                              </div>
+                              {expandedIdeaChartData ? (
+                                <div style={{ height: '300px' }}>
+                                  <ChartComponent
+                                    type="line"
+                                    data={expandedIdeaChartData}
+                                    options={{
+                                      responsive: true,
+                                      maintainAspectRatio: false,
+                                      plugins: {
+                                        legend: { display: false },
+                                      },
+                                      scales: {
+                                        x: {
+                                          ticks: {
+                                            autoSkip: false,
+                                          },
+                                        },
+                                        y: {
+                                          beginAtZero: true,
+                                        },
+                                      },
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <div
+                                  className="text-muted"
+                                  style={{
+                                    padding: '20px',
+                                    background: '#f1f5f9',
+                                    borderRadius: '8px',
+                                    textAlign: 'center',
+                                  }}
+                                >
+                                  No historical data available.
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeInfoModal && (
+          <Modal
+            isOpen={!!activeInfoModal}
+            onClose={() => setActiveInfoModal(null)}
+            title={
+              activeInfoModal === 'keyword_planner'
+                ? 'Keyword Idea Service'
+                : activeInfoModal === 'gemini'
+                ? 'Gemini'
+                : activeInfoModal === 'seed_keywords'
+                ? 'Seed Keywords'
+                : activeInfoModal === 'location_info'
+                ? 'Location Settings'
+                : activeInfoModal === 'clustering_info'
+                ? 'Clustering Info'
+                : 'Language Settings'
+            }
+          >
+            {activeInfoModal === 'keyword_planner' ? (
+              <div>
+                <p>
+                  The{' '}
+                  <a
+                    href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--primary)' }}
+                  >
+                    Keyword Idea Service
+                  </a>{' '}
+                  uses the Google Ads API to generate keyword ideas based on
+                  your seed keywords, location, and language settings.
+                </p>
+              </div>
+            ) : activeInfoModal === 'gemini' ? (
+              <div>
+                <p>
+                  Gemini is used to creatively source new keyword ideas based on
+                  your prompt.
+                </p>
+                <p>
+                  It uses <a
+                    href="https://ai.google.dev/gemini-api/docs/google-search"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--primary)' }}
+                  >grounding with Google Search</a> to get the latest information for a topic.
+                </p>
+                <p>
+                  Once keywords are generated, the{' '}
+                  <a
+                    href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--primary)' }}
+                  >
+                    Keyword Planner
+                  </a>{' '}
+                  from the Google Ads API is used to retrieve their historical
+                  search volume and metrics.
+                </p>
+              </div>
+            ) : activeInfoModal === 'seed_keywords' ? (
+              <div>
+                <p>
+                  Enter one or more starting keywords here. These serve as the foundation for generating new keyword ideas and clusters.
+                </p>
+                <p>
+                  The tool will use these seeds to find related search terms and historical data to help expand your keyword research.
+                </p>
+              </div>
+            ) : activeInfoModal === 'location_info' ? (
+              <div>
+                <p>
+                  Select the geographic location for your keyword research.
+                </p>
+                <p>
+                  The tool will only retrieve search volume and historical metrics specific to this location.
+                </p>
+              </div>
+            ) : activeInfoModal === 'clustering_info' ? (
+              <div>
+                <p>
+                  Gemini is used to perform a semantic clustering based on the prompt.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p>
+                  Ensure this language matches the language of your{' '}
+                  <strong>Seed Keywords</strong>.
+                </p>
+                <p>
+                  The Keyword Idea Service uses this setting to find relevant
+                  keywords in the specified language. Mismatched languages
+                  (e.g., English keywords with &quot;German&quot; selected) may
+                  yield poor or no results.
+                </p>
+              </div>
+            )}
+          </Modal>
+        )}
+      </div>
+    );
+  };
+</script>
