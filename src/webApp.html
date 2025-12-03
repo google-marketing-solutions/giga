@@ -1683,8 +1683,8 @@ limitations under the License.
         };
 
         const generateCampaignSuggestions = async () => {
-          if (!insights) {
-            showAlert('Please generate insights first.');
+          if (!relevantIdeas || Object.keys(relevantIdeas).length === 0) {
+            showAlert('Please generate keywords in Explore tab first.');
             return;
           }
           setIsGeneratingCampaigns(true);
@@ -1714,7 +1714,8 @@ limitations under the License.
               [...LANGUAGES, ...customLanguages].find(l => l.id === language)
                 ?.name || language;
             const result = await googleScriptRun.getCampaigns(
-              insights,
+              relevantIdeas,
+              growthMetric,
               langName,
               brandName,
               adExamples,

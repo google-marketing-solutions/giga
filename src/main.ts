@@ -62,26 +62,11 @@ export const getYoYGrowth = searchVolumes => {
   return latestVolume / previousYearVolume - 1;
 };
 
-export const removeHTMLTicks = html => {
-  const prefix = '```html';
-  const suffix = '```';
-  let cleanedHtml = html;
-  if (cleanedHtml.startsWith(prefix)) {
-    cleanedHtml = cleanedHtml.substring(prefix.length);
-  }
-  if (cleanedHtml.endsWith(suffix)) {
-    cleanedHtml = cleanedHtml.substring(0, cleanedHtml.length - suffix.length);
-  }
-  return cleanedHtml;
-};
-
-export const getInsights = (
-  ideas,
-  seedKeywords,
-  growthMetric = 'three_months_vs_avg',
-  geminiConfig: Partial<GeminiConfig>
-) => {
-  const relevantIdeas = Object.entries(ideas).map(([idea, searchVolume]) => {
+export const calculateKeywordGrowth = (
+  ideas: Record<string, number[]>,
+  growthMetric = 'three_months_vs_avg'
+): [string, number][] => {
+  return Object.entries(ideas).map(([idea, searchVolume]) => {
     const history = searchVolume as number[];
     const latest = history[history.length - 1] || 0;
     const prevMonth = history[history.length - 2] || 0;
@@ -116,6 +101,28 @@ export const getInsights = (
     }
     return [idea, growth];
   });
+};
+
+export const removeHTMLTicks = html => {
+  const prefix = '```html';
+  const suffix = '```';
+  let cleanedHtml = html;
+  if (cleanedHtml.startsWith(prefix)) {
+    cleanedHtml = cleanedHtml.substring(prefix.length);
+  }
+  if (cleanedHtml.endsWith(suffix)) {
+    cleanedHtml = cleanedHtml.substring(0, cleanedHtml.length - suffix.length);
+  }
+  return cleanedHtml;
+};
+
+export const getInsights = (
+  ideas,
+  seedKeywords,
+  growthMetric = 'three_months_vs_avg',
+  geminiConfig: Partial<GeminiConfig>
+) => {
+  const relevantIdeas = calculateKeywordGrowth(ideas, growthMetric);
   console.log('relevantIdeas: ', relevantIdeas);
 
   const metricNames = {
@@ -258,15 +265,23 @@ const PROMPT_DATA_FORMAT_SUFFIX = `
 `;
 
 export const getCampaigns = (
-  insights,
+  ideas,
+  growthMetric,
   language,
   brandName,
   adExamples,
   styleGuide,
   geminiConfig: Partial<GeminiConfig>
 ) => {
+  const relevantIdeas = calculateKeywordGrowth(ideas, growthMetric);
+
+  // Format relevantIdeas for the prompt
+  const ideasString = relevantIdeas
+    .map(([idea, growth]) => `- ${idea}: ${(growth * 100).toFixed(1)}%`)
+    .join('\n');
+
   const prompt = ` I am a SEA manager working for ${brandName} and I want to create new Google Ads search campaigns based on the following input.
-  For each cluster in the **Cluster Insights & Marketing Takeaways:** section, generate a ready-to-use text ad campaign.
+  Based on the provided keywords and their growth metrics, generate ready-to-use text ad campaigns. Group related keywords into campaigns and focus on high-growth keywords.
 
   Ensure the new created ads are following the style, wording, tonality of the following ad examples:
   ${adExamples}
@@ -276,9 +291,9 @@ export const getCampaigns = (
 
   Create the Campaigns in ${language}.
 
-  Insights:
+  Keywords and Growth Metrics:
 
-  ${insights}
+  ${ideasString}
 
   `;
   const responseSchema: ResponseSchema = {

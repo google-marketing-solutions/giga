@@ -48,7 +48,7 @@ limitations under the License.
     handleDownloadCampaigns,
     handleExportCampaignsToSheet,
     isExporting,
-    GOOGLE_ADS_ID_HELP_URL
+    GOOGLE_ADS_ID_HELP_URL,
   }) => {
     return (
       <div className="card fade-in">
@@ -173,9 +173,7 @@ limitations under the License.
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined">
-                      refresh
-                    </span>
+                    <span className="material-symbols-outlined">refresh</span>
                     Re-create Prompt Template
                   </>
                 )}
@@ -214,9 +212,7 @@ limitations under the License.
                   className="card"
                   style={{ borderLeft: '4px solid var(--primary)' }}
                 >
-                  <h4
-                    style={{ marginBottom: '16px', fontSize: '1.1rem' }}
-                  >
+                  <h4 style={{ marginBottom: '16px', fontSize: '1.1rem' }}>
                     Campaign: {campaign.campaignName}
                   </h4>
                   {campaign.adGroups &&
@@ -267,9 +263,7 @@ limitations under the License.
               ))}
             </div>
           ) : (
-            <div
-              dangerouslySetInnerHTML={{ __html: campaignSuggestions }}
-            />
+            <div dangerouslySetInnerHTML={{ __html: campaignSuggestions }} />
           )}
         </div>
 
@@ -293,9 +287,7 @@ limitations under the License.
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined">
-                  campaign
-                </span>{' '}
+                <span className="material-symbols-outlined">campaign</span>{' '}
                 Generate Suggestions
               </>
             )}
@@ -311,9 +303,7 @@ limitations under the License.
                 }}
                 title="Download Markdown"
               >
-                <span className="material-symbols-outlined">
-                  download
-                </span>
+                <span className="material-symbols-outlined">download</span>
               </button>
             )}
             {campaignSuggestions && (
@@ -336,9 +326,7 @@ limitations under the License.
                     }}
                   ></div>
                 ) : (
-                  <span className="material-symbols-outlined">
-                    table
-                  </span>
+                  <span className="material-symbols-outlined">table</span>
                 )}
               </button>
             )}
@@ -366,7 +354,7 @@ limitations under the License.
           label="Instructions"
           value={creationInstructions}
           onChange={setCreationInstructions}
-          placeholder="Created ads must be in German."
+          placeholder="Your additional instructions (e.g. Created ads in German)."
           rows={3}
         />
 
@@ -379,16 +367,13 @@ limitations under the License.
             {isCreatingCampaign ? (
               <>
                 <div className="spinner"></div>
-                {creationResult &&
-                creationResult.startsWith('Generating')
+                {creationResult && creationResult.startsWith('Generating')
                   ? creationResult
                   : 'Creating...'}
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined">
-                  add_circle
-                </span>
+                <span className="material-symbols-outlined">add_circle</span>
                 Generate Ad
               </>
             )}
@@ -437,7 +422,7 @@ limitations under the License.
             })()}
           </div>
         )}
-        
+
         <Modal
           isOpen={showIdInfo}
           onClose={() => setShowIdInfo(false)}
@@ -445,8 +430,8 @@ limitations under the License.
         >
           <div className="modal-body">
             <p>
-              This will be used to tailor the campaigns to the best
-              performing ones in the account.
+              This will be used to tailor the campaigns to the best performing
+              ones in the account.
             </p>
             <p
               style={{
@@ -455,9 +440,9 @@ limitations under the License.
                 marginTop: '10px',
               }}
             >
-              <strong>Requirements:</strong> The account must have active
-              Search campaigns with Responsive Search Ads (RSA) and broad
-              match keywords that have received clicks in the last 30 days.
+              <strong>Requirements:</strong> The account must have active Search
+              campaigns with Responsive Search Ads (RSA) and broad match
+              keywords that have received clicks in the last 30 days.
             </p>
             <p>
               <a
@@ -485,8 +470,8 @@ limitations under the License.
         >
           <div className="modal-body">
             <p>
-              This information will be included in the campaign suggestions
-              to make it more tailored to your brand.
+              This information will be included in the campaign suggestions to
+              make it more tailored to your brand.
             </p>
             <div className="modal-actions">
               <button
