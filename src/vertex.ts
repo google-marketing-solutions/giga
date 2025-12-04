@@ -45,9 +45,13 @@ export interface GeminiConfig {
 
 export interface ResponseSchema {
   type: string;
-  items: {
-    type: string;
-  };
+  format?: string;
+  description?: string;
+  nullable?: boolean;
+  items?: ResponseSchema;
+  enum?: string[];
+  properties?: { [key: string]: ResponseSchema };
+  required?: string[];
 }
 
 /**

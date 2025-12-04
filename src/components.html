@@ -1,0 +1,745 @@
+<!--
+Copyright 2025 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<script type="text/babel">
+  const { useState, useEffect, useRef, useMemo } = React;
+
+  window.TabButton = ({ active, onClick, children }) => (
+    <button
+      className={`tab-btn ${active ? 'active' : ''}`}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+
+  window.InputField = ({
+    label,
+    type = 'text',
+    value,
+    onChange,
+    placeholder,
+    rows,
+    helpText,
+    onKeyDown,
+    style
+  }) => (
+    <div className="input-group" style={style}>
+      <label>{label}</label>
+      {type === 'textarea' ? (
+        <textarea
+          rows={rows || 4}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          onKeyDown={onKeyDown}
+        />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          onKeyDown={onKeyDown}
+        />
+      )}
+      {helpText && (
+        <div className="text-sm text-muted mt-1">{helpText}</div>
+      )}
+    </div>
+  );
+
+  window.ChipsInput = ({
+    label,
+    value = [], // Array of strings
+    onChange,   // (newChips: string[]) => void
+    placeholder,
+    helpText,
+    onKeyDown,
+  }) => {
+    const [inputValue, setInputValue] = useState('');
+
+    const handleKeyDown = (e) => {
+      if (['Tab', ','].includes(e.key)) {
+        e.preventDefault();
+        const trimmed = inputValue.trim();
+        if (trimmed) {
+          if (!value.includes(trimmed)) {
+            onChange([...value, trimmed]);
+          }
+          setInputValue('');
+        }
+      } else if (e.key === 'Enter') {
+        const trimmed = inputValue.trim();
+        let nextValue = value;
+        if (trimmed) {
+           e.preventDefault();
+           if (!value.includes(trimmed)) {
+             nextValue = [...value, trimmed];
+             onChange(nextValue);
+           }
+           setInputValue('');
+        } else {
+            if (onKeyDown) {
+                 onKeyDown(e, nextValue);
+            }
+        }
+      } else if (e.key === 'Backspace' && !inputValue && value.length > 0) {
+        onChange(value.slice(0, -1));
+      }
+    };
+
+    const removeChip = (indexToRemove) => {
+      onChange(value.filter((_, index) => index !== indexToRemove));
+    };
+
+    return (
+      <div className="input-group">
+        <label>{label}</label>
+        <div className="chips-container" onClick={() => document.getElementById('chips-input').focus()}>
+          {value.map((chip, index) => (
+            <div key={index} className="chip">
+              {chip}
+              <span className="material-symbols-outlined close-icon" onClick={(e) => { e.stopPropagation(); removeChip(index); }}>close</span>
+            </div>
+          ))}
+          <input
+            id="chips-input"
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={value.length === 0 ? placeholder : ''}
+            className="chips-input-field"
+          />
+        </div>
+        {helpText && <div className="text-sm text-muted mt-1">{helpText}</div>}
+      </div>
+    );
+  };
+
+  window.Modal = ({
+    isOpen,
+    onClose,
+    title,
+    children,
+    className = '',
+    showCloseButton = true,
+  }) => {
+    if (!isOpen) return null;
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div
+          className={`modal-content ${className}`}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="modal-header">
+            <h2>{title}</h2>
+            {showCloseButton && (
+              <button className="close-btn" onClick={onClose}>
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            )}
+          </div>
+          {children}
+        </div>
+      </div>
+    );
+  };
+
+  window.ErrorModal = ({ isOpen, onClose, error }) => {
+    if (!isOpen || !error) return null;
+
+    const copyToClipboard = () => {
+      const text = `Error: ${error.title}\nMessage: ${error.message}\n\nStack Trace:\n${error.stack || 'N/A'}`;
+      navigator.clipboard.writeText(text).then(() => {
+        // Optional: Show a temporary "Copied!" tooltip or state
+      });
+    };
+
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div
+          className="modal-content error-modal-content"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="error-header">
+            <span className="material-symbols-outlined error-icon">
+              error_outline
+            </span>
+            <h2 className="error-title">
+              {error.title || 'An error occurred'}
+            </h2>
+          </div>
+
+          <div className="error-body">
+            <p className="error-message">{error.message}</p>
+            {error.stack && (
+              <div className="error-details">{error.stack}</div>
+            )}
+          </div>
+
+          <div className="error-actions">
+            <button className="btn btn-secondary" onClick={copyToClipboard}>
+              <span className="material-symbols-outlined">
+                content_copy
+              </span>
+              Copy Details
+            </button>
+            <button className="btn btn-primary" onClick={onClose}>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  window.SelectField = ({
+    label,
+    value,
+    onChange,
+    options,
+    onCustomOption,
+  }) => {
+    const handleChange = e => {
+      if (e.target.value === 'custom') {
+        onCustomOption();
+      } else {
+        onChange(e.target.value);
+      }
+    };
+    return (
+      <div className="input-group">
+        <label>{label}</label>
+        <div className="select-wrapper">
+          <select value={value} onChange={handleChange}>
+            {options.map(opt => (
+              <option key={opt.id} value={opt.id}>
+                {opt.name}
+              </option>
+            ))}
+            {onCustomOption && <option value="custom">Custom ID...</option>}
+          </select>
+        </div>
+      </div>
+    );
+  };
+
+  window.ChartComponent = ({ type, data, options, theme }) => {
+    const canvasRef = useRef(null);
+    const chartRef = useRef(null);
+
+    useEffect(() => {
+      if (canvasRef.current) {
+        if (chartRef.current) chartRef.current.destroy();
+        chartRef.current = new Chart(canvasRef.current, {
+          type,
+          data,
+          options,
+        });
+      }
+      return () => {
+        if (chartRef.current) chartRef.current.destroy();
+      };
+    }, [type, data, options, theme]);
+
+    return (
+      <div className="chart-container" style={{ position: 'relative', height: '100%', width: '100%' }}>
+        <canvas ref={canvasRef} />
+      </div>
+    );
+  };
+
+  window.SettingsModal = ({
+    isOpen,
+    onClose,
+    modalConfig,
+    geminiConfig,
+    minSearchVolume,
+    configStatus,
+    onSave,
+    onClearCache,
+  }) => {
+    const [localGeminiConfig, setLocalGeminiConfig] =
+      useState(geminiConfig);
+    const [localMinSearchVolume, setLocalMinSearchVolume] =
+      useState(minSearchVolume);
+    const [localAdsId, setLocalAdsId] = useState(
+      configStatus.adsAccountId || ''
+    );
+    const [localDevToken, setLocalDevToken] = useState('');
+    const [localSpreadsheetUrl, setLocalSpreadsheetUrl] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+    const adsInputRef = useRef(null);
+
+    // Sync with props when modal opens
+    useEffect(() => {
+      if (isOpen) {
+        setLocalGeminiConfig(geminiConfig);
+        setLocalMinSearchVolume(minSearchVolume);
+        setLocalSpreadsheetUrl(modalConfig.spreadsheetUrl || '');
+        setLocalAdsId(configStatus.adsAccountId || '');
+        setLocalDevToken('');
+      }
+    }, [
+      isOpen,
+      geminiConfig,
+      minSearchVolume,
+      configStatus,
+      modalConfig.spreadsheetUrl,
+    ]);
+
+    // Focus Ads Account ID if highlighted
+    useEffect(() => {
+      if (
+        isOpen &&
+        (modalConfig.highlight === 'ADS_ACCOUNT_ID' ||
+          modalConfig.highlight === 'BOTH') &&
+        adsInputRef.current
+      ) {
+        setTimeout(() => {
+          adsInputRef.current.focus();
+        }, 100);
+      }
+    }, [isOpen, modalConfig.highlight]);
+
+    // Close on ESC
+    useEffect(() => {
+      const handleEsc = event => {
+        if (event.key === 'Escape') {
+          onClose();
+        }
+      };
+      if (isOpen) {
+        window.addEventListener('keydown', handleEsc);
+      }
+      return () => {
+        window.removeEventListener('keydown', handleEsc);
+      };
+    }, [isOpen, onClose]);
+
+    const handleSave = async () => {
+      setIsSaving(true);
+      try {
+        await onSave({
+          geminiConfig: localGeminiConfig,
+          minSearchVolume: localMinSearchVolume,
+          adsAccountId: localAdsId,
+          devToken: localDevToken,
+          spreadsheetUrl: localSpreadsheetUrl,
+        });
+      } catch (error) {
+        console.error('Failed to save settings', error);
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
+    return (
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Settings"
+        showCloseButton={false}
+      >
+        <div className="modal-body">
+          {modalConfig.message && (
+            <div
+              className="alert alert-warning mb-4"
+              style={{
+                color: '#dc2626',
+                background: '#fee2e2',
+                padding: '10px',
+                borderRadius: '6px',
+                fontSize: '0.9rem',
+                border: '1px solid #fca5a5',
+              }}
+            >
+              {modalConfig.message}
+            </div>
+          )}
+          <div className="input-group">
+            <label>Gemini Model</label>
+            <div className="select-wrapper">
+              <select
+                value={localGeminiConfig.modelId}
+                onChange={e =>
+                  setLocalGeminiConfig({
+                    ...localGeminiConfig,
+                    modelId: e.target.value,
+                  })
+                }
+              >
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid-2">
+            <div className="input-group">
+              <label>Temperature: {localGeminiConfig.temperature}</label>
+              <input
+                type="range"
+                step="0.1"
+                min="0"
+                max="2"
+                value={localGeminiConfig.temperature}
+                onChange={e =>
+                  setLocalGeminiConfig({
+                    ...localGeminiConfig,
+                    temperature: parseFloat(e.target.value),
+                  })
+                }
+              />
+            </div>
+            <div className="input-group">
+              <label>Top P: {localGeminiConfig.topP}</label>
+              <input
+                type="range"
+                step="0.1"
+                min="0"
+                max="1"
+                value={localGeminiConfig.topP}
+                onChange={e =>
+                  setLocalGeminiConfig({
+                    ...localGeminiConfig,
+                    topP: parseFloat(e.target.value),
+                  })
+                }
+              />
+            </div>
+          </div>
+
+          <hr
+            style={{
+              margin: '20px 0',
+              border: '0',
+              borderTop: '1px solid var(--border-color)',
+            }}
+          />
+          <div className="input-group">
+            <label>Min Search Volume</label>
+            <input
+              type="number"
+              value={localMinSearchVolume}
+              onChange={e =>
+                setLocalMinSearchVolume(Number(e.target.value))
+              }
+              placeholder="100"
+            />
+          </div>
+
+          <hr
+            style={{
+              margin: '20px 0',
+              border: '0',
+              borderTop: '1px solid var(--border-color)',
+            }}
+          />
+          <div className="input-group">
+            <label>Export Spreadsheet URL</label>
+            <input
+              type="text"
+              value={localSpreadsheetUrl}
+              onChange={e => setLocalSpreadsheetUrl(e.target.value)}
+              placeholder="https://docs.google.com/spreadsheets/d/..."
+            />
+            <div className="text-sm text-muted mt-1">
+              Note: The spreadsheet must be shared with{' '}
+              <strong>{USER_EMAIL}</strong> with edit permissions.
+            </div>
+          </div>
+
+          <hr
+            style={{
+              margin: '20px 0',
+              border: '0',
+              borderTop: '1px solid var(--border-color)',
+            }}
+          />
+          <div className="input-group">
+            <label>Application Data</label>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
+            >
+              <button
+                className="btn"
+                onClick={() => {
+                  onClearCache();
+                  onClose();
+                }}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  padding: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#f3f4f6',
+                  color: '#4b5563',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  flexShrink: 0,
+                }}
+                title="Clear Cache"
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: '1.2rem' }}
+                >
+                  delete_outline
+                </span>
+              </button>
+              <div className="text-sm text-muted">
+                Removes all locally saved data and resets the application
+                state.
+              </div>
+            </div>
+          </div>
+
+          <hr
+            style={{
+              margin: '20px 0',
+              border: '0',
+              borderTop: '1px solid var(--border-color)',
+            }}
+          />
+
+          <details
+            className="advanced-settings"
+            open={!!modalConfig.highlight}
+            style={{
+              background: 'var(--bg-color)',
+              padding: '15px',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color)',
+            }}
+          >
+            <summary
+              style={{
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '1.2rem' }}
+              >
+                expand_more
+              </span>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '1.2rem' }}
+              >
+                settings
+              </span>
+              Advanced Settings
+            </summary>
+            <div className="mt-4">
+              <div className="input-group">
+                <label>Ads Account ID</label>
+                <div
+                  style={
+                    modalConfig.highlight === 'ADS_ACCOUNT_ID' ||
+                    modalConfig.highlight === 'BOTH'
+                      ? {
+                          border: '2px solid #dc2626',
+                          borderRadius: '8px',
+                          padding: '4px',
+                          position: 'relative',
+                        }
+                      : {}
+                  }
+                >
+                  <input
+                    ref={adsInputRef}
+                    type="text"
+                    value={localAdsId}
+                    onChange={e => setLocalAdsId(e.target.value)}
+                    placeholder="e.g. 123-456-7890"
+                    style={{ width: '100%', boxSizing: 'border-box' }}
+                  />
+                  {(modalConfig.highlight === 'ADS_ACCOUNT_ID' ||
+                    modalConfig.highlight === 'BOTH') && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: '-60px',
+                        top: '50%',
+                        color: '#dc2626',
+                        fontSize: '48px',
+                        fontWeight: 'bold',
+                        animation:
+                          'bounceHorizontal 1s infinite ease-in-out',
+                      }}
+                    >
+                      ←
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="input-group">
+                <label>Developer Token</label>
+                <div
+                  style={
+                    modalConfig.highlight === 'DEVELOPER_TOKEN' ||
+                    modalConfig.highlight === 'BOTH'
+                      ? {
+                          border: '2px solid #dc2626',
+                          borderRadius: '8px',
+                          padding: '4px',
+                          position: 'relative',
+                        }
+                      : {}
+                  }
+                >
+                  <input
+                    type="text"
+                    value={localDevToken}
+                    onChange={e => setLocalDevToken(e.target.value)}
+                    placeholder={
+                      configStatus.hasDeveloperToken
+                        ? 'Token is set (hidden for safety). Type to update.'
+                        : 'Enter Developer Token'
+                    }
+                    style={{ width: '100%', boxSizing: 'border-box' }}
+                  />
+                  {(modalConfig.highlight === 'DEVELOPER_TOKEN' ||
+                    modalConfig.highlight === 'BOTH') && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: '-60px',
+                        top: '50%',
+                        color: '#dc2626',
+                        fontSize: '48px',
+                        fontWeight: 'bold',
+                        animation:
+                          'bounceHorizontal 1s infinite ease-in-out',
+                      }}
+                    >
+                      ←
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </details>
+          <div className="modal-actions">
+            <button className="btn" onClick={onClose} disabled={isSaving}>
+              Cancel
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  };
+
+  window.AdPreview = ({ adData }) => {
+    const [h1Index, setH1Index] = useState(0);
+    const [h2Index, setH2Index] = useState(1);
+    const [dIndex, setDIndex] = useState(0);
+
+    const headlines = adData?.headlines || [];
+    const descriptions = adData?.descriptions || [];
+
+    const randomize = () => {
+      if (headlines.length > 0) {
+        const r1 = Math.floor(Math.random() * headlines.length);
+        let r2 = Math.floor(Math.random() * headlines.length);
+        // Try to get a different second headline if possible
+        if (headlines.length > 1) {
+          while (r2 === r1) {
+            r2 = Math.floor(Math.random() * headlines.length);
+          }
+        }
+        setH1Index(r1);
+        setH2Index(r2);
+      }
+      if (descriptions.length > 0) {
+        setDIndex(Math.floor(Math.random() * descriptions.length));
+      }
+    };
+
+    useEffect(() => {
+      randomize();
+    }, [adData]);
+
+    if (!adData || headlines.length === 0) return null;
+
+    return (
+      <div className="ad-preview">
+        <div className="ad-url">
+          <span className="ad-label">Ad</span>
+          www.example.com
+        </div>
+        <div className="ad-headline">
+          <a
+            href="#"
+            onClick={e => e.preventDefault()}
+            style={{ color: '#1a0dab', textDecoration: 'none' }}
+          >
+            {headlines[h1Index]}{' '}
+            {headlines.length > 1 && `| ${headlines[h2Index]}`}
+          </a>
+          <div className="preview-controls">
+            <button
+              className="control-btn"
+              onClick={randomize}
+              title="Shuffle Headlines"
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '14px' }}
+              >
+                shuffle
+              </span>
+            </button>
+          </div>
+        </div>
+        <div className="ad-description">
+          {descriptions[dIndex]}
+          <div className="preview-controls">
+            <button
+              className="control-btn"
+              onClick={randomize}
+              title="Shuffle Description"
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '14px' }}
+              >
+                shuffle
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+</script>

@@ -1,0 +1,489 @@
+<!--
+Copyright 2025 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<script type="text/babel">
+  const { InputField, AdPreview, Modal } = window;
+
+  window.CampaignsTab = ({
+    campaignSuggestions,
+    setCampaignSuggestions,
+    setCampaignStatus,
+    brandName,
+    setBrandName,
+    creationKeywords,
+    setCreationKeywords,
+    creationResult,
+    setCreationResult,
+    creationAccountId,
+    setCreationAccountId,
+    creationInstructions,
+    setCreationInstructions,
+    creationPromptTemplate,
+    setCreationPromptTemplate,
+    creationStyleGuide,
+    setCreationStyleGuide,
+    showIdInfo,
+    setShowIdInfo,
+    showBrandInfo,
+    setShowBrandInfo,
+    isGeneratingPrompt,
+    isCreatingCampaign,
+    generatePrompt,
+    generateNewCampaigns,
+    campaignStatus,
+    isGeneratingCampaigns,
+    generateCampaignSuggestions,
+    handleDownloadCampaigns,
+    handleExportCampaignsToSheet,
+    isExporting,
+    GOOGLE_ADS_ID_HELP_URL,
+  }) => {
+    return (
+      <div className="card fade-in">
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem',
+          }}
+        >
+          <h2 style={{ marginBottom: 0 }}>Campaigns</h2>
+          <button
+            className="header-action-btn"
+            onClick={() => {
+              setCampaignSuggestions('');
+              setCampaignStatus('');
+              setBrandName('');
+              setCreationKeywords('');
+              setCreationResult('');
+              setCreationAccountId('');
+              setCreationInstructions('');
+              setCreationPromptTemplate('');
+            }}
+            title="Reset Campaign Suggestions"
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '1.2rem' }}
+            >
+              delete_outline
+            </span>
+          </button>
+        </div>
+
+        <div className="grid-2">
+          <div className="input-group" style={{ position: 'relative' }}>
+            <label>
+              Google Ads Account ID (Optional)
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: '16px',
+                  marginLeft: '6px',
+                  verticalAlign: 'middle',
+                  cursor: 'pointer',
+                  color: 'var(--primary)',
+                }}
+                onClick={() => setShowIdInfo(true)}
+              >
+                info
+              </span>
+            </label>
+            <input
+              type="text"
+              value={creationAccountId}
+              onChange={e => setCreationAccountId(e.target.value)}
+              placeholder="123-456-7890"
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-color)',
+                fontFamily: 'inherit',
+                fontSize: '0.95rem',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+          <div className="input-group">
+            <label>
+              Brand Name (optional)
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: '16px',
+                  marginLeft: '6px',
+                  verticalAlign: 'middle',
+                  cursor: 'pointer',
+                  color: 'var(--primary)',
+                }}
+                onClick={() => setShowBrandInfo(true)}
+              >
+                info
+              </span>
+            </label>
+            <input
+              type="text"
+              value={brandName}
+              onChange={e => setBrandName(e.target.value)}
+              placeholder="My Brand"
+            />
+          </div>
+        </div>
+
+        <details className="mb-4">
+          <summary className="cursor-pointer text-sm font-medium text-primary">
+            Advanced Configuration
+          </summary>
+          <div className="mt-4">
+            <div
+              className="mb-4"
+              style={{
+                display: 'flex',
+                gap: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <button
+                className="btn btn-primary"
+                onClick={generatePrompt}
+                disabled={isGeneratingPrompt || isCreatingCampaign}
+              >
+                {isGeneratingPrompt ? (
+                  <>
+                    <div
+                      className="spinner"
+                      style={{ width: '16px', height: '16px' }}
+                    ></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined">refresh</span>
+                    Re-create Prompt Template
+                  </>
+                )}
+              </button>
+            </div>
+            <InputField
+              type="textarea"
+              label="Prompt Template"
+              value={creationPromptTemplate}
+              onChange={setCreationPromptTemplate}
+              rows={6}
+            />
+            <InputField
+              type="textarea"
+              label="Style Guide"
+              value={creationStyleGuide}
+              onChange={setCreationStyleGuide}
+              rows={6}
+            />
+          </div>
+        </details>
+
+        <div className="mb-4 mt-4">
+          <h3>Suggestions</h3>
+          {Array.isArray(campaignSuggestions) ? (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+              }}
+            >
+              {campaignSuggestions.map((campaign, cIdx) => (
+                <div
+                  key={cIdx}
+                  className="card"
+                  style={{ borderLeft: '4px solid var(--primary)' }}
+                >
+                  <h4 style={{ marginBottom: '16px', fontSize: '1.1rem' }}>
+                    Campaign: {campaign.campaignName}
+                  </h4>
+                  {campaign.adGroups &&
+                    campaign.adGroups.map((adGroup, gIdx) => (
+                      <div
+                        key={gIdx}
+                        style={{
+                          marginLeft: '16px',
+                          marginBottom: '16px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            marginBottom: '8px',
+                            fontWeight: '500',
+                          }}
+                        >
+                          Ad Group: {adGroup.name}
+                        </div>
+                        {adGroup.keywords && (
+                          <div
+                            style={{
+                              fontSize: '0.9rem',
+                              color: 'var(--text-secondary)',
+                              marginBottom: '12px',
+                            }}
+                          >
+                            <strong>Keywords:</strong>{' '}
+                            {adGroup.keywords.join(', ')}
+                          </div>
+                        )}
+                        <div
+                          style={{
+                            display: 'grid',
+                            gap: '12px',
+                            gridTemplateColumns:
+                              'repeat(auto-fill, minmax(300px, 1fr))',
+                          }}
+                        >
+                          {adGroup.ads &&
+                            adGroup.ads.map((ad, aIdx) => (
+                              <AdPreview key={aIdx} adData={ad} />
+                            ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div dangerouslySetInnerHTML={{ __html: campaignSuggestions }} />
+          )}
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '16px',
+          }}
+        >
+          <button
+            className="btn btn-primary"
+            onClick={generateCampaignSuggestions}
+            disabled={isGeneratingCampaigns}
+          >
+            {isGeneratingCampaigns ? (
+              <>
+                <div className="spinner"></div>{' '}
+                {campaignStatus || 'Generating...'}
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined">campaign</span>{' '}
+                Generate Suggestions
+              </>
+            )}
+          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {campaignSuggestions && (
+              <button
+                className="btn btn-secondary"
+                onClick={handleDownloadCampaigns}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border-color)',
+                }}
+                title="Download Markdown"
+              >
+                <span className="material-symbols-outlined">download</span>
+              </button>
+            )}
+            {campaignSuggestions && (
+              <button
+                className="btn btn-secondary"
+                onClick={handleExportCampaignsToSheet}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border-color)',
+                }}
+                disabled={isExporting}
+                title="Export to Sheet"
+              >
+                {isExporting ? (
+                  <div
+                    className="spinner"
+                    style={{
+                      borderColor: 'rgba(37, 99, 235, 0.3)',
+                      borderTopColor: '#2563eb',
+                    }}
+                  ></div>
+                ) : (
+                  <span className="material-symbols-outlined">table</span>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <hr
+          style={{
+            margin: '32px 0',
+            borderTop: '1px solid var(--border-color)',
+          }}
+        />
+
+        <h3>Creation</h3>
+
+        <InputField
+          label="Campaign Keywords"
+          value={creationKeywords}
+          onChange={setCreationKeywords}
+          placeholder="keyword1, keyword2"
+        />
+
+        <InputField
+          type="textarea"
+          label="Instructions"
+          value={creationInstructions}
+          onChange={setCreationInstructions}
+          placeholder="Your additional instructions (e.g. Created ads in German)."
+          rows={3}
+        />
+
+        <div className="mt-4">
+          <button
+            className="btn btn-primary"
+            onClick={generateNewCampaigns}
+            disabled={isCreatingCampaign || isGeneratingPrompt}
+          >
+            {isCreatingCampaign ? (
+              <>
+                <div className="spinner"></div>
+                {creationResult && creationResult.startsWith('Generating')
+                  ? creationResult
+                  : 'Creating...'}
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined">add_circle</span>
+                Generate Ad
+              </>
+            )}
+          </button>
+        </div>
+
+        {creationResult && !creationResult.startsWith('Generating') && (
+          <div className="mt-4">
+            {(() => {
+              try {
+                const data = JSON.parse(creationResult);
+                if (Array.isArray(data)) {
+                  return (
+                    <div
+                      className="grid-2"
+                      style={{
+                        gridTemplateColumns:
+                          'repeat(auto-fit, minmax(300px, 1fr))',
+                        gap: '24px',
+                      }}
+                    >
+                      {data.map((ad, i) => (
+                        <div key={i}>
+                          <h4
+                            style={{
+                              marginBottom: '12px',
+                              color: 'var(--text-secondary)',
+                            }}
+                          >
+                            Option {i + 1}
+                          </h4>
+                          <AdPreview adData={ad} />
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                return <AdPreview adData={data} />;
+              } catch (e) {
+                return (
+                  <pre className="p-4 bg-gray-100 rounded overflow-auto">
+                    {creationResult}
+                  </pre>
+                );
+              }
+            })()}
+          </div>
+        )}
+
+        <Modal
+          isOpen={showIdInfo}
+          onClose={() => setShowIdInfo(false)}
+          title="Google Ads Account ID"
+        >
+          <div className="modal-body">
+            <p>
+              This will be used to tailor the campaigns to the best performing
+              ones in the account.
+            </p>
+            <p
+              style={{
+                fontSize: '0.9rem',
+                color: 'var(--text-secondary)',
+                marginTop: '10px',
+              }}
+            >
+              <strong>Requirements:</strong> The account must have active Search
+              campaigns with Responsive Search Ads (RSA) and broad match
+              keywords that have received clicks in the last 30 days.
+            </p>
+            <p>
+              <a
+                href={GOOGLE_ADS_ID_HELP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Find your ID
+              </a>
+            </p>
+            <div className="modal-actions">
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowIdInfo(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={showBrandInfo}
+          onClose={() => setShowBrandInfo(false)}
+          title="Brand Name"
+        >
+          <div className="modal-body">
+            <p>
+              This information will be included in the campaign suggestions to
+              make it more tailored to your brand.
+            </p>
+            <div className="modal-actions">
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowBrandInfo(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </Modal>
+      </div>
+    );
+  };
+</script>

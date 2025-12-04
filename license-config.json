@@ -10,7 +10,9 @@
     "CONTRIBUTING",
     "build",
     "dist",
-    "deploy.sh"
+    "deploy.sh",
+    ".env",
+    "gemini*.md"
   ],
   "license": "license-header.txt",
   "licenseFormats": {

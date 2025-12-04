@@ -15,10 +15,14 @@
  */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { getClusters, main } from './main';
+import { getClusters, main, getCampaigns } from './main';
 import { getHistoricalMetrics } from './ideas';
 import { DEFAULT_STYLE_GUIDE } from './prompt';
-import { getTopPerformingAdsPrompt } from './reporting';
+import {
+  getTopPerformingAdsPrompt,
+  createCampaignPrompt,
+  createAdSuggestion,
+} from './reporting';
 import { generateTrendsKeywords } from './trends';
 import { exportToSheet, createSpreadsheet } from './util';
 
@@ -26,9 +30,12 @@ import { exportToSheet, createSpreadsheet } from './util';
 //  webApp.html with google script run dynamically
 main;
 getClusters;
+getCampaigns;
 getHistoricalMetrics;
 generateTrendsKeywords;
 getTopPerformingAdsPrompt;
+createCampaignPrompt;
+createAdSuggestion;
 DEFAULT_STYLE_GUIDE;
 exportToSheet;
 createSpreadsheet;

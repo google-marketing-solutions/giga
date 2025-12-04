@@ -1,0 +1,135 @@
+<!--
+Copyright 2025 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<script type="text/babel">
+  window.InsightsTab = ({
+    insights,
+    setInsights,
+    setInsightsStatus,
+    generateInsights,
+    isGeneratingInsights,
+    handleDownloadInsights,
+    handleExportInsightsToSheet,
+    isExporting,
+    insightsStatus,
+  }) => {
+    return (
+      <div className="card fade-in">
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem',
+          }}
+        >
+          <h2 style={{ marginBottom: 0 }}>Insights</h2>
+          <button
+            className="header-action-btn"
+            onClick={() => {
+              setInsights('');
+              setInsightsStatus('');
+            }}
+            title="Reset Insights"
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '1.2rem' }}
+            >
+              delete_outline
+            </span>
+          </button>
+        </div>
+        <div
+          className="mb-4"
+          dangerouslySetInnerHTML={{ __html: insights }}
+        />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '16px',
+          }}
+        >
+          <button
+            className="btn btn-primary"
+            onClick={generateInsights}
+            disabled={isGeneratingInsights}
+          >
+            {isGeneratingInsights ? (
+              <>
+                <div className="spinner"></div> Generating Insights...
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined">
+                  lightbulb
+                </span>{' '}
+                Generate Insights
+              </>
+            )}
+          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {insights && (
+              <button
+                className="btn btn-secondary"
+                onClick={handleDownloadInsights}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border-color)',
+                }}
+                title="Download Markdown"
+              >
+                <span className="material-symbols-outlined">
+                  download
+                </span>
+              </button>
+            )}
+            {insights && (
+              <button
+                className="btn btn-secondary"
+                onClick={handleExportInsightsToSheet}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border-color)',
+                }}
+                disabled={isExporting}
+                title="Export to Sheet"
+              >
+                {isExporting ? (
+                  <div
+                    className="spinner"
+                    style={{
+                      borderColor: 'rgba(37, 99, 235, 0.3)',
+                      borderTopColor: '#2563eb',
+                    }}
+                  ></div>
+                ) : (
+                  <span className="material-symbols-outlined">
+                    table
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+        {insightsStatus && (
+          <div className="status-msg">{insightsStatus}</div>
+        )}
+      </div>
+    );
+  };
+</script>
