@@ -15,7 +15,7 @@ limitations under the License.
 -->
 <script type="text/babel">
   const { useState, useMemo, useEffect, useRef } = React;
-  const { GROWTH_METRICS, LANGUAGES, COUNTRIES, COLOR_PALETTE } = window;
+  const { GROWTH_METRICS, LANGUAGES, COUNTRIES, COLOR_PALETTE, DARK_MODE_PALETTE } = window;
   const { InputField, SelectField, ChartComponent, Modal, ChipsInput } = window;
 
   window.ExploreTab = ({
@@ -62,7 +62,12 @@ limitations under the License.
     setUseClustering,
     highlightKeywordSources,
     setHighlightKeywordSources,
+    theme,
   }) => {
+    const palette = theme === 'dark' ? DARK_MODE_PALETTE : COLOR_PALETTE;
+    const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+    const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
+
     const [activeInfoModal, setActiveInfoModal] = useState(null);
     const detailsRef = useRef(null);
 
@@ -190,11 +195,21 @@ limitations under the License.
           intersect: false,
         },
         scales: {
-          y: { beginAtZero: true },
+          x: {
+            ticks: { color: textColor },
+            grid: { color: gridColor },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: textColor },
+            grid: { color: gridColor },
+          },
         },
       }),
-      []
+      [theme]
     );
+
+
 
     const clusterVolumeChartOptions = useMemo(
       () => ({
@@ -203,8 +218,18 @@ limitations under the License.
         plugins: {
           legend: { display: false },
         },
+        scales: {
+          x: {
+            ticks: { color: textColor },
+            grid: { color: gridColor },
+          },
+          y: {
+            ticks: { color: textColor },
+            grid: { color: gridColor },
+          },
+        },
       }),
-      []
+      [theme, textColor, gridColor]
     );
 
     const keywordVolumeChartOptions = useMemo(
@@ -224,10 +249,18 @@ limitations under the License.
           intersect: false,
         },
         scales: {
-          y: { beginAtZero: true },
+          x: {
+            ticks: { color: textColor },
+            grid: { color: gridColor },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: textColor },
+            grid: { color: gridColor },
+          },
         },
       }),
-      []
+      [theme]
     );
 
     const keywordVolumeChartData = useMemo(() => {
@@ -236,7 +269,7 @@ limitations under the License.
         labels: chartLabels,
         datasets: selectedCluster.keywords.map((k, i) => {
           const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
-          const color = COLOR_PALETTE[i % COLOR_PALETTE.length];
+          const color = palette[i % palette.length];
           return {
             label: k,
             data: volHistory.slice(),
@@ -249,7 +282,7 @@ limitations under the License.
           };
         }),
       };
-    }, [selectedCluster, chartLabels, relevantIdeas]);
+    }, [selectedCluster, chartLabels, relevantIdeas, palette]);
 
     const expandedIdeaChartData = useMemo(() => {
       if (!expandedIdea || !chartLabels) return null;
@@ -261,8 +294,8 @@ limitations under the License.
           {
             label: expandedIdea.text,
             data: expandedIdea.searchVolume,
-            borderColor: COLOR_PALETTE[0],
-            backgroundColor: COLOR_PALETTE[0],
+            borderColor: palette[0],
+            backgroundColor: palette[0],
             fill: false,
             tension: 0.3,
             pointRadius: 3,
@@ -270,7 +303,7 @@ limitations under the License.
           },
         ],
       };
-    }, [expandedIdea, chartLabels]);
+    }, [expandedIdea, chartLabels, palette]);
 
     return (
       <div className="card fade-in">
@@ -608,6 +641,7 @@ limitations under the License.
                 type="line"
                 data={seedChartData}
                 options={seedChartOptions}
+                theme={theme}
               />
             </div>
           </div>
@@ -636,10 +670,7 @@ limitations under the License.
                   <button
                     className="btn btn-secondary"
                     onClick={handleDownloadExplore}
-                    style={{
-                      background: 'white',
-                      border: '1px solid var(--border-color)',
-                    }}
+
                     title="Download CSV"
                   >
                     <span className="material-symbols-outlined">download</span>
@@ -648,8 +679,6 @@ limitations under the License.
                     className="btn btn-secondary"
                     onClick={handleExportExploreToSheet}
                     style={{
-                      background: 'white',
-                      border: '1px solid var(--border-color)',
                       marginLeft: '8px',
                     }}
                     disabled={isExporting}
@@ -684,6 +713,7 @@ limitations under the License.
                 type="bubble"
                 data={clustersChartData}
                 options={bubbleChartOptions}
+                theme={theme}
               />
             </div>
           </div>
@@ -749,6 +779,7 @@ limitations under the License.
                   type="line"
                   data={selectedClusterChartData}
                   options={clusterVolumeChartOptions}
+                  theme={theme}
                 />
               </div>
             </div>
@@ -759,6 +790,7 @@ limitations under the License.
                   type="line"
                   data={keywordVolumeChartData}
                   options={keywordVolumeChartOptions}
+                  theme={theme}
                 />
               </div>
             </div>

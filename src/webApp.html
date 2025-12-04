@@ -71,6 +71,22 @@ limitations under the License.
           0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
       }
 
+      [data-theme='dark'] {
+        --primary: #60a5fa;
+        --primary-dark: #3b82f6;
+        --secondary: #94a3b8;
+        --bg-color: #0f172a;
+        --surface-color: #1e293b;
+        --text-main: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --border-color: #334155;
+        --success: #34d399;
+        --error: #f87171;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+      }
+
       body {
         margin: 0;
         padding: 0;
@@ -96,7 +112,7 @@ limitations under the License.
         box-shadow: var(--shadow-md);
         padding: 24px;
         margin-bottom: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.5);
+        border: 1px solid var(--border-color);
         transition: transform 0.2s, box-shadow 0.2s;
       }
 
@@ -219,6 +235,7 @@ limitations under the License.
         font-size: 0.95rem;
         transition: all 0.2s;
         box-sizing: border-box;
+        color: var(--text-main);
       }
 
       input[type='text']:focus,
@@ -228,7 +245,7 @@ limitations under the License.
         outline: none;
         border-color: var(--primary);
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        background: white;
+        background: var(--surface-color);
       }
 
       /* Buttons */
@@ -265,6 +282,18 @@ limitations under the License.
         transform: translateY(0);
       }
 
+      .btn-secondary {
+        background: transparent;
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background: var(--bg-color);
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
       .btn-icon {
         cursor: pointer;
         padding: 8px;
@@ -279,8 +308,9 @@ limitations under the License.
       }
 
       .btn-icon:hover {
-        background: #f3f4f6;
-        border-color: #e5e7eb;
+        background: var(--bg-color);
+        border-color: var(--border-color);
+        color: var(--text-main);
       }
 
       .btn:disabled {
@@ -294,7 +324,7 @@ limitations under the License.
         display: flex;
         gap: 8px;
         margin-bottom: 24px;
-        background: rgba(255, 255, 255, 0.5);
+        background: var(--surface-color);
         padding: 6px;
         border-radius: var(--radius-lg);
         backdrop-filter: blur(8px);
@@ -315,14 +345,14 @@ limitations under the License.
       }
 
       .tab-btn.active {
-        background: white;
+        background: var(--bg-color);
         color: var(--primary);
         box-shadow: var(--shadow-sm);
         font-weight: 600;
       }
 
       .tab-btn:hover:not(.active) {
-        background: rgba(255, 255, 255, 0.8);
+        background: var(--bg-color);
         color: var(--text-main);
       }
 
@@ -386,6 +416,7 @@ limitations under the License.
       }
       .modal-content {
         background: var(--surface-color);
+        color: var(--text-main);
         padding: 2rem;
         border-radius: 16px;
         border: 1px solid var(--border-color);
@@ -716,6 +747,27 @@ limitations under the License.
           'explore',
           'giga_activeTab'
         );
+
+        // Theme State
+        const [theme, setTheme] = useStickyState('light', 'giga_theme');
+
+        useEffect(() => {
+          document.documentElement.setAttribute('data-theme', theme);
+
+          // Update Chart.js defaults
+          const isDark = theme === 'dark';
+          const textColor = isDark ? '#f1f5f9' : '#1e293b';
+          const gridColor = isDark ? '#334155' : '#e2e8f0';
+
+          Chart.defaults.color = textColor;
+          Chart.defaults.borderColor = gridColor;
+          Chart.defaults.scale.grid.color = gridColor;
+
+        }, [theme]);
+
+        const toggleTheme = () => {
+          setTheme(prev => prev === 'light' ? 'dark' : 'light');
+        };
 
         // Explore State
         const [keywords, setKeywords] = useStickyState('', 'giga_keywords');
@@ -1867,47 +1919,58 @@ limitations under the License.
         }, [ideasData, keywords, chartLabels]);
 
         const bubbleChartOptions = useMemo(
-          () => ({
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: { title: { display: true, text: 'Search Volume' } },
-              y: {
-                title: {
-                  display: true,
-                  text:
-                    GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
-                    'Growth',
+          () => {
+            const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+            const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
+            return {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  title: { display: true, text: 'Search Volume', color: textColor },
+                  ticks: { color: textColor },
+                  grid: { color: gridColor }
                 },
-                ticks: {
-                  callback: value =>
-                    (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%',
+                y: {
+                  title: {
+                    display: true,
+                    text:
+                      GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
+                      'Growth',
+                    color: textColor,
+                  },
+                  ticks: {
+                    color: textColor,
+                    callback: value =>
+                      (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%',
+                  },
+                  grid: { color: gridColor }
                 },
               },
-            },
-            plugins: {
-              tooltip: {
-                callbacks: {
-                  label: ctx =>
-                    `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: ctx =>
+                      `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
+                  },
                 },
               },
-            },
-            onClick: (evt, elements) => {
-              if (elements.length > 0) {
-                const index = elements[0].datasetIndex;
-                if (clusters && clusters[index]) {
-                  setSelectedCluster(clusters[index]);
-                  setTimeout(() => {
-                    document
-                      .getElementById('cluster-details')
-                      ?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
+              onClick: (evt, elements) => {
+                if (elements.length > 0) {
+                  const index = elements[0].datasetIndex;
+                  if (clusters && clusters[index]) {
+                    setSelectedCluster(clusters[index]);
+                    setTimeout(() => {
+                      document
+                        .getElementById('cluster-details')
+                        ?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }
                 }
-              }
-            },
-          }),
-          [growthMetric, clusters]
+              },
+            };
+          },
+          [growthMetric, clusters, theme]
         );
 
         const handleDownloadExplore = () => {
@@ -2184,6 +2247,21 @@ limitations under the License.
                     settings
                   </span>
                 </button>
+                <button
+                  className="btn"
+                  onClick={toggleTheme}
+                  style={{
+                    background: 'transparent',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-color)',
+                    padding: '8px',
+                  }}
+                  title={theme === 'light' ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>
+                    {theme === 'light' ? 'dark_mode' : 'light_mode'}
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -2253,6 +2331,7 @@ limitations under the License.
                 setUseClustering={setUseClustering}
                 highlightKeywordSources={highlightKeywordSources}
                 setHighlightKeywordSources={setHighlightKeywordSources}
+                theme={theme}
               />
             )}
 

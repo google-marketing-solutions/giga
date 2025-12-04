@@ -23,6 +23,14 @@ limitations under the License.
     '#166088',
   ];
 
+  window.DARK_MODE_PALETTE = [
+    '#60a5fa', // blue-400
+    '#93c5fd', // blue-300
+    '#38bdf8', // sky-400
+    '#7dd3fc', // sky-300
+    '#22d3ee', // cyan-400
+  ];
+
   window.LANGUAGES = [
     { id: '1000', name: 'English' },
     { id: '1001', name: 'German' },
@@ -94,13 +102,13 @@ The Google Ads keyword ideas are:
 
   window.DEFAULT_TRENDS_PROMPT = `Provide a list of around 100 Google Ads broad match keywords that represent trends regarding the topics/keywords mentioned below.`;
 
-  window.LANGUAGE_INFO_URL = 
+  window.LANGUAGE_INFO_URL =
     'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
-  window.LOCATION_INFO_URL = 
+  window.LOCATION_INFO_URL =
     'https://developers.google.com/google-ads/api/reference/data/geotargets';
-  window.GOOGLE_ADS_ID_HELP_URL = 
+  window.GOOGLE_ADS_ID_HELP_URL =
     'https://support.google.com/google-ads/answer/1704344?hl=en';
-    
+
   window.GROWTH_METRICS = [
     { id: 'yoy', name: 'Year over Year' },
     { id: 'mom', name: 'Month over Month' },
@@ -141,7 +149,7 @@ The Google Ads keyword ideas are:
     if (micros == null) return '';
     return (micros / 1000000).toFixed(2);
   };
-  
+
   window.htmlToMarkdown = html => {
     let md = html;
     // Simple replacements for common tags
