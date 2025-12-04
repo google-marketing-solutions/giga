@@ -170,8 +170,11 @@ export const exportToSheet = (
       finalRows = rows.map(row =>
         row.map((cell, colIndex) => {
           const fmt = columnFormats.find(f => f.colIndex === colIndex);
-          if (fmt && fmt.scale !== undefined && typeof cell === 'number') {
-            return cell * fmt.scale;
+          if (fmt && fmt.scale !== undefined) {
+            const val = Number(cell);
+            if (!isNaN(val)) {
+              return val * fmt.scale;
+            }
           }
           return cell;
         })
@@ -204,6 +207,26 @@ export const exportToSheet = (
       if (finalHeader && finalHeader.length > 0) {
         sheet.getRange(1, 1, 1, data[0].length).setFontWeight('bold');
       }
+
+      // Apply number formats
+      if (columnFormats && columnFormats.length > 0) {
+        const numRows = data.length - (finalHeader ? 1 : 0);
+        if (numRows > 0) {
+          const startRow = finalHeader ? 2 : 1;
+          columnFormats.forEach(fmt => {
+            if (fmt.numberFormat) {
+              // colIndex is 0-based, getRange is 1-based
+              const col = fmt.colIndex + 1;
+              if (col <= data[0].length) {
+                sheet
+                  .getRange(startRow, col, numRows, 1)
+                  .setNumberFormat(fmt.numberFormat);
+              }
+            }
+          });
+        }
+      }
+
       sheet.autoResizeColumns(1, data[0].length);
     }
 
