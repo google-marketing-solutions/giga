@@ -71,34 +71,41 @@ limitations under the License.
   }) => {
     const [inputValue, setInputValue] = useState('');
 
+    const addChip = (text) => {
+      const trimmed = text.trim();
+      if (trimmed) {
+        if (!value.includes(trimmed)) {
+          const nextValue = [...value, trimmed];
+          onChange(nextValue);
+          setInputValue('');
+          return nextValue;
+        }
+        setInputValue('');
+      }
+      return value;
+    };
+
     const handleKeyDown = (e) => {
       if (['Tab', ','].includes(e.key)) {
         e.preventDefault();
-        const trimmed = inputValue.trim();
-        if (trimmed) {
-          if (!value.includes(trimmed)) {
-            onChange([...value, trimmed]);
-          }
-          setInputValue('');
-        }
+        addChip(inputValue);
       } else if (e.key === 'Enter') {
         const trimmed = inputValue.trim();
-        let nextValue = value;
         if (trimmed) {
            e.preventDefault();
-           if (!value.includes(trimmed)) {
-             nextValue = [...value, trimmed];
-             onChange(nextValue);
-           }
-           setInputValue('');
+           addChip(inputValue);
         } else {
             if (onKeyDown) {
-                 onKeyDown(e, nextValue);
+                 onKeyDown(e, value);
             }
         }
       } else if (e.key === 'Backspace' && !inputValue && value.length > 0) {
         onChange(value.slice(0, -1));
       }
+    };
+
+    const handleBlur = () => {
+      addChip(inputValue);
     };
 
     const removeChip = (indexToRemove) => {
@@ -121,6 +128,7 @@ limitations under the License.
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
             placeholder={value.length === 0 ? placeholder : ''}
             className="chips-input-field"
           />
