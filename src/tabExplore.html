@@ -68,6 +68,12 @@ limitations under the License.
     const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
     const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
 
+    const searchVolumeDisclaimer = (
+      <div style={{ padding: '0 1rem 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'center' }}>
+        * Search Volume is from the previous full month only and is limited by the <a href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Historical Metrics</a> endpoint from the Google Ads API.
+      </div>
+    );
+
     const [activeInfoModal, setActiveInfoModal] = useState(null);
     const detailsRef = useRef(null);
 
@@ -644,6 +650,7 @@ limitations under the License.
                 theme={theme}
               />
             </div>
+            {searchVolumeDisclaimer}
           </div>
         )}
 
@@ -716,6 +723,7 @@ limitations under the License.
                 theme={theme}
               />
             </div>
+            {searchVolumeDisclaimer}
           </div>
         )}
 
@@ -1087,28 +1095,31 @@ limitations under the License.
                                 </div>
                               </div>
                               {expandedIdeaChartData ? (
-                                <div style={{ height: '300px' }}>
-                                  <ChartComponent
-                                    type="line"
-                                    data={expandedIdeaChartData}
-                                    options={{
-                                      responsive: true,
-                                      maintainAspectRatio: false,
-                                      plugins: {
-                                        legend: { display: false },
-                                      },
-                                      scales: {
-                                        x: {
-                                          ticks: {
-                                            autoSkip: false,
+                                <div>
+                                  <div style={{ height: '300px' }}>
+                                    <ChartComponent
+                                      type="line"
+                                      data={expandedIdeaChartData}
+                                      options={{
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                          legend: { display: false },
+                                        },
+                                        scales: {
+                                          x: {
+                                            ticks: {
+                                              autoSkip: false,
+                                            },
+                                          },
+                                          y: {
+                                            beginAtZero: true,
                                           },
                                         },
-                                        y: {
-                                          beginAtZero: true,
-                                        },
-                                      },
-                                    }}
-                                  />
+                                      }}
+                                    />
+                                  </div>
+                                  {searchVolumeDisclaimer}
                                 </div>
                               ) : (
                                 <div
