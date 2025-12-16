@@ -1,7 +1,7 @@
-import { addGoogleAdsAuth, ADS_ENDPOINT, ADS_VERSION } from './ideas';
-import { createGeminiConfig } from './main';
-import { deduplicate, getDateWithDeltaDays, groupBy, keepKeys } from './util';
-import { gemini } from './vertex';
+import {addGoogleAdsAuth, ADS_ENDPOINT, ADS_VERSION} from './ideas';
+import {createGeminiConfig} from './main';
+import {deduplicate, getDateWithDeltaDays, groupBy, keepKeys} from './util';
+import {gemini} from './vertex';
 
 /**
  * Copyright 2025 Google LLC
@@ -212,8 +212,17 @@ const getKeywords = (cid, adGroupIds, durationClause) => {
   return mapping;
 };
 
-export const getTopPerformingAdsAndKeywords = (cid, topN) => {
-  const durationClause = `segments.date DURING LAST_30_DAYS`;
+export const getTopPerformingAdsAndKeywords = (
+  cid,
+  topN,
+  lookbackDays = 30,
+  metric = 'clicks'
+) => {
+  // Fallback for custom days if needed, but for now assuming standard ranges or just using LAST_30_DAYS if lookbackDays is 30.
+  // Actually, let's use getDateSegment for flexibility if lookbackDays is not 30?
+  // But for simplicity and safety with enum-like behavior in UI, let's stick to simple logic or just use getDateSegment which is robust.
+  const dateSegment = getDateSegment(lookbackDays);
+
   const topAdsQuery = `
   SELECT
     ad_group.id,
@@ -221,15 +230,15 @@ export const getTopPerformingAdsAndKeywords = (cid, topN) => {
     ad_group_ad.ad.responsive_search_ad.headlines,
     ad_group_ad.ad.responsive_search_ad.descriptions,
     ad_group_ad.ad_strength,
-    metrics.clicks
+    metrics.${metric}
   FROM ad_group_ad
   WHERE campaign.advertising_channel_type = 'SEARCH'
     AND ad_group_ad.ad.type = 'RESPONSIVE_SEARCH_AD'
-    AND ${durationClause}
+    AND ${dateSegment}
     AND ad_group_ad.status = 'ENABLED'
     AND ad_group.status = 'ENABLED'
     AND campaign.status = 'ENABLED'
-  ORDER BY metrics.clicks DESC
+  ORDER BY metrics.${metric} DESC
   LIMIT ${topN}`;
 
   const bestAds = runQuery(cid, topAdsQuery).map(item => ({
@@ -241,13 +250,23 @@ export const getTopPerformingAdsAndKeywords = (cid, topN) => {
   }));
 
   const adGroupIds = deduplicate(bestAds.map(ad => ad.adGroupId));
-  const keywords = getKeywords(cid, adGroupIds, durationClause);
+  const keywords = getKeywords(cid, adGroupIds, dateSegment);
   return bestAds.map(ad =>
     Object.assign(ad, { keywords: keywords[ad.adGroupId] })
   );
 };
-export const getTopPerformingAdsPrompt = (cid, topN) => {
-  const adsWithKeywords = getTopPerformingAdsAndKeywords(cid, topN);
+export const getTopPerformingAdsPrompt = (
+  cid,
+  topN,
+  lookbackDays = 30,
+  metric = 'clicks'
+) => {
+  const adsWithKeywords = getTopPerformingAdsAndKeywords(
+    cid,
+    topN,
+    lookbackDays,
+    metric
+  );
   const prompt = getPromptTemplate(adsWithKeywords);
   console.log(prompt);
   return prompt;
@@ -260,7 +279,16 @@ export const createAdSuggestion = (prompt, userKeywords, geminiConfig) => {
   );
 };
 
-export const createCampaignPrompt = cid => {
-  const adsWithKeywords = getTopPerformingAdsAndKeywords(cid, 5);
+export const createCampaignPrompt = (
+  cid,
+  lookbackDays = 30,
+  metric = 'clicks'
+) => {
+  const adsWithKeywords = getTopPerformingAdsAndKeywords(
+    cid,
+    5,
+    lookbackDays,
+    metric
+  );
   return getPromptTemplate(adsWithKeywords);
 };

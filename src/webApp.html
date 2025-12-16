@@ -1245,6 +1245,16 @@ limitations under the License.
           'growthMetric'
         );
 
+        // Campaign Creation Settings
+        const [creationLookbackDays, setCreationLookbackDays] = useStickyState(
+          30,
+          'giga_creationLookbackDays'
+        );
+        const [creationMetric, setCreationMetric] = useStickyState(
+          'clicks',
+          'giga_creationMetric'
+        );
+
         // Gemini Configuration
         const [errorState, setErrorState] = useState({
           isOpen: false,
@@ -1830,7 +1840,11 @@ limitations under the License.
 
           setIsGeneratingPrompt(true);
           try {
-            const result = await googleScriptRun.createCampaignPrompt(id);
+            const result = await googleScriptRun.createCampaignPrompt(
+              id,
+              creationLookbackDays,
+              creationMetric
+            );
             setCreationPromptTemplate(result);
             setCreationResult('');
             return result;
@@ -2423,6 +2437,10 @@ limitations under the License.
                 handleExportCampaignsToSheet={handleExportCampaignsToSheet}
                 isExporting={isExporting}
                 GOOGLE_ADS_ID_HELP_URL={GOOGLE_ADS_ID_HELP_URL}
+                creationLookbackDays={creationLookbackDays}
+                setCreationLookbackDays={setCreationLookbackDays}
+                creationMetric={creationMetric}
+                setCreationMetric={setCreationMetric}
               />
             )}
 
