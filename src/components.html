@@ -651,17 +651,22 @@ limitations under the License.
               </div>
             </div>
           </details>
-          <div className="modal-actions">
-            <button className="btn" onClick={onClose} disabled={isSaving}>
-              Cancel
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              {isSaving ? 'Saving...' : 'Save'}
-            </button>
+          <div className="modal-actions" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
+              Version: {APP_VERSION}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="btn" onClick={onClose} disabled={isSaving}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Saving...' : 'Save'}
+              </button>
+            </div>
           </div>
         </div>
       </Modal>
