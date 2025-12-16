@@ -369,8 +369,7 @@ limitations under the License.
               : []
           }
           onChange={chips => setKeywords(chips.join(', '))}
-          placeholder="Type a keyword and press Enter..."
-          helpText="Type keywords and press Enter or Tab to add them. Press Enter again to start."
+          placeholder="Type keywords (Enter/Tab to add). Press Enter again to start."
           onKeyDown={(e, newChips) => {
             if (e.key === 'Enter') {
               const keywordsToRun = newChips ? newChips.join(', ') : keywords;
@@ -1219,6 +1218,9 @@ limitations under the License.
                   foundation for generating new keyword ideas and clusters.
                 </p>
                 <p>
+                  Type keywords and press <strong>Enter</strong> or <strong>Tab</strong> to add them. Press <strong>Enter</strong> again to start.
+                </p>
+                <p>
                   The tool will use these seeds to find related search terms and
                   historical data to help expand your keyword research.
                 </p>
@@ -1241,13 +1243,16 @@ limitations under the License.
             ) : (
               <div>
                 <p>
-                  Ensure this language matches the language of your{' '}
+                  Select the language for the <strong>Keyword Ideas</strong> you want to generate.
+                </p>
+                <p>
+                  <strong>Important:</strong> Ensure this matches the language of your{' '}
                   <strong>Seed Keywords</strong>.
                 </p>
                 <p>
                   The Keyword Idea Service uses this setting to find relevant
                   keywords in the specified language. Mismatched languages
-                  (e.g., English keywords with &quot;German&quot; selected) may
+                  (e.g., English keywords with &quot;German&quot; selected) will likely
                   yield poor or no results.
                 </p>
               </div>
