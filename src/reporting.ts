@@ -1,7 +1,7 @@
-import {addGoogleAdsAuth, ADS_ENDPOINT, ADS_VERSION} from './ideas';
-import {createGeminiConfig} from './main';
-import {deduplicate, getDateWithDeltaDays, groupBy, keepKeys} from './util';
-import {gemini} from './vertex';
+import { addGoogleAdsAuth, ADS_ENDPOINT, ADS_VERSION } from './ideas';
+import { createGeminiConfig } from './main';
+import { deduplicate, getDateWithDeltaDays, groupBy, keepKeys } from './util';
+import { gemini } from './vertex';
 
 /**
  * Copyright 2025 Google LLC
@@ -171,6 +171,7 @@ Please write 3 distinct ads, each with 15 headlines and 4 descriptions for the f
 [${keywords.join(', ')}]
 
 Make sure the ads are different from each other to cover different angles.
+Do not produce placeholders (e.g. {KeyWord: Vintage Jeans}) and instead produce a readable text.
 Output strictly as a JSON array of objects, where each object has 'headlines' (array of strings) and 'descriptions' (array of strings) properties.
 
 *Model:*
