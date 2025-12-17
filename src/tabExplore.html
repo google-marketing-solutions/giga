@@ -68,6 +68,12 @@ limitations under the License.
     const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
     const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
 
+    const searchVolumeDisclaimer = (
+      <div style={{ padding: '0 1rem 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'center' }}>
+        * Search Volume is from the previous full month only and is limited by the <a href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Historical Metrics</a> endpoint from the Google Ads API.
+      </div>
+    );
+
     const [activeInfoModal, setActiveInfoModal] = useState(null);
     const detailsRef = useRef(null);
 
@@ -363,8 +369,7 @@ limitations under the License.
               : []
           }
           onChange={chips => setKeywords(chips.join(', '))}
-          placeholder="Type a keyword and press Enter..."
-          helpText="Type keywords and press Enter or Tab to add them. Press Enter again to start."
+          placeholder="Type keywords (Enter/Tab to add). Press Enter again to start."
           onKeyDown={(e, newChips) => {
             if (e.key === 'Enter') {
               const keywordsToRun = newChips ? newChips.join(', ') : keywords;
@@ -644,6 +649,7 @@ limitations under the License.
                 theme={theme}
               />
             </div>
+            {searchVolumeDisclaimer}
           </div>
         )}
 
@@ -716,6 +722,7 @@ limitations under the License.
                 theme={theme}
               />
             </div>
+            {searchVolumeDisclaimer}
           </div>
         )}
 
@@ -1087,28 +1094,31 @@ limitations under the License.
                                 </div>
                               </div>
                               {expandedIdeaChartData ? (
-                                <div style={{ height: '300px' }}>
-                                  <ChartComponent
-                                    type="line"
-                                    data={expandedIdeaChartData}
-                                    options={{
-                                      responsive: true,
-                                      maintainAspectRatio: false,
-                                      plugins: {
-                                        legend: { display: false },
-                                      },
-                                      scales: {
-                                        x: {
-                                          ticks: {
-                                            autoSkip: false,
+                                <div>
+                                  <div style={{ height: '300px' }}>
+                                    <ChartComponent
+                                      type="line"
+                                      data={expandedIdeaChartData}
+                                      options={{
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                          legend: { display: false },
+                                        },
+                                        scales: {
+                                          x: {
+                                            ticks: {
+                                              autoSkip: false,
+                                            },
+                                          },
+                                          y: {
+                                            beginAtZero: true,
                                           },
                                         },
-                                        y: {
-                                          beginAtZero: true,
-                                        },
-                                      },
-                                    }}
-                                  />
+                                      }}
+                                    />
+                                  </div>
+                                  {searchVolumeDisclaimer}
                                 </div>
                               ) : (
                                 <div
@@ -1208,9 +1218,20 @@ limitations under the License.
                   foundation for generating new keyword ideas and clusters.
                 </p>
                 <p>
+                  Type keywords and press <strong>Enter</strong> or <strong>Tab</strong> to add them. Press <strong>Enter</strong> again to start.
+                </p>
+                <p>
                   The tool will use these seeds to find related search terms and
                   historical data to help expand your keyword research.
                 </p>
+                <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
+                  <p style={{ marginBottom: '4px' }}>
+                    * Gemini may display inaccurate info, so double-check its responses.
+                  </p>
+                  <p>
+                    * Keyword Planner may not return results for keywords that violate <a href="https://support.google.com/adspolicy/answer/6008942" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Google Ads Policies</a>.
+                  </p>
+                </div>
               </div>
             ) : activeInfoModal === 'location_info' ? (
               <div>
@@ -1230,13 +1251,16 @@ limitations under the License.
             ) : (
               <div>
                 <p>
-                  Ensure this language matches the language of your{' '}
+                  Select the language for the <strong>Keyword Ideas</strong> you want to generate.
+                </p>
+                <p>
+                  <strong>Important:</strong> Ensure this matches the language of your{' '}
                   <strong>Seed Keywords</strong>.
                 </p>
                 <p>
                   The Keyword Idea Service uses this setting to find relevant
                   keywords in the specified language. Mismatched languages
-                  (e.g., English keywords with &quot;German&quot; selected) may
+                  (e.g., English keywords with &quot;German&quot; selected) will likely
                   yield poor or no results.
                 </p>
               </div>

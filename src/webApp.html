@@ -724,6 +724,8 @@ limitations under the License.
         htmlToMarkdown,
         convertToCSV,
         downloadFile,
+        APP_VERSION,
+        compareVersions,
       } = window;
 
       const {
@@ -748,6 +750,10 @@ limitations under the License.
           'giga_activeTab'
         );
 
+        // Version State
+        const [showVersionModal, setShowVersionModal] = useState(false);
+        const [versionUpdateType, setVersionUpdateType] = useState(''); // 'major', 'minor', 'patch'
+
         // Theme State
         const [theme, setTheme] = useStickyState('light', 'giga_theme');
 
@@ -762,11 +768,44 @@ limitations under the License.
           Chart.defaults.color = textColor;
           Chart.defaults.borderColor = gridColor;
           Chart.defaults.scale.grid.color = gridColor;
-
         }, [theme]);
 
         const toggleTheme = () => {
-          setTheme(prev => prev === 'light' ? 'dark' : 'light');
+          setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+        };
+
+        // Version Check Effect
+        useEffect(() => {
+          const checkVersion = () => {
+            const cachedVersion = localStorage.getItem('giga_version');
+            if (!cachedVersion) {
+              // First run or no version set, just set it
+              localStorage.setItem('giga_version', APP_VERSION);
+              return;
+            }
+
+            const diff = compareVersions(cachedVersion, APP_VERSION);
+            if (diff === 'major' || diff === 'minor') {
+              setVersionUpdateType(diff);
+              setShowVersionModal(true);
+            } else if (diff === 'patch') {
+              // Silent update for patch
+              localStorage.setItem('giga_version', APP_VERSION);
+            }
+          };
+          checkVersion();
+        }, []);
+
+        const handleVersionUpdate = shouldClearCache => {
+          if (shouldClearCache) {
+            clearCache();
+          } else {
+            // Update version without clearing cache
+            localStorage.setItem('giga_version', APP_VERSION);
+            // Force reload to ensure fresh state if needed, or just close modal
+            // Ideally we might want to reload, but for now just updating version is enough to stop modal
+          }
+          setShowVersionModal(false);
         };
 
         // Explore State
@@ -1203,6 +1242,16 @@ limitations under the License.
         const [growthMetric, setGrowthMetric] = useStickyState(
           'three_months_vs_avg',
           'growthMetric'
+        );
+
+        // Campaign Creation Settings
+        const [creationLookbackDays, setCreationLookbackDays] = useStickyState(
+          30,
+          'giga_creationLookbackDays'
+        );
+        const [creationMetric, setCreationMetric] = useStickyState(
+          'clicks',
+          'giga_creationMetric'
         );
 
         // Gemini Configuration
@@ -1790,7 +1839,11 @@ limitations under the License.
 
           setIsGeneratingPrompt(true);
           try {
-            const result = await googleScriptRun.createCampaignPrompt(id);
+            const result = await googleScriptRun.createCampaignPrompt(
+              id,
+              creationLookbackDays,
+              creationMetric
+            );
             setCreationPromptTemplate(result);
             setCreationResult('');
             return result;
@@ -1918,60 +1971,61 @@ limitations under the License.
           };
         }, [ideasData, keywords, chartLabels]);
 
-        const bubbleChartOptions = useMemo(
-          () => {
-            const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
-            const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
-            return {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: {
-                  title: { display: true, text: 'Search Volume', color: textColor },
-                  ticks: { color: textColor },
-                  grid: { color: gridColor }
+        const bubbleChartOptions = useMemo(() => {
+          const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+          const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
+          return {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Search Volume',
+                  color: textColor,
                 },
-                y: {
-                  title: {
-                    display: true,
-                    text:
-                      GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
-                      'Growth',
-                    color: textColor,
-                  },
-                  ticks: {
-                    color: textColor,
-                    callback: value =>
-                      (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%',
-                  },
-                  grid: { color: gridColor }
+                ticks: { color: textColor },
+                grid: { color: gridColor },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text:
+                    GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
+                    'Growth',
+                  color: textColor,
+                },
+                ticks: {
+                  color: textColor,
+                  callback: value =>
+                    (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%',
+                },
+                grid: { color: gridColor },
+              },
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: ctx =>
+                    `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
                 },
               },
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    label: ctx =>
-                      `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
-                  },
-                },
-              },
-              onClick: (evt, elements) => {
-                if (elements.length > 0) {
-                  const index = elements[0].datasetIndex;
-                  if (clusters && clusters[index]) {
-                    setSelectedCluster(clusters[index]);
-                    setTimeout(() => {
-                      document
-                        .getElementById('cluster-details')
-                        ?.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                  }
+            },
+            onClick: (evt, elements) => {
+              if (elements.length > 0) {
+                const index = elements[0].datasetIndex;
+                if (clusters && clusters[index]) {
+                  setSelectedCluster(clusters[index]);
+                  setTimeout(() => {
+                    document
+                      .getElementById('cluster-details')
+                      ?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
                 }
-              },
-            };
-          },
-          [growthMetric, clusters, theme]
-        );
+              }
+            },
+          };
+        }, [growthMetric, clusters, theme]);
 
         const handleDownloadExplore = () => {
           if (!clusters) return;
@@ -2256,9 +2310,16 @@ limitations under the License.
                     border: '1px solid var(--border-color)',
                     padding: '8px',
                   }}
-                  title={theme === 'light' ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                  title={
+                    theme === 'light'
+                      ? 'Switch to Dark Mode'
+                      : 'Switch to Light Mode'
+                  }
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: '1.5rem' }}
+                  >
                     {theme === 'light' ? 'dark_mode' : 'light_mode'}
                   </span>
                 </button>
@@ -2383,6 +2444,10 @@ limitations under the License.
                 handleExportCampaignsToSheet={handleExportCampaignsToSheet}
                 isExporting={isExporting}
                 GOOGLE_ADS_ID_HELP_URL={GOOGLE_ADS_ID_HELP_URL}
+                creationLookbackDays={creationLookbackDays}
+                setCreationLookbackDays={setCreationLookbackDays}
+                creationMetric={creationMetric}
+                setCreationMetric={setCreationMetric}
               />
             )}
 
@@ -2400,6 +2465,55 @@ limitations under the License.
               onClearCache={clearCache}
             />
             {alertModal}
+
+            <Modal
+              isOpen={showVersionModal}
+              onClose={() => {}}
+              title={`Update Available (${APP_VERSION})`}
+              showCloseButton={false}
+            >
+              <div className="modal-body">
+                <div
+                  className="alert alert-warning mb-4"
+                  style={{
+                    background: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    color: '#1e40af',
+                    padding: '15px',
+                    borderRadius: '8px',
+                  }}
+                >
+                  <h3 style={{ marginTop: 0, fontSize: '1.1rem' }}>
+                    New Version Detected
+                  </h3>
+                  <p>
+                    A new version of GIGA is available. It is recommended to
+                    clear your local cache to ensure compatibility with new
+                    features.
+                  </p>
+                  <p className="text-sm mt-2">
+                    <strong>Update Type:</strong>{' '}
+                    {versionUpdateType.toUpperCase()}
+                  </p>
+                </div>
+
+                <div className="modal-actions">
+                  <button
+                    className="btn"
+                    onClick={() => handleVersionUpdate(false)}
+                  >
+                    Keep Cache (Risk of Errors)
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleVersionUpdate(true)}
+                  >
+                    Clear Cache & Update
+                  </button>
+                </div>
+              </div>
+            </Modal>
+
             <ErrorModal
               isOpen={errorState.isOpen}
               onClose={() => setErrorState({ ...errorState, isOpen: false })}

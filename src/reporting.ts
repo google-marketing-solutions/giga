@@ -171,6 +171,7 @@ Please write 3 distinct ads, each with 15 headlines and 4 descriptions for the f
 [${keywords.join(', ')}]
 
 Make sure the ads are different from each other to cover different angles.
+Do not produce placeholders (e.g. {KeyWord: Vintage Jeans}) and instead produce readable text.
 Output strictly as a JSON array of objects, where each object has 'headlines' (array of strings) and 'descriptions' (array of strings) properties.
 
 *Model:*
@@ -212,8 +213,14 @@ const getKeywords = (cid, adGroupIds, durationClause) => {
   return mapping;
 };
 
-export const getTopPerformingAdsAndKeywords = (cid, topN) => {
-  const durationClause = `segments.date DURING LAST_30_DAYS`;
+export const getTopPerformingAdsAndKeywords = (
+  cid,
+  topN,
+  lookbackDays = 30,
+  metric = 'clicks'
+) => {
+  const dateSegment = getDateSegment(lookbackDays);
+
   const topAdsQuery = `
   SELECT
     ad_group.id,
@@ -221,15 +228,15 @@ export const getTopPerformingAdsAndKeywords = (cid, topN) => {
     ad_group_ad.ad.responsive_search_ad.headlines,
     ad_group_ad.ad.responsive_search_ad.descriptions,
     ad_group_ad.ad_strength,
-    metrics.clicks
+    metrics.${metric}
   FROM ad_group_ad
   WHERE campaign.advertising_channel_type = 'SEARCH'
     AND ad_group_ad.ad.type = 'RESPONSIVE_SEARCH_AD'
-    AND ${durationClause}
+    AND ${dateSegment}
     AND ad_group_ad.status = 'ENABLED'
     AND ad_group.status = 'ENABLED'
     AND campaign.status = 'ENABLED'
-  ORDER BY metrics.clicks DESC
+  ORDER BY metrics.${metric} DESC
   LIMIT ${topN}`;
 
   const bestAds = runQuery(cid, topAdsQuery).map(item => ({
@@ -241,13 +248,23 @@ export const getTopPerformingAdsAndKeywords = (cid, topN) => {
   }));
 
   const adGroupIds = deduplicate(bestAds.map(ad => ad.adGroupId));
-  const keywords = getKeywords(cid, adGroupIds, durationClause);
+  const keywords = getKeywords(cid, adGroupIds, dateSegment);
   return bestAds.map(ad =>
     Object.assign(ad, { keywords: keywords[ad.adGroupId] })
   );
 };
-export const getTopPerformingAdsPrompt = (cid, topN) => {
-  const adsWithKeywords = getTopPerformingAdsAndKeywords(cid, topN);
+export const getTopPerformingAdsPrompt = (
+  cid,
+  topN,
+  lookbackDays = 30,
+  metric = 'clicks'
+) => {
+  const adsWithKeywords = getTopPerformingAdsAndKeywords(
+    cid,
+    topN,
+    lookbackDays,
+    metric
+  );
   const prompt = getPromptTemplate(adsWithKeywords);
   console.log(prompt);
   return prompt;
@@ -260,7 +277,16 @@ export const createAdSuggestion = (prompt, userKeywords, geminiConfig) => {
   );
 };
 
-export const createCampaignPrompt = cid => {
-  const adsWithKeywords = getTopPerformingAdsAndKeywords(cid, 5);
+export const createCampaignPrompt = (
+  cid,
+  lookbackDays = 30,
+  metric = 'clicks'
+) => {
+  const adsWithKeywords = getTopPerformingAdsAndKeywords(
+    cid,
+    5,
+    lookbackDays,
+    metric
+  );
   return getPromptTemplate(adsWithKeywords);
 };

@@ -49,6 +49,10 @@ limitations under the License.
     handleExportCampaignsToSheet,
     isExporting,
     GOOGLE_ADS_ID_HELP_URL,
+    creationLookbackDays,
+    setCreationLookbackDays,
+    creationMetric,
+    setCreationMetric,
   }) => {
     return (
       <div className="card fade-in">
@@ -193,6 +197,36 @@ limitations under the License.
               onChange={setCreationStyleGuide}
               rows={6}
             />
+            <InputField
+              type="textarea"
+              label="Style Guide"
+              value={creationStyleGuide}
+              onChange={setCreationStyleGuide}
+              rows={6}
+            />
+            <div className="grid-2 mt-4">
+              <InputField
+                type="number"
+                label="Lookback Window (Days)"
+                value={creationLookbackDays}
+                onChange={val => setCreationLookbackDays(Number(val))}
+                placeholder="30"
+              />
+              <div className="input-group">
+                <label>Performance Metric</label>
+                <div className="select-wrapper">
+                  <select
+                    value={creationMetric}
+                    onChange={e => setCreationMetric(e.target.value)}
+                  >
+                    <option value="clicks">Clicks</option>
+                    <option value="impressions">Impressions</option>
+                    <option value="conversions">Conversions</option>
+                    <option value="cost_micros">Cost</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
         </details>
 
@@ -442,7 +476,7 @@ limitations under the License.
             >
               <strong>Requirements:</strong> The account must have active Search
               campaigns with Responsive Search Ads (RSA) and broad match
-              keywords that have received clicks in the last 30 days.
+              keywords that have performance data (e.g. clicks, impressions) within the specified lookback window.
             </p>
             <p>
               <a
