@@ -171,7 +171,7 @@ Please write 3 distinct ads, each with 15 headlines and 4 descriptions for the f
 [${keywords.join(', ')}]
 
 Make sure the ads are different from each other to cover different angles.
-Do not produce placeholders (e.g. {KeyWord: Vintage Jeans}) and instead produce a readable text.
+Do not produce placeholders (e.g. {KeyWord: Vintage Jeans}) and instead produce readable text.
 Output strictly as a JSON array of objects, where each object has 'headlines' (array of strings) and 'descriptions' (array of strings) properties.
 
 *Model:*
@@ -219,9 +219,6 @@ export const getTopPerformingAdsAndKeywords = (
   lookbackDays = 30,
   metric = 'clicks'
 ) => {
-  // Fallback for custom days if needed, but for now assuming standard ranges or just using LAST_30_DAYS if lookbackDays is 30.
-  // Actually, let's use getDateSegment for flexibility if lookbackDays is not 30?
-  // But for simplicity and safety with enum-like behavior in UI, let's stick to simple logic or just use getDateSegment which is robust.
   const dateSegment = getDateSegment(lookbackDays);
 
   const topAdsQuery = `

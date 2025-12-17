@@ -768,11 +768,10 @@ limitations under the License.
           Chart.defaults.color = textColor;
           Chart.defaults.borderColor = gridColor;
           Chart.defaults.scale.grid.color = gridColor;
-
         }, [theme]);
 
         const toggleTheme = () => {
-          setTheme(prev => prev === 'light' ? 'dark' : 'light');
+          setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
         };
 
         // Version Check Effect
@@ -797,7 +796,7 @@ limitations under the License.
           checkVersion();
         }, []);
 
-        const handleVersionUpdate = (shouldClearCache) => {
+        const handleVersionUpdate = shouldClearCache => {
           if (shouldClearCache) {
             clearCache();
           } else {
@@ -1972,60 +1971,61 @@ limitations under the License.
           };
         }, [ideasData, keywords, chartLabels]);
 
-        const bubbleChartOptions = useMemo(
-          () => {
-            const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
-            const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
-            return {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: {
-                  title: { display: true, text: 'Search Volume', color: textColor },
-                  ticks: { color: textColor },
-                  grid: { color: gridColor }
+        const bubbleChartOptions = useMemo(() => {
+          const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+          const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
+          return {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Search Volume',
+                  color: textColor,
                 },
-                y: {
-                  title: {
-                    display: true,
-                    text:
-                      GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
-                      'Growth',
-                    color: textColor,
-                  },
-                  ticks: {
-                    color: textColor,
-                    callback: value =>
-                      (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%',
-                  },
-                  grid: { color: gridColor }
+                ticks: { color: textColor },
+                grid: { color: gridColor },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text:
+                    GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
+                    'Growth',
+                  color: textColor,
+                },
+                ticks: {
+                  color: textColor,
+                  callback: value =>
+                    (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%',
+                },
+                grid: { color: gridColor },
+              },
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: ctx =>
+                    `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
                 },
               },
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    label: ctx =>
-                      `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
-                  },
-                },
-              },
-              onClick: (evt, elements) => {
-                if (elements.length > 0) {
-                  const index = elements[0].datasetIndex;
-                  if (clusters && clusters[index]) {
-                    setSelectedCluster(clusters[index]);
-                    setTimeout(() => {
-                      document
-                        .getElementById('cluster-details')
-                        ?.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                  }
+            },
+            onClick: (evt, elements) => {
+              if (elements.length > 0) {
+                const index = elements[0].datasetIndex;
+                if (clusters && clusters[index]) {
+                  setSelectedCluster(clusters[index]);
+                  setTimeout(() => {
+                    document
+                      .getElementById('cluster-details')
+                      ?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
                 }
-              },
-            };
-          },
-          [growthMetric, clusters, theme]
-        );
+              }
+            },
+          };
+        }, [growthMetric, clusters, theme]);
 
         const handleDownloadExplore = () => {
           if (!clusters) return;
@@ -2310,9 +2310,16 @@ limitations under the License.
                     border: '1px solid var(--border-color)',
                     padding: '8px',
                   }}
-                  title={theme === 'light' ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                  title={
+                    theme === 'light'
+                      ? 'Switch to Dark Mode'
+                      : 'Switch to Light Mode'
+                  }
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: '1.5rem' }}
+                  >
                     {theme === 'light' ? 'dark_mode' : 'light_mode'}
                   </span>
                 </button>
@@ -2461,24 +2468,32 @@ limitations under the License.
 
             <Modal
               isOpen={showVersionModal}
-              onClose={() => {}} // Prevent closing by clicking outside or ESC for version modal? Or allow? Let's allow but maybe encourage action.
+              onClose={() => {}}
               title={`Update Available (${APP_VERSION})`}
               showCloseButton={false}
             >
               <div className="modal-body">
-                <div className="alert alert-warning mb-4" style={{
-                  background: '#eff6ff',
-                  border: '1px solid #bfdbfe',
-                  color: '#1e40af',
-                  padding: '15px',
-                  borderRadius: '8px'
-                }}>
-                  <h3 style={{marginTop: 0, fontSize: '1.1rem'}}>New Version Detected</h3>
+                <div
+                  className="alert alert-warning mb-4"
+                  style={{
+                    background: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    color: '#1e40af',
+                    padding: '15px',
+                    borderRadius: '8px',
+                  }}
+                >
+                  <h3 style={{ marginTop: 0, fontSize: '1.1rem' }}>
+                    New Version Detected
+                  </h3>
                   <p>
-                    A new version of GIGA is available. It is recommended to clear your local cache to ensure compatibility with new features.
+                    A new version of GIGA is available. It is recommended to
+                    clear your local cache to ensure compatibility with new
+                    features.
                   </p>
                   <p className="text-sm mt-2">
-                    <strong>Update Type:</strong> {versionUpdateType.toUpperCase()}
+                    <strong>Update Type:</strong>{' '}
+                    {versionUpdateType.toUpperCase()}
                   </p>
                 </div>
 
