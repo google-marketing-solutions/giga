@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-export const getInsightsPrompt = (ideaRows, keywords, metricName = 'YoY') => {
+export const getInsightsPrompt = (
+  ideaRows,
+  keywords,
+  metricName = 'YoY',
+  language = 'English'
+) => {
   const data = ideaRows.map(row => {
     return `${row[0]}, ${(row[1] * 100).toFixed(1)}%`;
   });
@@ -22,6 +27,8 @@ export const getInsightsPrompt = (ideaRows, keywords, metricName = 'YoY') => {
   return `You are a marketing and strategy analyst and you want to find interesting insights based on the topic(s) [${keywords.join(
     ', '
   )}] related list provided in the <DATA> section. Cluster this comma-separated list of search terms and ${metricName} search growth and identify overall trends. Also, consider the list is sorted descending by growth rate.
+
+  Output in ${language}.
 
   Output as HTML with standard HTML elements like <h1> and <ul> for captions or lists.
   DO NOT add any introduction like "Of course! Here is the HTML" and instead only output the HTML code.

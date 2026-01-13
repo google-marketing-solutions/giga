@@ -25,6 +25,8 @@ limitations under the License.
     isExporting,
     insightsStatus,
   }) => {
+    const [language, setLanguage] = React.useState('English');
+
     return (
       <div className="card fade-in">
         <div
@@ -52,6 +54,18 @@ limitations under the License.
             </span>
           </button>
         </div>
+
+        <div className="input-group">
+          <label htmlFor="insights-language">Language</label>
+          <input
+            id="insights-language"
+            type="text"
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            placeholder="e.g. English, Spanish, German"
+          />
+        </div>
+
         <div
           className="mb-4"
           dangerouslySetInnerHTML={{ __html: insights }}
@@ -66,7 +80,7 @@ limitations under the License.
         >
           <button
             className="btn btn-primary"
-            onClick={generateInsights}
+            onClick={() => generateInsights(language)}
             disabled={isGeneratingInsights}
           >
             {isGeneratingInsights ? (
