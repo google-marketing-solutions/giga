@@ -129,7 +129,8 @@ export const getInsights = (
   ideas,
   seedKeywords,
   growthMetric = 'three_months_vs_avg',
-  geminiConfig: Partial<GeminiConfig>
+  geminiConfig: Partial<GeminiConfig>,
+  language = 'English'
 ) => {
   const relevantIdeas = calculateKeywordGrowth(ideas, growthMetric);
   console.log('relevantIdeas: ', relevantIdeas);
@@ -146,7 +147,8 @@ export const getInsights = (
   const insightsPrompt = getInsightsPrompt(
     relevantIdeas,
     seedKeywords,
-    metricName
+    metricName,
+    language
   );
   console.log(insightsPrompt.slice(insightsPrompt.length - 1000));
   const responseType = 'text/plain';

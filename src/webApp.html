@@ -1733,7 +1733,7 @@ limitations under the License.
           }
         };
 
-        const generateInsights = async () => {
+        const generateInsights = async (language = 'English') => {
           if (Object.keys(relevantIdeas).length === 0) {
             showAlert('Please generate keywords in Explore tab first.');
             return;
@@ -1763,7 +1763,8 @@ limitations under the License.
               relevantIdeas,
               seedKeywords,
               growthMetric,
-              geminiConfig
+              geminiConfig,
+              language
             );
             setInsights(result);
 
