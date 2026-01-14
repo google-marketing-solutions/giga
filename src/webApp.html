@@ -174,9 +174,7 @@ limitations under the License.
         border: none;
         background: transparent;
       }
-          transform 0.2s ease,
-          box-shadow 0.2s ease;
-      }
+
 
       .card:hover {
         box-shadow: var(--shadow-lg);
@@ -880,6 +878,10 @@ limitations under the License.
           '',
           'giga_insights',
           isDemoMode
+        );
+        const [insightsLanguage, setInsightsLanguage] = useStickyState(
+          'English',
+          'giga_insightsLanguage'
         );
         const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
         const [insightsStatus, setInsightsStatus] = useState('');
@@ -2408,6 +2410,8 @@ limitations under the License.
                 handleExportInsightsToSheet={handleExportInsightsToSheet}
                 isExporting={isExporting}
                 insightsStatus={insightsStatus}
+                language={insightsLanguage}
+                setLanguage={setInsightsLanguage}
               />
             )}
 

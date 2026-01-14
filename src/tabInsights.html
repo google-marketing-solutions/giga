@@ -24,8 +24,10 @@ limitations under the License.
     handleExportInsightsToSheet,
     isExporting,
     insightsStatus,
+    language,
+    setLanguage,
   }) => {
-    const [language, setLanguage] = React.useState('English');
+    const languageInputRef = React.useRef(null);
 
     return (
       <div className="card fade-in">
@@ -43,6 +45,7 @@ limitations under the License.
             onClick={() => {
               setInsights('');
               setInsightsStatus('');
+              setLanguage('English');
             }}
             title="Reset Insights"
           >
@@ -56,8 +59,22 @@ limitations under the License.
         </div>
 
         <div className="input-group">
-          <label htmlFor="insights-language">Language</label>
+          <label htmlFor="insights-language">
+            Language
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                // Optional: Add info modal if needed, or just keep simple
+              }}
+              title="Language for insights generation"
+              style={{ marginLeft: '4px', verticalAlign: 'middle', color: 'var(--text-secondary)', textDecoration: 'none' }}
+            >
+               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>info</span>
+            </a>
+          </label>
           <input
+            ref={languageInputRef}
             id="insights-language"
             type="text"
             value={language}
@@ -80,7 +97,9 @@ limitations under the License.
         >
           <button
             className="btn btn-primary"
-            onClick={() => generateInsights(language)}
+            onClick={() => {
+              generateInsights(language);
+            }}
             disabled={isGeneratingInsights}
           >
             {isGeneratingInsights ? (
