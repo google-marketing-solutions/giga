@@ -9,3 +9,4 @@ dist/
 .env
 gemini*.md
 *.code-workspace
+scripts/
