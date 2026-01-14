@@ -77,7 +77,7 @@ export const getHistoricalMetricsOptions = lookbackYears => ({
   yearMonthRange: {
     start: {
       year: getYear(-lookbackYears),
-      month: getMonth(-1),
+      month: getMonth(-2),
     },
     end: {
       year: getYear(),
