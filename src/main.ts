@@ -34,6 +34,12 @@ import {
 
 const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 100;
 
+/**
+ * Converts keyword ideas to rows.
+ *
+ * @param ideas - An array of keyword ideas.
+ * @returns A list of rows representing the keyword ideas and their metrics.
+ */
 export const convertIdeasToRows = ideas =>
   ideas
     .filter(
@@ -48,7 +54,21 @@ export const convertIdeasToRows = ideas =>
       ...getSearchVolumeRow(result),
     ]);
 
-export const getIdeas = (keywords, geoID, language, maxIdeas) => {
+/**
+ * Retrieves keyword ideas for a given set of seed keywords, location, and language.
+ *
+ * @param keywords - An array of seed keywords.
+ * @param geoID - The location ID to target.
+ * @param language - The language ID or name.
+ * @param maxIdeas - The maximum number of ideas to retrieve.
+ * @returns A list of rows representing the keyword ideas and their metrics.
+ */
+export const getIdeas = (
+  keywords: string[],
+  geoID: string,
+  language: string,
+  maxIdeas: number
+) => {
   const languageID = isNaN(Number(language))
     ? getCriterionIDs([language])[0]
     : language;
@@ -56,31 +76,43 @@ export const getIdeas = (keywords, geoID, language, maxIdeas) => {
   return convertIdeasToRows(ideas);
 };
 
-export const getYoYGrowth = searchVolumes => {
+/**
+ * Calculates the year-over-year (YoY) growth rate for a list of search volumes.
+ *
+ * @param searchVolumes - An array of search volumes.
+ * @returns The YoY growth rate as a decimal.
+ */
+export const getYoYGrowth = (searchVolumes: number[]) => {
   const latestVolume = searchVolumes[searchVolumes.length - 1];
   const previousYearVolume = searchVolumes[searchVolumes.length - 13];
   return latestVolume / previousYearVolume - 1;
 };
 
-export const calculateGrowthMetrics = (history: number[]) => {
-  const latest = history[history.length - 1] || 0;
-  const prevMonth = history[history.length - 2] || 0;
-  const prevYear = history[history.length - 13] || 0;
+/**
+ * Calculates various growth metrics for a list of search volumes.
+ *
+ * @param searchVolumes - An array of search volumes.
+ * @returns An object containing various growth metrics.
+ */
+export const calculateGrowthMetrics = (searchVolumes: number[]) => {
+  const latest = searchVolumes[searchVolumes.length - 1] || 0;
+  const prevMonth = searchVolumes[searchVolumes.length - 2] || 0;
+  const prevYear = searchVolumes[searchVolumes.length - 13] || 0;
 
   const yoy = prevYear !== 0 ? (latest - prevYear) / prevYear : 0;
   const mom = prevMonth !== 0 ? (latest - prevMonth) / prevMonth : 0;
 
-  const totalSum = history.reduce((a, b) => a + b, 0);
-  const avg = history.length > 0 ? totalSum / history.length : 0;
+  const totalSum = searchVolumes.reduce((a, b) => a + b, 0);
+  const avg = searchVolumes.length > 0 ? totalSum / searchVolumes.length : 0;
   const latest_vs_avg = avg !== 0 ? (latest - avg) / avg : 0;
 
-  const historyWithoutLatest = history.slice(0, -1);
+  const historyWithoutLatest = searchVolumes.slice(0, -1);
   const max =
     historyWithoutLatest.length > 0 ? Math.max(...historyWithoutLatest) : 0;
   const latest_vs_max = max !== 0 ? (latest - max) / max : 0;
 
-  const last3Months = history.slice(-3);
-  const prevMonths = history.slice(-24, -3);
+  const last3Months = searchVolumes.slice(-3);
+  const prevMonths = searchVolumes.slice(-24, -3);
   const avgLast3 =
     last3Months.length > 0
       ? last3Months.reduce((a, b) => a + b, 0) / last3Months.length
@@ -101,6 +133,13 @@ export const calculateGrowthMetrics = (history: number[]) => {
   };
 };
 
+/**
+ * Calculates the growth metric for each keyword idea.
+ *
+ * @param ideas - A record mapping keyword text to search volume history.
+ * @param growthMetric - The specific growth metric to extract (default: 'three_months_vs_avg').
+ * @returns A list of tuples containing the keyword and its calculated growth metric.
+ */
 export const calculateKeywordGrowth = (
   ideas: Record<string, number[]>,
   growthMetric = 'three_months_vs_avg'
@@ -112,7 +151,13 @@ export const calculateKeywordGrowth = (
   });
 };
 
-export const removeHTMLTicks = html => {
+/**
+ * Removes markdown code block ticks (```html ... ```) from a string.
+ *
+ * @param html - The string containing potential markdown code blocks.
+ * @returns The cleaned string.
+ */
+export const removeHTMLTicks = (html: string) => {
   const prefix = '```html';
   const suffix = '```';
   let cleanedHtml = html;
@@ -125,6 +170,16 @@ export const removeHTMLTicks = html => {
   return cleanedHtml;
 };
 
+/**
+ * Retrieves insights for a list of keyword ideas.
+ *
+ * @param ideas - A record mapping keyword text to search volume history.
+ * @param seedKeywords - An array of seed keywords.
+ * @param growthMetric - The specific growth metric to extract (default: 'three_months_vs_avg').
+ * @param geminiConfig - The Gemini configuration.
+ * @param language - The language to use for the insights (default: 'English').
+ * @returns The insights for the keyword ideas.
+ */
 export const getInsights = (
   ideas,
   seedKeywords,
@@ -156,6 +211,12 @@ export const getInsights = (
   return removeHTMLTicks(gemini(config)(insightsPrompt));
 };
 
+/**
+ * Retrieves the search volume row for a keyword idea.
+ *
+ * @param res - The keyword idea result.
+ * @returns The search volume row.
+ */
 const getSearchVolumeRow = res => {
   const volumes = res.keywordIdeaMetrics.monthlySearchVolumes.map(
     m => m.monthlySearches
@@ -173,7 +234,12 @@ const getSearchVolumeRow = res => {
 };
 
 /**
- * @return {GeminiConfig} config
+ * Creates a Gemini configuration.
+ *
+ * @param config - The partial Gemini configuration.
+ * @param responseType - The response type (default: 'application/json').
+ * @param responseSchema - The response schema.
+ * @returns The Gemini configuration.
  */
 export const createGeminiConfig = (
   config: Partial<GeminiConfig>,
@@ -191,6 +257,14 @@ export const createGeminiConfig = (
   };
 };
 
+/**
+ * Retrieves clusters for a list of keyword ideas.
+ *
+ * @param ideas - A record mapping keyword text to search volume history.
+ * @param promptTemplate - The prompt template.
+ * @param geminiConfig - The Gemini configuration.
+ * @returns The clusters for the keyword ideas.
+ */
 export const getClusters = (
   ideas,
   promptTemplate,
@@ -275,6 +349,18 @@ const PROMPT_DATA_FORMAT_SUFFIX = `
     ]
 `;
 
+/**
+ * Retrieves campaigns for a list of keyword ideas.
+ *
+ * @param ideas - A record mapping keyword text to search volume history.
+ * @param growthMetric - The specific growth metric to extract (default: 'three_months_vs_avg').
+ * @param language - The language to use for the insights (default: 'English').
+ * @param brandName - The brand name.
+ * @param adExamples - The ad examples.
+ * @param styleGuide - The style guide.
+ * @param geminiConfig - The Gemini configuration.
+ * @returns The campaigns for the keyword ideas.
+ */
 export const getCampaigns = (
   ideas,
   growthMetric,
@@ -346,7 +432,12 @@ export const getCampaigns = (
   return result;
 };
 
-export const checkScriptProperties = () => {
+/**
+ * Gets the script properties configuration accessing the Google Ads api and spreadsheet exports
+ *
+ * @returns An object containing the developer token, ads account ID, and spreadsheet URL.
+ */
+export const getScriptPropertiesConfiguration = () => {
   const devToken = getScriptProperties('DEVELOPER_TOKEN');
   const adsAccountId = getScriptProperties('ADS_ACCOUNT_ID');
   const spreadsheetUrl = getScriptProperties('SPREADSHEET_URL');
@@ -357,12 +448,23 @@ export const checkScriptProperties = () => {
     spreadsheetUrl: spreadsheetUrl || '',
   };
 };
-
+/**
+ * Sets a script property.
+ *
+ * @param key - The key of the script property.
+ * @param value - The value of the script property.
+ * @returns The updated script properties configuration.
+ */
 export const setScriptProperty = (key: string, value: string) => {
   setScriptProperties(key, value);
-  return checkScriptProperties();
+  return getScriptPropertiesConfiguration();
 };
 
+/**
+ * Handles the GET request for the web app.
+ *
+ * @returns The HTML output of the web app.
+ */
 export const doGet = () => {
   const template = HtmlService.createTemplateFromFile('webApp');
   template.userEmail = Session.getActiveUser().getEmail();

@@ -16,8 +16,19 @@
 
 import { fetchJson, getGcpProjectDetails } from './util';
 
+/**
+ * Returns the GCP project ID.
+ * @returns {string}
+ */
 export const getGcpProjectId = () => getGcpProjectDetails().projectId;
 
+/**
+ * Adds authentication to a request.
+ * Additionaly stringifies the payload and sets the content type to application/json.
+ * @param {Object} params - The request parameters.
+ * @param {string} payloadKey - The key for the payload.
+ * @returns {Object} The request parameters with authentication added.
+ */
 const addAuth = (params, payloadKey = 'payload') =>
   Object.assign(
     { [payloadKey]: JSON.stringify(params) },
@@ -31,6 +42,18 @@ const addAuth = (params, payloadKey = 'payload') =>
     }
   );
 
+/**
+ * Configuration for the Gemini API.
+ * @param {string} projectId - The GCP project ID.
+ * @param {string} modelId - The Gemini model ID.
+ * @param {number} temperature - The temperature for the model.
+ * @param {number} topP - The top P value for the model.
+ * @param {string} location - The location for the model.
+ * @param {number} maxOutputTokens - The maximum number of output tokens.
+ * @param {string} responseType - The response type.
+ * @param {ResponseSchema} responseSchema - The response schema.
+ * @param {boolean} enableGoogleSearch - Whether to enable Google search for grounding.
+ */
 export interface GeminiConfig {
   projectId: string;
   modelId: string;
@@ -43,6 +66,17 @@ export interface GeminiConfig {
   enableGoogleSearch?: boolean;
 }
 
+/**
+ * Configuration for the response schema.
+ * @param {string} type - The type of the response.
+ * @param {string} format - The format of the response.
+ * @param {string} description - The description of the response.
+ * @param {boolean} nullable - Whether the response can be null.
+ * @param {ResponseSchema} items - The items of the response.
+ * @param {string[]} enum - The enum of the response.
+ * @param {{ [key: string]: ResponseSchema }} properties - The properties of the response.
+ * @param {string[]} required - The required properties of the response.
+ */
 export interface ResponseSchema {
   type: string;
   format?: string;
@@ -56,6 +90,7 @@ export interface ResponseSchema {
 
 /**
  * @param {GeminiConfig} config
+ * @param {Function} jsonFetcher - The function to fetch JSON.
  */
 export const gemini =
   (config: GeminiConfig, jsonFetcher = fetchJson) =>
@@ -84,6 +119,12 @@ export const gemini =
     }
   };
 
+/**
+ * @param {GeminiConfig} config
+ * @param {string} prompt
+ * @param {boolean} enableGoogleSearch
+ * @param {string} payloadKey
+ */
 const getGeminiRequest = (
   config: GeminiConfig,
   prompt,

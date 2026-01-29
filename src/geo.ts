@@ -16,14 +16,32 @@
 import { post } from './ideas';
 import { chunk } from './util';
 
+/**
+ * Maximum number of countries to process in a single batch.
+ */
 export const MAX_COUNTRIES = 25;
 
+/**
+ * Retrieves geo target constant suggestions for a list of location names.
+ *
+ * @param names - An array of location names to search for.
+ * @returns A list of geo target constant suggestions.
+ */
 export const getGeoTargetConstantSuggestions = (names: string[]) =>
   post('geoTargetConstants:suggest', {
     locale: 'en',
     locationNames: { names: names },
   }).geoTargetConstantSuggestions;
 
+/**
+ * Resolves a list of country names to their corresponding criterion IDs.
+ *
+ * This function chunks the input names, queries for suggestions, filters for
+ * targets of type 'Country', and maps the original names (lowercased) to their IDs.
+ *
+ * @param names - An array of country names to resolve.
+ * @returns An object mapping lowercased country names to their criterion IDs.
+ */
 export const getCriterionIDs = (names: string[]) => {
   const suggestions = chunk(names, MAX_COUNTRIES)
     .flatMap(getGeoTargetConstantSuggestions)

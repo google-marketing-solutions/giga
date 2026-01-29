@@ -31,6 +31,10 @@ limitations under the License.
     '#22d3ee', // cyan-400
   ];
 
+  /**
+   * Array of language objects with their IDs and names.
+   * This will be used to populate the language dropdown in the UI.
+   */
   window.LANGUAGES = [
     { id: '1000', name: 'English' },
     { id: '1001', name: 'German' },
@@ -59,6 +63,10 @@ limitations under the License.
     { id: '1064', name: 'Persian' },
   ];
 
+  /**
+   * Array of country objects with their IDs and names.
+   * This will be used to populate the country dropdown in the UI.
+   */
   window.COUNTRIES = [
     { id: '', name: 'Worldwide' },
     { id: '2276', name: 'Germany' },
@@ -92,6 +100,10 @@ limitations under the License.
     { id: '2470', name: 'Malta' },
   ];
 
+  /**
+   * Default prompt for keyword clustering.
+   * This will be used as the default prompt in the UI.
+   */
   window.DEFAULT_PROMPT = `You are given a list of Google Ads keyword ideas.
 Your task is to create 10 clusters. For each cluster use only up to 20 keywords that are most representative of that cluster.
 Make sure to only assign the keywords provided to the cluster and do not invent new keywords.
@@ -109,6 +121,10 @@ The Google Ads keyword ideas are:
   window.GOOGLE_ADS_ID_HELP_URL =
     'https://support.google.com/google-ads/answer/1704344?hl=en';
 
+  /**
+   * Array of growth metrics objects with their IDs and names.
+   * This will be used to populate the growth metrics dropdown in the UI.
+   */
   window.GROWTH_METRICS = [
     { id: 'yoy', name: 'Year over Year' },
     { id: 'mom', name: 'Month over Month' },
@@ -132,7 +148,10 @@ The Google Ads keyword ideas are:
     return 'equal';
   };
 
-  // --- Hooks ---
+  /**
+   * Custom React hook that provides sticky state with optional read-only mode.
+   * This will be used to persist state in the UI.
+   */
   window.useStickyState = (defaultValue, key, isReadOnly = false) => {
     const { useState, useEffect } = React;
     const [value, setValue] = useState(() => {
@@ -159,12 +178,19 @@ The Google Ads keyword ideas are:
     return [value, setValue];
   };
 
-  // --- Helpers ---
+  /**
+   * Helper function to format micros to currency.
+   * This will be used to display currency values in the UI.
+   */
   window.formatMicrosToCurrency = micros => {
     if (micros == null) return '';
     return (micros / 1000000).toFixed(2);
   };
 
+  /**
+   * Helper function to convert HTML to Markdown.
+   * This will be used to convert HTML content to Markdown in the UI.
+   */
   window.htmlToMarkdown = html => {
     let md = html;
     // Simple replacements for common tags
@@ -191,6 +217,10 @@ The Google Ads keyword ideas are:
     return md.trim();
   };
 
+  /**
+   * Helper function to convert an array of arrays to CSV.
+   * This will be used to convert data to CSV in the UI.
+   */
   window.convertToCSV = (headers, rows) => {
     const headerRow = headers.join(',');
     const bodyRows = rows.map(row =>
@@ -204,6 +234,10 @@ The Google Ads keyword ideas are:
     return [headerRow, ...bodyRows].join('\n');
   };
 
+  /**
+   * Helper function to download a file.
+   * This will be used to download files in the UI.
+   */
   window.downloadFile = (content, filename, mimeType) => {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
