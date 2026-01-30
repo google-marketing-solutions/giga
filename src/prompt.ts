@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+/**
+ * Generates a prompt for insights based on a list of keywords and their search growth.
+ *
+ * @param ideaRows - An array of arrays containing keyword and search growth data.
+ * @param keywords - An array of keywords to search for.
+ * @param metricName - The name of the metric to use for sorting (default is "YoY").
+ * @param language - The language to use for the prompt (default is "English").
+ * @returns A string containing the prompt for insights.
+ */
 export const getInsightsPrompt = (
   ideaRows,
   keywords,

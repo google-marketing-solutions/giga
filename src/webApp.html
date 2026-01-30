@@ -1292,7 +1292,7 @@ limitations under the License.
 
         useEffect(() => {
           googleScriptRun
-            .checkScriptProperties()
+            .getScriptPropertiesConfiguration()
             .then(status => {
               setConfigStatus({ ...status, checked: true });
               if (status.adsAccountId) {
@@ -1446,7 +1446,7 @@ limitations under the License.
           setExploreStatus('Verifying configuration...');
           let currentStatus = configStatus;
           try {
-            const status = await googleScriptRun.checkScriptProperties();
+            const status = await googleScriptRun.getScriptPropertiesConfiguration();
             setConfigStatus({ ...status, checked: true });
             if (status.adsAccountId) {
               setAdsAccountId(status.adsAccountId);

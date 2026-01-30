@@ -50,17 +50,35 @@ export const getNewSearchTermsClusters = (
   return clusters;
 };
 
+/**
+ * Sends a request to the Google Ads API with authentication.
+ *
+ * @param customerId - The ID of the Google Ads customer.
+ * @param service - The service endpoint to use.
+ * @param request - The request payload to send.
+ * @returns The response from the Google Ads API.
+ */
 const authorizedGoogleAdsRequest = (customerId, service, request) => {
   const params: object = addGoogleAdsAuth(request);
   const url = `${ADS_ENDPOINT}/customers/${customerId}${service}`;
   return UrlFetchApp.fetch(url, params).getContentText();
 };
 
+/**
+ * Represents the AdsApp class, which provides a static method for searching the Google Ads API.
+ */
 class AdsApp {
   static search = (payload, config) =>
     authorizedGoogleAdsRequest(config.customerId, '/googleAds:search', payload);
 }
 
+/**
+ * Executes a Google Ads query and returns the results.
+ *
+ * @param customerId - The ID of the Google Ads customer.
+ * @param query - The query to execute.
+ * @returns The results of the query.
+ */
 export const runQuery = (customerId, query) => {
   const request = {
     customerId,
@@ -88,6 +106,17 @@ export const runQuery = (customerId, query) => {
   return results;
 };
 
+/**
+ * Retrieves a list of search terms from the Google Ads API based on the specified criteria.
+ *
+ * @param customerId - The ID of the Google Ads customer.
+ * @param segmentClause - The segment clause to use in the query.
+ * @param metric - The metric to use for sorting (default is "clicks").
+ * @param metricThreshold - The threshold for the metric (default is 100).
+ * @param sortOrder - The order to sort the results (default is "DESC").
+ * @param limit - The maximum number of results to return (default is 10000).
+ * @returns An array of search terms.
+ */
 const getSearchTerms = (
   customerId,
   segmentClause,
@@ -113,6 +142,14 @@ const getSearchTerms = (
   return deduplicate(searchTerms);
 };
 
+/**
+ * Retrieves a list of search terms from the Google Ads API based on the specified criteria.
+ *
+ * @param customerId - The ID of the Google Ads customer.
+ * @param startDaysAgo - The number of days ago to start the date range (default is 0).
+ * @param endDaysAgo - The number of days ago to end the date range (default is 0).
+ * @returns A date segment string in the format "segments.date >= \"YYYY-MM-DD\" AND segments.date < \"YYYY-MM-DD\"".
+ */
 export const getDateSegment = (startDaysAgo, endDaysAgo = 0) => {
   const startSegment = getDateWithDeltaDays(-startDaysAgo)
     .toISOString()
@@ -123,6 +160,14 @@ export const getDateSegment = (startDaysAgo, endDaysAgo = 0) => {
   return `segments.date >= "${startSegment}" AND segments.date < "${endSegment}"`;
 };
 
+/**
+ * Retrieves a list of search terms from the Google Ads API based on the specified criteria.
+ *
+ * @param customerId - The ID of the Google Ads customer.
+ * @param newDuringLastDays - The number of days ago to start the date range (default is 0).
+ * @param endDaysAgo - The number of days ago to end the date range (default is 0).
+ * @returns A date segment string in the format "segments.date >= \"YYYY-MM-DD\" AND segments.date < \"YYYY-MM-DD\"".
+ */
 const getSearchTermReportDiff = (
   customerId,
   newDuringLastDays = 7,
@@ -164,6 +209,12 @@ const getSearchTermReportDiff = (
   }
 };
 
+/**
+ * Generates a prompt for ad creation based on a list of keywords.
+ *
+ * @param keywords - An array of keywords to use in the prompt.
+ * @returns A string containing the prompt for ad creation.
+ */
 const getPromptKeywordsTemplate = keywords => `
 *User:*
 
@@ -177,15 +228,35 @@ Output strictly as a JSON array of objects, where each object has 'headlines' (a
 *Model:*
 `;
 
+/**
+ * Generates an example from an ad.
+ *
+ * @param ad - The ad to generate an example from.
+ * @returns A string containing the example.
+ */
 const getExampleFromAd = ad => `
 ${getPromptKeywordsTemplate(ad.keywords)}
 ${JSON.stringify(keepKeys(ad, ['headlines', 'descriptions']), null, 2)}
 `;
 
+/**
+ * Generates a prompt template from an array of ads.
+ *
+ * @param ads - An array of ads to generate a prompt template from.
+ * @returns A string containing the prompt template.
+ */
 const getPromptTemplate = ads => `
   ${ads.map(getExampleFromAd).join('\n')}
 `;
 
+/**
+ * Retrieves a list of keywords from the Google Ads API based on the specified criteria.
+ *
+ * @param cid - The ID of the Google Ads customer.
+ * @param adGroupIds - An array of ad group IDs to use in the query.
+ * @param durationClause - The duration clause to use in the query.
+ * @returns An array of keywords.
+ */
 const getKeywords = (cid, adGroupIds, durationClause) => {
   // TODO might need chunking for large accounts
   const query = `
@@ -200,7 +271,6 @@ const getKeywords = (cid, adGroupIds, durationClause) => {
   `;
   console.log(query);
   const res = runQuery(cid, query);
-  // console.log(JSON.stringify(res, null, 2));
   const adGroupIdsWithKeywords = res.map(item => [
     item.adGroup.id,
     item.adGroupCriterion.keyword.text,
@@ -213,6 +283,15 @@ const getKeywords = (cid, adGroupIds, durationClause) => {
   return mapping;
 };
 
+/**
+ * Retrieves a list of top performing ads and keywords from the Google Ads API based on the specified criteria.
+ *
+ * @param cid - The ID of the Google Ads customer.
+ * @param topN - The number of top performing ads to retrieve.
+ * @param lookbackDays - The number of days to look back for performance data (default is 30).
+ * @param metric - The metric to use for sorting (default is "clicks").
+ * @returns An array of top performing ads and keywords.
+ */
 export const getTopPerformingAdsAndKeywords = (
   cid,
   topN,
@@ -253,6 +332,16 @@ export const getTopPerformingAdsAndKeywords = (
     Object.assign(ad, { keywords: keywords[ad.adGroupId] })
   );
 };
+
+/**
+ * Generates a prompt for ad creation based on a list of keywords.
+ *
+ * @param cid - The ID of the Google Ads customer.
+ * @param topN - The number of top performing ads to retrieve.
+ * @param lookbackDays - The number of days to look back for performance data (default is 30).
+ * @param metric - The metric to use for sorting (default is "clicks").
+ * @returns A string containing the prompt for ad creation.
+ */
 export const getTopPerformingAdsPrompt = (
   cid,
   topN,
@@ -270,6 +359,14 @@ export const getTopPerformingAdsPrompt = (
   return prompt;
 };
 
+/**
+ * Generates an ad suggestion based on a prompt and a list of keywords.
+ *
+ * @param prompt - The prompt to use for ad generation.
+ * @param userKeywords - An array of keywords to use in the prompt.
+ * @param geminiConfig - The configuration for the Gemini API.
+ * @returns A string containing the ad suggestion.
+ */
 export const createAdSuggestion = (prompt, userKeywords, geminiConfig) => {
   const config = createGeminiConfig(geminiConfig, 'application/json');
   return gemini(config)(
@@ -277,6 +374,14 @@ export const createAdSuggestion = (prompt, userKeywords, geminiConfig) => {
   );
 };
 
+/**
+ * Generates a campaign prompt based on a list of top performing ads and keywords.
+ *
+ * @param cid - The ID of the Google Ads customer.
+ * @param lookbackDays - The number of days to look back for performance data (default is 30).
+ * @param metric - The metric to use for sorting (default is "clicks").
+ * @returns A string containing the campaign prompt.
+ */
 export const createCampaignPrompt = (
   cid,
   lookbackDays = 30,

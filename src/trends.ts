@@ -16,6 +16,14 @@
 import { createGeminiConfig } from './main';
 import { GeminiConfig, gemini } from './vertex';
 
+/**
+ * Generates a list of trending keywords based on a list of seed keywords.
+ *
+ * @param seedKeywords - An array of seed keywords to use for keyword generation.
+ * @param promptTemplate - A template for the prompt to use for keyword generation.
+ * @param geminiConfig - The configuration for the Gemini API.
+ * @returns An array of trending keywords.
+ */
 export const generateTrendsKeywords = (
   seedKeywords,
   promptTemplate,
