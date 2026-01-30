@@ -351,7 +351,7 @@ export const createSpreadsheet = name => {
   const spreadsheet = SpreadsheetApp.create(name);
   const url = spreadsheet.getUrl();
   const file = DriveApp.getFileById(spreadsheet.getId());
-  const activeUserEmail = Session.getActiveUser().getEmail();
+  const activeUserEmail = Session.getEffectiveUser().getEmail();
   const currentOwnerEmail = file.getOwner().getEmail();
   if (activeUserEmail && currentOwnerEmail !== activeUserEmail) {
     file.setOwner(activeUserEmail);

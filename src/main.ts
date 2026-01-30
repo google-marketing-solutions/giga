@@ -467,7 +467,7 @@ export const setScriptProperty = (key: string, value: string) => {
  */
 export const doGet = () => {
   const template = HtmlService.createTemplateFromFile('webApp');
-  template.userEmail = Session.getActiveUser().getEmail();
+  template.userEmail = Session.getEffectiveUser().getEmail();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (template as any).include = (filename: string) =>
     HtmlService.createHtmlOutputFromFile(filename).getContent();
