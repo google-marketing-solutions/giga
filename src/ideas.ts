@@ -15,16 +15,20 @@
  */
 
 import { services } from 'google-ads-api';
-import { chunk, fetchJson, getScriptProperties } from './util';
+import { chunk, fetchJson, getUserOrScriptProperties } from './util';
 
 export const MAX_KEYWORDS_PER_REQUEST = 10000; // See https://developers.google.com/google-ads/api/rest/reference/rest/v15/customers/generateKeywordHistoricalMetrics for details
 export const LOOKBACK_YEARS = 2;
 // https://developers.google.com/google-ads/api/rest/reference/rest/v18/customers/generateKeywordIdeas
 export const MAX_NUMBER_OF_KEYWORD_SEED_IDEAS = 20;
 
-export const getDeveloperToken = () => getScriptProperties('DEVELOPER_TOKEN');
+export const getDeveloperToken = () =>
+  getUserOrScriptProperties('DEVELOPER_TOKEN');
 export const getCustomerId = () =>
-  getScriptProperties('ADS_ACCOUNT_ID').toString().replace(/-/g, '').trim();
+  getUserOrScriptProperties('ADS_ACCOUNT_ID')
+    .toString()
+    .replace(/-/g, '')
+    .trim();
 export const ADS_VERSION = 'v22';
 export const ADS_ENDPOINT = `https://googleads.googleapis.com/${ADS_VERSION}`;
 
