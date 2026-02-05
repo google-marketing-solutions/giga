@@ -431,6 +431,13 @@ export const getCampaigns = (
   )(prompt);
   return result;
 };
+/**
+ * Checks if the current active user is the effective user.
+ *
+ * @returns A boolean indicating whether the effective user is the active user.
+ */
+export const isEffectiveUser = () =>
+  Session.getEffectiveUser().getEmail() === Session.getActiveUser().getEmail();
 
 /**
  * Gets the script properties configuration accessing the Google Ads api and spreadsheet exports
@@ -456,6 +463,11 @@ export const getScriptPropertiesConfiguration = () => {
  * @returns The updated script properties configuration.
  */
 export const setScriptProperty = (key: string, value: string) => {
+  if (!isEffectiveUser()) {
+    throw new Error(
+      'Only the script owner is allowed to update script properties'
+    );
+  }
   setScriptProperties(key, value);
   return getScriptPropertiesConfiguration();
 };
@@ -468,6 +480,7 @@ export const setScriptProperty = (key: string, value: string) => {
 export const doGet = () => {
   const template = HtmlService.createTemplateFromFile('webApp');
   template.userEmail = Session.getEffectiveUser().getEmail();
+  template.isEffectiveUser = isEffectiveUser();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (template as any).include = (filename: string) =>
     HtmlService.createHtmlOutputFromFile(filename).getContent();

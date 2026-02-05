@@ -672,6 +672,9 @@ limitations under the License.
 
     <script>
       const USER_EMAIL = <?= userEmail ?>;
+      const IS_EFFECTIVE_USER = "<?= isEffectiveUser ?>" === 'true';
+      console.log('GIGA: Current User:', USER_EMAIL);
+      console.log('GIGA: Is Effective User (Owner):', IS_EFFECTIVE_USER);
     </script>
 
     <!-- Backend Proxy -->
@@ -2468,6 +2471,7 @@ limitations under the License.
               configStatus={configStatus}
               onSave={handleSettingsSave}
               onClearCache={clearCache}
+              isEffectiveUser={IS_EFFECTIVE_USER}
             />
             {alertModal}
 

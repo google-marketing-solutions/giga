@@ -280,6 +280,7 @@ limitations under the License.
     configStatus,
     onSave,
     onClearCache,
+    isEffectiveUser,
   }) => {
     const [localGeminiConfig, setLocalGeminiConfig] =
       useState(geminiConfig);
@@ -292,6 +293,8 @@ limitations under the License.
     const [localSpreadsheetUrl, setLocalSpreadsheetUrl] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const adsInputRef = useRef(null);
+
+    console.log('SettingsModal rendered. isEffectiveUser prop:', isEffectiveUser, 'type:', typeof isEffectiveUser);
 
     // Sync with props when modal opens
     useEffect(() => {
@@ -526,6 +529,7 @@ limitations under the License.
             }}
           />
 
+          {isEffectiveUser === true && (
           <details
             className="advanced-settings"
             open={!!modalConfig.highlight}
@@ -651,6 +655,7 @@ limitations under the License.
               </div>
             </div>
           </details>
+          )}
           <div className="modal-actions" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
               Version: {APP_VERSION}
