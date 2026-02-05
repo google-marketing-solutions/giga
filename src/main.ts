@@ -274,14 +274,14 @@ export const getClusters = (
   );
   const prompt = `${promptTemplate}\n${keywords}\n${PROMPT_DATA_FORMAT_SUFFIX}`;
   const responseSchema: ResponseSchema = {
-    type: 'ARRAY',
+    type: 'array',
     items: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
-        topic: { type: 'STRING' },
+        topic: { type: 'string' },
         keywords: {
-          type: 'ARRAY',
-          items: { type: 'STRING' },
+          type: 'array',
+          items: { type: 'string' },
         },
       },
       required: ['topic', 'keywords'],
@@ -391,25 +391,25 @@ export const getCampaigns = (
 
   `;
   const responseSchema: ResponseSchema = {
-    type: 'ARRAY',
+    type: 'array',
     items: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
-        campaignName: { type: 'STRING' },
+        campaignName: { type: 'string' },
         adGroups: {
-          type: 'ARRAY',
+          type: 'array',
           items: {
-            type: 'OBJECT',
+            type: 'object',
             properties: {
-              name: { type: 'STRING' },
-              keywords: { type: 'ARRAY', items: { type: 'STRING' } },
+              name: { type: 'string' },
+              keywords: { type: 'array', items: { type: 'string' } },
               ads: {
-                type: 'ARRAY',
+                type: 'array',
                 items: {
-                  type: 'OBJECT',
+                  type: 'object',
                   properties: {
-                    headlines: { type: 'ARRAY', items: { type: 'STRING' } },
-                    descriptions: { type: 'ARRAY', items: { type: 'STRING' } },
+                    headlines: { type: 'array', items: { type: 'string' } },
+                    descriptions: { type: 'array', items: { type: 'string' } },
                   },
                   required: ['headlines', 'descriptions'],
                 },
