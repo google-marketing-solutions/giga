@@ -102,8 +102,6 @@ export const gemini =
     );
 
     const res = jsonFetcher(url, options);
-    console.log(JSON.stringify(res, null, 2));
-
     const responseText = res.candidates?.[0].content?.parts?.[0].text;
 
     try {
@@ -131,8 +129,6 @@ const getGeminiRequest = (
   enableGoogleSearch = false,
   payloadKey = 'payload'
 ) => {
-  console.log(prompt);
-  console.log(JSON.stringify(config, null, 2));
   const location = config.location || 'us-central1';
   const baseUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${location}/publishers/google/models/${config.modelId}`;
 

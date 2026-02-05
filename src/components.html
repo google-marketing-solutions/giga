@@ -294,8 +294,6 @@ limitations under the License.
     const [isSaving, setIsSaving] = useState(false);
     const adsInputRef = useRef(null);
 
-    console.log('SettingsModal rendered. isEffectiveUser prop:', isEffectiveUser, 'type:', typeof isEffectiveUser);
-
     // Sync with props when modal opens
     useEffect(() => {
       if (isOpen) {

@@ -188,8 +188,6 @@ export const getInsights = (
   language = 'English'
 ) => {
   const relevantIdeas = calculateKeywordGrowth(ideas, growthMetric);
-  console.log('relevantIdeas: ', relevantIdeas);
-
   const metricNames = {
     yoy: 'YoY',
     mom: 'MoM',
@@ -205,7 +203,6 @@ export const getInsights = (
     metricName,
     language
   );
-  console.log(insightsPrompt.slice(insightsPrompt.length - 1000));
   const responseType = 'text/plain';
   const config = createGeminiConfig(geminiConfig, responseType);
   return removeHTMLTicks(gemini(config)(insightsPrompt));
