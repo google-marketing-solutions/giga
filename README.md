@@ -91,11 +91,11 @@ Please note the following:
 
 
 ## Contribution (Deploying solution locally)
-Since this is open source solution, it is also possible to make contribution by building additional features. To deploy solution locally you can follow next steps:
+Since this is open source solution, it is also possible to make contribution by building additional features. To deploy the solution locally you can follow next steps:
 1. Ideally, you should already have installed: `node.js`, `npm`, and `git`
 2. Install [clasp](https://github.com/google/clasp). `clasp` allows you to develop your Apps Script projects locally. You will need this because Giga is developed in Apps Script
 3. Clone this Github repository
-4. Open the cloned repo in your IDE (e.g. VS Code)
+4. Open the cloned repo in your code editor (e.g. VS Code)
 5. In IDE, open Terminal and install [ASIDE](https://github.com/google/aside), by running this command: `npx @google/aside init`. During the installation, it will ask you couple of questions:
   * Project title - provide the name you want
   * Create Angular UI - select No
@@ -115,7 +115,8 @@ In case if you make some changes in the code and you want to deploy and test the
 2. When process is finished, go to the [Apps Script](https://script.google.com/) page and open your project file. Click on button "Deploy" -> "New deployment" and then on "Deploy" button again
 3. After you get message that deplyoment is successfully updated, copy the link that you see in popup and open it in the browser\
 
-**Keep in mind**: After each deployment, Apps Script gives you new URL, so to see the latest version of Giga app, you need to use URL from the latest deployment. If you are not sure what is the URL, you can find it by clicking on button "Deploy" -> "Manager deployment" and here you will find list of versions you deployed over time.
+**Keep in mind**: After each deployment, Apps Script gives you new URL, so to see the latest version of Giga app, you need to use URL from the latest deployment. If you are not sure what is the URL, you can find it by clicking on button "Deploy" -> "Manager deployment" and here you will find list of versions you deployed over time.\
+To test your web app, you can also use Apps Script [test deployments](https://developers.google.com/apps-script/guides/web#test_a_web_app_deployment). 
 
 
 ## Troubleshooting
