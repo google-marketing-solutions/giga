@@ -44,7 +44,6 @@ export const addGoogleAdsAuth = payload =>
   );
 
 export const post = (service, params) => {
-  console.log(service, '-->', JSON.stringify(params, null, 2));
   return fetchJson(
     `${ADS_ENDPOINT}/${service}`,
     addGoogleAdsAuth(JSON.stringify(params))
@@ -91,25 +90,20 @@ export function getHistoricalMetrics(
   criteriaId,
   lookbackYears = LOOKBACK_YEARS
 ): services.GenerateKeywordHistoricalMetricsResult[] {
-  const results = chunk(keywords, MAX_KEYWORDS_PER_REQUEST).map(
-    (keywords, batchIndex) => {
-      console.log(
-        `Getting keyword ideas: ${batchIndex + 1} / ${Math.ceil(keywords.length / MAX_KEYWORDS_PER_REQUEST)} ...`
-      );
-      Utilities.sleep(1000); // respect 1qps quota from keyword planner
-      return post(
-        `customers/${getCustomerId()}:generateKeywordHistoricalMetrics`,
-        {
-          keywords,
-          geoTargetConstants: criteriaId
-            ? [`geoTargetConstants/${criteriaId}`]
-            : undefined,
-          keywordPlanNetwork: 'GOOGLE_SEARCH',
-          historicalMetricsOptions: getHistoricalMetricsOptions(lookbackYears),
-        }
-      );
-    }
-  );
+  const results = chunk(keywords, MAX_KEYWORDS_PER_REQUEST).map(keywords => {
+    Utilities.sleep(1000); // respect 1qps quota from keyword planner
+    return post(
+      `customers/${getCustomerId()}:generateKeywordHistoricalMetrics`,
+      {
+        keywords,
+        geoTargetConstants: criteriaId
+          ? [`geoTargetConstants/${criteriaId}`]
+          : undefined,
+        keywordPlanNetwork: 'GOOGLE_SEARCH',
+        historicalMetricsOptions: getHistoricalMetricsOptions(lookbackYears),
+      }
+    );
+  });
   // return "flat" list of results
   return results.flatMap(res => res.results);
 }
@@ -122,10 +116,7 @@ export const generateKeywordIdeas = (
   lookbackYears = LOOKBACK_YEARS
 ) => {
   return chunk(seedKeywords, MAX_NUMBER_OF_KEYWORD_SEED_IDEAS).flatMap(
-    (keywords, batchIndex) => {
-      console.log(
-        `Getting keyword ideas batch ${batchIndex + 1} / ${Math.ceil(seedKeywords.length / MAX_NUMBER_OF_KEYWORD_SEED_IDEAS)}`
-      );
+    keywords => {
       const results = [];
       const request = {
         pageSize: maxIdeas

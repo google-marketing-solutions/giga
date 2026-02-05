@@ -112,7 +112,16 @@ All keywords assigned to a cluster must be exactly the same (e.g. same case, sam
 The Google Ads keyword ideas are:
 `;
 
-  window.DEFAULT_TRENDS_PROMPT = `Provide a list of around 100 Google Ads broad match keywords that represent trends regarding the topics/keywords mentioned below.`;
+  window.DEFAULT_TRENDS_PROMPT = `Provide a list of around 100 Google Ads broad match keywords that represent trends regarding the topics/keywords mentioned below. Rules:
+- Aim for simple wording (best case single words) that can be used as broadmatch keywords in Google Ads.
+- Focus on keywords that are currently trending or have high demand.
+- Prioritize keywords with significant recent growth in search volume.
+- Consider seasonal trends and emerging topics relevant to the provided keywords.
+- Ensure the keywords are relevant to the context of the original keywords.
+- Provide a diverse set of keywords covering various aspects of the original keywords.
+- Avoid overly specific or niche keywords; focus on broader terms that capture wider interest.
+- Do NOT add the Google Ads keyword itself to the trends if not necessary.
+- Do NOT add punctuation or unnecessary hyphens to keep the keyword as simple and generic as possible`;
 
   window.LANGUAGE_INFO_URL =
     'https://developers.google.com/google-ads/api/reference/data/codes-formats#languages';
@@ -158,9 +167,7 @@ The Google Ads keyword ideas are:
       if (isReadOnly) return defaultValue;
       try {
         const stickyValue = window.localStorage.getItem(key);
-        return stickyValue !== null
-          ? JSON.parse(stickyValue)
-          : defaultValue;
+        return stickyValue !== null ? JSON.parse(stickyValue) : defaultValue;
       } catch (error) {
         console.warn(`Error reading localStorage key "${key}":`, error);
         window.localStorage.removeItem(key);

@@ -671,7 +671,8 @@ limitations under the License.
     <div id="root"></div>
 
     <script>
-      const USER_EMAIL = <?= userEmail ?>;
+      const USER_EMAIL = "<?= userEmail ?>";
+      const IS_EFFECTIVE_USER = "<?= isEffectiveUser ?>" === 'true';
     </script>
 
     <!-- Backend Proxy -->
@@ -2468,6 +2469,7 @@ limitations under the License.
               configStatus={configStatus}
               onSave={handleSettingsSave}
               onClearCache={clearCache}
+              isEffectiveUser={IS_EFFECTIVE_USER}
             />
             {alertModal}
 

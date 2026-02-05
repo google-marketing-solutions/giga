@@ -188,8 +188,6 @@ export const getInsights = (
   language = 'English'
 ) => {
   const relevantIdeas = calculateKeywordGrowth(ideas, growthMetric);
-  console.log('relevantIdeas: ', relevantIdeas);
-
   const metricNames = {
     yoy: 'YoY',
     mom: 'MoM',
@@ -205,7 +203,6 @@ export const getInsights = (
     metricName,
     language
   );
-  console.log(insightsPrompt.slice(insightsPrompt.length - 1000));
   const responseType = 'text/plain';
   const config = createGeminiConfig(geminiConfig, responseType);
   return removeHTMLTicks(gemini(config)(insightsPrompt));
@@ -277,14 +274,14 @@ export const getClusters = (
   );
   const prompt = `${promptTemplate}\n${keywords}\n${PROMPT_DATA_FORMAT_SUFFIX}`;
   const responseSchema: ResponseSchema = {
-    type: 'ARRAY',
+    type: 'array',
     items: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
-        topic: { type: 'STRING' },
+        topic: { type: 'string' },
         keywords: {
-          type: 'ARRAY',
-          items: { type: 'STRING' },
+          type: 'array',
+          items: { type: 'string' },
         },
       },
       required: ['topic', 'keywords'],
@@ -394,25 +391,25 @@ export const getCampaigns = (
 
   `;
   const responseSchema: ResponseSchema = {
-    type: 'ARRAY',
+    type: 'array',
     items: {
-      type: 'OBJECT',
+      type: 'object',
       properties: {
-        campaignName: { type: 'STRING' },
+        campaignName: { type: 'string' },
         adGroups: {
-          type: 'ARRAY',
+          type: 'array',
           items: {
-            type: 'OBJECT',
+            type: 'object',
             properties: {
-              name: { type: 'STRING' },
-              keywords: { type: 'ARRAY', items: { type: 'STRING' } },
+              name: { type: 'string' },
+              keywords: { type: 'array', items: { type: 'string' } },
               ads: {
-                type: 'ARRAY',
+                type: 'array',
                 items: {
-                  type: 'OBJECT',
+                  type: 'object',
                   properties: {
-                    headlines: { type: 'ARRAY', items: { type: 'STRING' } },
-                    descriptions: { type: 'ARRAY', items: { type: 'STRING' } },
+                    headlines: { type: 'array', items: { type: 'string' } },
+                    descriptions: { type: 'array', items: { type: 'string' } },
                   },
                   required: ['headlines', 'descriptions'],
                 },
@@ -431,6 +428,13 @@ export const getCampaigns = (
   )(prompt);
   return result;
 };
+/**
+ * Checks if the current active user is the effective user.
+ *
+ * @returns A boolean indicating whether the effective user is the active user.
+ */
+export const isEffectiveUser = () =>
+  Session.getEffectiveUser().getEmail() === Session.getActiveUser().getEmail();
 
 /**
  * Gets the script properties configuration accessing the Google Ads api and spreadsheet exports
@@ -456,6 +460,11 @@ export const getScriptPropertiesConfiguration = () => {
  * @returns The updated script properties configuration.
  */
 export const setScriptProperty = (key: string, value: string) => {
+  if (!isEffectiveUser()) {
+    throw new Error(
+      'Only the script owner is allowed to update script properties'
+    );
+  }
   setScriptProperties(key, value);
   return getScriptPropertiesConfiguration();
 };
@@ -468,6 +477,7 @@ export const setScriptProperty = (key: string, value: string) => {
 export const doGet = () => {
   const template = HtmlService.createTemplateFromFile('webApp');
   template.userEmail = Session.getEffectiveUser().getEmail();
+  template.isEffectiveUser = isEffectiveUser();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (template as any).include = (filename: string) =>
     HtmlService.createHtmlOutputFromFile(filename).getContent();

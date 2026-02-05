@@ -44,9 +44,6 @@ export const getNewSearchTermsClusters = (
   SEARCH_TERMS:
   ${searchTerms.join(', ')}`);
 
-  console.log(JSON.stringify(clusters, null, 2));
-  console.log(clusters.join(', '));
-  console.log(clusters.join('\n'));
   return clusters;
 };
 
@@ -202,9 +199,6 @@ const getSearchTermReportDiff = (
       `segments.date >= "${middleSegment}" AND segments.date <= "${endSegment}"`
     );
     const diff = b.filter(str => !setA.has(str));
-    console.log(a);
-    console.log(b);
-    console.log(diff);
     return diff;
   }
 };
@@ -269,7 +263,6 @@ const getKeywords = (cid, adGroupIds, durationClause) => {
       AND ${durationClause}
       AND ad_group_criterion.keyword.match_type = 'BROAD'
   `;
-  console.log(query);
   const res = runQuery(cid, query);
   const adGroupIdsWithKeywords = res.map(item => [
     item.adGroup.id,
@@ -354,9 +347,7 @@ export const getTopPerformingAdsPrompt = (
     lookbackDays,
     metric
   );
-  const prompt = getPromptTemplate(adsWithKeywords);
-  console.log(prompt);
-  return prompt;
+  return getPromptTemplate(adsWithKeywords);
 };
 
 /**
