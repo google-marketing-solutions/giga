@@ -62,9 +62,9 @@ This project utilizes the following Google services:
 
 ## Prerequisites
 
-- Google Ads Account with a Developer Token (needs **"Basic"** or **"Standard"** access level)
-- Google Cloud Project with Vertex AI enabled
-- Google Workspace (to run Google Apps Script)
+- **Google Ads Account with a Developer Token:** The developer token needs **"Basic"** or **"Standard"** access level ("Test Account Access" is not sufficient, see [access levels](https://developers.google.com/google-ads/api/docs/access-levels) for details). Additionally, it requires the **"Permissible Use"** for **"Researching keywords and recommendations"** (see [permissible use](https://developers.google.com/google-ads/api/docs/api-policy/access-levels#permissible-use) for details).
+- Google Cloud Project with [Vertex AI](https://cloud.google.com/vertex-ai) enabled
+- Google Workspace (to run [Google Apps Script](https://developers.google.com/apps-script))
 
 ## Get Started
 
@@ -86,7 +86,6 @@ The user set in "Execute as" needs at least the Vertex AI User ([roles/aiplatfor
  When you run the application the first time, it'll automatically show the settings screen where you need to specify your Google Ads account Id and the corresponding developer token.
 <br><img src="assets/setup.png" alt="Setup" width="400"/><br>
 Please note the following:
-- The developer token needs **"Basic"** or **"Standard"** access level ("Test Account Access" is not sufficient, see [access levels](https://developers.google.com/google-ads/api/docs/access-levels) for details).
 - A Google Cloud project can be associated with only one developer token (see [this](https://developers.google.com/google-ads/api/docs/get-started/common-errors) for details).
 
 ## Troubleshooting
