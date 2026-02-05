@@ -158,7 +158,9 @@ The Google Ads keyword ideas are:
       if (isReadOnly) return defaultValue;
       try {
         const stickyValue = window.localStorage.getItem(key);
-        return stickyValue !== null ? JSON.parse(stickyValue) : defaultValue;
+        return stickyValue !== null
+          ? JSON.parse(stickyValue)
+          : defaultValue;
       } catch (error) {
         console.warn(`Error reading localStorage key "${key}":`, error);
         window.localStorage.removeItem(key);
