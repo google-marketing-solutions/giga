@@ -17,7 +17,14 @@
 import { getCriterionIDs } from './geo';
 import { generateKeywordIdeas } from './ideas';
 import { getInsightsPrompt } from './prompt';
-import { columnWiseSum, objectToLowerCaseKeys, partition, sum } from './util';
+import {
+  columnWiseSum,
+  getScriptProperties,
+  objectToLowerCaseKeys,
+  partition,
+  setScriptProperties,
+  sum,
+} from './util';
 import {
   gemini,
   GeminiConfig,
@@ -430,11 +437,10 @@ export const getCampaigns = (
  *
  * @returns An object containing the developer token, ads account ID, and spreadsheet URL.
  */
-export const getAppConfiguration = () => {
-  const properties = getPropertiesServiceForUser();
-  const devToken = properties.getProperty('DEVELOPER_TOKEN');
-  const adsAccountId = properties.getProperty('ADS_ACCOUNT_ID');
-  const spreadsheetUrl = properties.getProperty('SPREADSHEET_URL');
+export const getScriptPropertiesConfiguration = () => {
+  const devToken = getScriptProperties('DEVELOPER_TOKEN');
+  const adsAccountId = getScriptProperties('ADS_ACCOUNT_ID');
+  const spreadsheetUrl = getScriptProperties('SPREADSHEET_URL');
   return {
     hasDeveloperToken: !!devToken,
     hasAdsAccountId: !!adsAccountId,
@@ -442,28 +448,16 @@ export const getAppConfiguration = () => {
     spreadsheetUrl: spreadsheetUrl || '',
   };
 };
-
 /**
- * Returns the properties service for the user.
- *  If the effective user is the active user, returns the script properties.
- *  Otherwise, returns the user properties.
- * @returns The properties service for the current user.
- */
-const getPropertiesServiceForUser = () =>
-  Session.getEffectiveUser().getEmail() === Session.getActiveUser().getEmail()
-    ? PropertiesService.getScriptProperties()
-    : PropertiesService.getUserProperties();
-
-/**
- * Sets a property in either script properties or user properties depending on the user context.
+ * Sets a script property.
  *
- * @param key - The property key.
- * @param value - The property value.
- * @returns The updated app configuration.
+ * @param key - The key of the script property.
+ * @param value - The value of the script property.
+ * @returns The updated script properties configuration.
  */
-export const setUserOrScriptProperties = (key: string, value: string) => {
-  getPropertiesServiceForUser().setProperty(key, value);
-  return getAppConfiguration();
+export const setScriptProperty = (key: string, value: string) => {
+  setScriptProperties(key, value);
+  return getScriptPropertiesConfiguration();
 };
 
 /**

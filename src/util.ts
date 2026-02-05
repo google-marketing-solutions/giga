@@ -15,17 +15,22 @@
  */
 
 /**
- * Retrieves a user property value with fallback option to script properties.
- * @param key - The key of the property to retrieve.
- * @returns The value of the property.
+ * Retrieves a script property value.
+ *
+ * @param key - The key of the script property to retrieve.
+ * @returns The value of the script property.
  */
-export const getUserOrScriptProperties = key => {
-  const user = PropertiesService.getUserProperties().getProperty(key);
-  const script = PropertiesService.getScriptProperties().getProperty(key);
-  console.log(`User property ${key}: ${user}`);
-  console.log(`Script property ${key}: ${script}`);
-  return user || script;
-};
+export const getScriptProperties = key =>
+  PropertiesService.getScriptProperties().getProperty(key);
+
+/**
+ * Sets a script property value.
+ *
+ * @param key - The key of the script property to set.
+ * @param value - The value to set for the script property.
+ */
+export const setScriptProperties = (key, value) =>
+  PropertiesService.getScriptProperties().setProperty(key, value);
 
 /**
  * Tries to execute a function and returns undefined if it fails.
