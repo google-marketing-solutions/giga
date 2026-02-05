@@ -36,18 +36,8 @@ export const generateTrendsKeywords = (
   ${seedKeywords.join('\n')}
 
   IMPORTANT:
-  - Aim for simple wording (best case single words) that can be used as broadmatch keywords in Google Ads.
-  - Focus on keywords that are currently trending or have high demand.
-  - Prioritize keywords with significant recent growth in search volume.
-  - Consider seasonal trends and emerging topics relevant to the provided keywords.
-  - Ensure the keywords are relevant to the context of the original keywords.
-  - Provide a diverse set of keywords covering various aspects of the original keywords.
-  - Avoid overly specific or niche keywords; focus on broader terms that capture wider interest.
-  - Do NOT add the Google Ads keyword itself to the trends if not necessary.
-  - Only output the Google Ads broadmatch keywords itself and not add "trending" or "high demand for" other search terms
   - Only output the keywords without any introduction or other annotations separated by "${separator}"
-  - Do NOT add punctuation or unnecessary hyphens to keep the keyword as simple and generic as possible`;
-
+  - Only output the Google Ads broadmatch keywords itself and not add "trending" or "high demand for" other search terms`;
   const config: GeminiConfig = createGeminiConfig(geminiConfig, 'text/plain');
   config.enableGoogleSearch = true;
   const res = gemini(config)(prompt);
