@@ -14,32 +14,33 @@
  * limitations under the License.
  */
 import { createGeminiConfig } from './main';
-import { GeminiConfig, gemini } from './vertex';
+import { GeminiConfig, ResponseSchema, gemini } from './vertex';
 
 /**
  * Generates a list of trending keywords based on a list of seed keywords.
  *
  * @param seedKeywords - An array of seed keywords to use for keyword generation.
  * @param promptTemplate - A template for the prompt to use for keyword generation.
- * @param geminiConfig - The configuration for the Gemini API.
+ * @param geminiConfig - The configuration for Gemini.
  * @returns An array of trending keywords.
  */
 export const generateTrendsKeywords = (
-  seedKeywords,
-  promptTemplate,
+  seedKeywords: string[],
+  promptTemplate: string,
   geminiConfig: Partial<GeminiConfig>
 ) => {
-  const separator = ';';
-  const prompt = `${promptTemplate}
-
-  Keywords:
-  ${seedKeywords.join('\n')}
-
-  IMPORTANT:
-  - Only output the keywords without any introduction or other annotations separated by "${separator}"
-  - Only output the Google Ads broadmatch keywords itself and not add "trending" or "high demand for" other search terms`;
-  const config: GeminiConfig = createGeminiConfig(geminiConfig, 'text/plain');
+  const prompt = `${promptTemplate}\nKeywords:\n${seedKeywords.join(', ')}`;
+  const responseSchema: ResponseSchema = {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
+  };
+  const config: GeminiConfig = createGeminiConfig(
+    geminiConfig,
+    'application/json'
+  );
   config.enableGoogleSearch = true;
-  const res = gemini(config)(prompt);
-  return res.split(separator).map(k => k.trim());
+  config.responseSchema = responseSchema;
+  return gemini(config)(prompt);
 };
