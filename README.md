@@ -102,14 +102,14 @@ Since this is open source solution, it is also possible to make contribution by 
   * After that, it will ask 6-7 times to replace or overwrite certain file. On each question select No
   * Next, it will ask you for "Script ID (optional)" and "Script ID for production environment (optional)". On both question you don't have to provide anything, you can just press Enter and it will create the files automatically for you
   * After it finished the installation process, it should provide you the Google Sheets and AppsScript Link. Apps Script link is what you will need
-6. Next, in your IDE in terminal, run `npm run deploy`
+6. Next, in your IDE in terminal, run `npm run deploy`. **NOTE:** In case if you get error "FAIL  test/example-module.test.ts", just delete "test" folder from project directory and run `npm run deploy` command again
 7. After it finishes, go to the [Apps Script](https://script.google.com/) page and open the file with the project title you gave during the installation process
 8. Once you opened the file, in upper right corner click on blue button "Deploy" -> "New deployment".
 9. It will open popup. Click on gear icon next to the "Select type". Select "Web App". Add description if you want. And once you are ready, click on "Deploy" button.
 10. It will ask you authorize the access and give the permissions. Once you provide it, you should see the screen where it says "Deployment successfully updated.". On this screen you will find *Web app URL*. Copy the URL, open in the browser and you should see your Giga app!
 
 
-### Process of adding changes and deploying it
+### Process of making changes and deploying it
 In case if you make some changes in the code and you want to deploy and test them, follow these steps:
 1. After you make changes, open terminal in your IDE and run `npm run deploy`
 2. When process is finished, go to the [Apps Script](https://script.google.com/) page and open your project file. Click on button "Deploy" -> "New deployment" and then on "Deploy" button again
