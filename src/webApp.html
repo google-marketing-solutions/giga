@@ -16,7 +16,7 @@ limitations under the License.
 <!doctype html>
 <html>
   <head>
-    <title>GIGA</title>
+    <title>GIGA-TEST</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -809,7 +809,22 @@ limitations under the License.
         // Explore State
         const [keywords, setKeywords] = useStickyState('', 'giga_keywords');
         const [language, setLanguage] = useStickyState('1000', 'giga_language');
+        const [continent, setContinent] = useStickyState('Worldwide', 'giga_continent');
         const [country, setCountry] = useStickyState('', 'giga_country');
+
+        const continentOptions = useMemo(() => {
+          return Object.keys(window.REGION_MAP || {}).map(name => ({ id: name, name: name }));
+        }, []);
+
+        const continentDefaults = {
+          'Worldwide': '',           // Default selected category
+          'Europe': '2276',          // Germany
+          'North America': '2840',   // United States
+          'South America': '2076',   // Brazil
+          'Africa': '2710',          // South Africa
+          'Asia & Oceania': '2392',  // Japan
+        };
+
         const [customLanguages, setCustomLanguages] = useStickyState(
           [],
           'giga_customLanguages'
@@ -1221,6 +1236,12 @@ limitations under the License.
           window.addEventListener('keydown', handleKeyDown);
           return () => window.removeEventListener('keydown', handleKeyDown);
         }, [isDemoMode]);
+
+
+        useEffect(() => {
+          const defaultCountryId = continentDefaults[continent] || '';
+          setCountry(defaultCountryId);
+        }, [continent]);
 
         // Campaign Creation State
         const [creationAccountId, setCreationAccountId] = useStickyState(
@@ -2367,6 +2388,9 @@ limitations under the License.
                 setLanguage={setLanguage}
                 country={country}
                 setCountry={setCountry}
+                continent={continent}
+                setContinent={setContinent}
+                continentOptions={continentOptions}
                 customLanguages={customLanguages}
                 customCountries={customCountries}
                 handleCustomOption={handleCustomOption}

@@ -34,6 +34,9 @@ limitations under the License.
     setLanguage,
     country,
     setCountry,
+    continent,
+    setContinent,
+    continentOptions,
     customLanguages,
     customCountries,
     handleCustomOption,
@@ -73,6 +76,12 @@ limitations under the License.
         * Search Volume is from the previous full month only and is limited by the <a href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Historical Metrics</a> endpoint from the Google Ads API.
       </div>
     );
+
+    const filteredCountries = useMemo(() => {
+      const countriesForContinent = window.REGION_MAP[continent] || [];
+
+      return countriesForContinent;
+    }, [continent]);
 
     const [activeInfoModal, setActiveInfoModal] = useState(null);
     const detailsRef = useRef(null);
@@ -377,12 +386,11 @@ limitations under the License.
             }
           }}
         />
-        <div className="grid-2">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          {/* 1. Language Selection */}
           <SelectField
             label={
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-              >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 Language
                 <span
                   className="material-symbols-outlined"
@@ -405,11 +413,19 @@ limitations under the License.
             options={[...LANGUAGES, ...customLanguages]}
             onCustomOption={() => handleCustomOption('language')}
           />
+
+          {/* 2. Continent Selection */}
+          <SelectField
+            label="Continent"
+            value={continent}
+            onChange={setContinent}
+            options={continentOptions}
+          />
+
+          {/* 3. Location Selection */}
           <SelectField
             label={
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-              >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 Location
                 <span
                   className="material-symbols-outlined"
@@ -429,7 +445,7 @@ limitations under the License.
             }
             value={country}
             onChange={setCountry}
-            options={[...COUNTRIES, ...customCountries]}
+            options={filteredCountries}
             onCustomOption={() => handleCustomOption('country')}
           />
         </div>

@@ -1,17 +1,7 @@
 {
-  "timeZone": "Europe/Berlin",
-  "dependencies": {},
-  "webapp": {
-    "executeAs": "USER_DEPLOYING",
-    "access": "DOMAIN"
+  "timeZone": "America/New_York",
+  "dependencies": {
   },
   "exceptionLogging": "STACKDRIVER",
-  "oauthScopes": [
-    "https://www.googleapis.com/auth/script.external_request",
-    "https://www.googleapis.com/auth/adwords",
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/userinfo.email"
-  ],
   "runtimeVersion": "V8"
 }
