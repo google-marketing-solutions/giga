@@ -817,6 +817,7 @@ limitations under the License.
           return Object.keys(window.REGION_MAP || {}).map(name => ({ id: name, name: name }));
         }, []);
 
+        // Set default country for each continent
         const continentDefaults = {
           'Worldwide': '',           // Default selected category
           'Europe': '2276',          // Germany
@@ -1237,7 +1238,6 @@ limitations under the License.
           window.addEventListener('keydown', handleKeyDown);
           return () => window.removeEventListener('keydown', handleKeyDown);
         }, [isDemoMode]);
-
 
         useEffect(() => {
           const defaultCountryId = continentDefaults[continent] || '';

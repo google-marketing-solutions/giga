@@ -79,7 +79,6 @@ limitations under the License.
 
     const filteredCountries = useMemo(() => {
       const countriesForContinent = window.REGION_MAP[continent] || [];
-
       return countriesForContinent;
     }, [continent]);
 
@@ -387,7 +386,6 @@ limitations under the License.
           }}
         />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-          {/* 1. Language Selection */}
           <SelectField
             label={
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -413,16 +411,12 @@ limitations under the License.
             options={[...LANGUAGES, ...customLanguages]}
             onCustomOption={() => handleCustomOption('language')}
           />
-
-          {/* 2. Continent Selection */}
           <SelectField
             label="Continent"
             value={continent}
             onChange={setContinent}
             options={continentOptions}
           />
-
-          {/* 3. Location Selection */}
           <SelectField
             label={
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
