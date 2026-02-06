@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+import Ajv from 'ajv';
 import { fetchJson, getGcpProjectDetails } from './util';
+
+const ajv = new Ajv();
 
 /**
  * Returns the GCP project ID.
@@ -95,28 +98,74 @@ export interface ResponseSchema {
 export const gemini =
   (config: GeminiConfig, jsonFetcher = fetchJson) =>
   prompt => {
-    const [url, options] = getGeminiRequest(
-      config,
-      prompt,
-      config.enableGoogleSearch
-    );
+    const isGroundingWithJson =
+      config.enableGoogleSearch && config.responseType === 'application/json';
 
-    const res = jsonFetcher(url, options);
-    console.log(JSON.stringify(res, null, 2));
+    const effectiveConfig = { ...config };
+    let effectivePrompt = prompt;
 
-    const responseText = res.candidates?.[0].content?.parts?.[0].text;
-
-    try {
-      const response =
-        config.responseType === 'application/json'
-          ? JSON.parse(responseText)
-          : responseText;
-      return response;
-    } catch (e) {
-      console.log(`Error while parsing JSON. Text:\n${responseText}`);
-      console.log(JSON.stringify(res, null, 2));
-      throw e;
+    // Google Search Grounding is currently incompatible with responseMimeType: 'application/json' and responseSchema
+    // See: https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/grounding-search
+    if (isGroundingWithJson) {
+      // Thus changing to text/plain and on unsuccesfull JSON parsing re-generating with JSON-response mode.
+      effectiveConfig.responseType = 'text/plain';
+      delete effectiveConfig.responseSchema;
+      const schemaString = config.responseSchema
+        ? JSON.stringify(config.responseSchema, null, 2)
+        : '';
+      effectivePrompt += `\n\nImportant:
+       - Output only the raw JSON string. Do not include markdown formatting (e.g. \`\`\`json) or any other text.
+      ${schemaString ? `\n - Adhere to the following OpenAPI Schema Object definition: ${schemaString}` : ''}`;
     }
+
+    const [url, options] = getGeminiRequest(
+      effectiveConfig,
+      effectivePrompt,
+      effectiveConfig.enableGoogleSearch
+    );
+    console.log(effectivePrompt);
+    const res = jsonFetcher(url, options);
+    const responseText = res.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (config.responseType === 'application/json') {
+      try {
+        console.log(`trying to parse ${responseText}`);
+        let textToParse = responseText;
+        if (textToParse.startsWith('```json')) {
+          textToParse = textToParse
+            .replace(/^```json\s*/, '')
+            .replace(/\s*```$/, '');
+        }
+        const parsed = JSON.parse(textToParse);
+        if (config.responseSchema) {
+          const validate = ajv.compile(config.responseSchema);
+          if (!validate(parsed)) {
+            throw new Error(
+              `JSON Validation failed: ${ajv.errorsText(validate.errors)}`
+            );
+          }
+        }
+        return parsed;
+      } catch (e) {
+        // Since the response is not valid JSON (e.g. ```json was added and/or intro text "Here is your JSON: ...")
+        // We run Gemini a second time without grounding to extract the JSON from the already grounded response
+        if (isGroundingWithJson && responseText) {
+          console.log(
+            `Response did not provide valid JSON, re-generating with JSON-response mode now. Full response is:\n${responseText}\n\n`
+          );
+          const extractionConfig = { ...config, enableGoogleSearch: false };
+          return gemini(
+            extractionConfig,
+            jsonFetcher
+          )(`Extract valid JSON from this text response:\n\n${responseText}`);
+        }
+        console.log(`Error while parsing JSON. Text:\n${responseText}`);
+        console.log(JSON.stringify(res, null, 2));
+        throw e;
+      }
+    }
+
+    return responseText;
   };
 
 /**
@@ -131,8 +180,6 @@ const getGeminiRequest = (
   enableGoogleSearch = false,
   payloadKey = 'payload'
 ) => {
-  console.log(prompt);
-  console.log(JSON.stringify(config, null, 2));
   const location = config.location || 'us-central1';
   const baseUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${location}/publishers/google/models/${config.modelId}`;
 

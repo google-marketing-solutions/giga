@@ -15,20 +15,16 @@
  */
 
 import { services } from 'google-ads-api';
-import { chunk, fetchJson, getUserOrScriptProperties } from './util';
+import { chunk, fetchJson, getScriptProperties } from './util';
 
 export const MAX_KEYWORDS_PER_REQUEST = 10000; // See https://developers.google.com/google-ads/api/rest/reference/rest/v15/customers/generateKeywordHistoricalMetrics for details
 export const LOOKBACK_YEARS = 2;
 // https://developers.google.com/google-ads/api/rest/reference/rest/v18/customers/generateKeywordIdeas
 export const MAX_NUMBER_OF_KEYWORD_SEED_IDEAS = 20;
 
-export const getDeveloperToken = () =>
-  getUserOrScriptProperties('DEVELOPER_TOKEN');
+export const getDeveloperToken = () => getScriptProperties('DEVELOPER_TOKEN');
 export const getCustomerId = () =>
-  getUserOrScriptProperties('ADS_ACCOUNT_ID')
-    .toString()
-    .replace(/-/g, '')
-    .trim();
+  getScriptProperties('ADS_ACCOUNT_ID').toString().replace(/-/g, '').trim();
 export const ADS_VERSION = 'v22';
 export const ADS_ENDPOINT = `https://googleads.googleapis.com/${ADS_VERSION}`;
 
@@ -48,7 +44,6 @@ export const addGoogleAdsAuth = payload =>
   );
 
 export const post = (service, params) => {
-  console.log(service, '-->', JSON.stringify(params, null, 2));
   return fetchJson(
     `${ADS_ENDPOINT}/${service}`,
     addGoogleAdsAuth(JSON.stringify(params))
@@ -95,25 +90,20 @@ export function getHistoricalMetrics(
   criteriaId,
   lookbackYears = LOOKBACK_YEARS
 ): services.GenerateKeywordHistoricalMetricsResult[] {
-  const results = chunk(keywords, MAX_KEYWORDS_PER_REQUEST).map(
-    (keywords, batchIndex) => {
-      console.log(
-        `Getting keyword ideas: ${batchIndex + 1} / ${Math.ceil(keywords.length / MAX_KEYWORDS_PER_REQUEST)} ...`
-      );
-      Utilities.sleep(1000); // respect 1qps quota from keyword planner
-      return post(
-        `customers/${getCustomerId()}:generateKeywordHistoricalMetrics`,
-        {
-          keywords,
-          geoTargetConstants: criteriaId
-            ? [`geoTargetConstants/${criteriaId}`]
-            : undefined,
-          keywordPlanNetwork: 'GOOGLE_SEARCH',
-          historicalMetricsOptions: getHistoricalMetricsOptions(lookbackYears),
-        }
-      );
-    }
-  );
+  const results = chunk(keywords, MAX_KEYWORDS_PER_REQUEST).map(keywords => {
+    Utilities.sleep(1000); // respect 1qps quota from keyword planner
+    return post(
+      `customers/${getCustomerId()}:generateKeywordHistoricalMetrics`,
+      {
+        keywords,
+        geoTargetConstants: criteriaId
+          ? [`geoTargetConstants/${criteriaId}`]
+          : undefined,
+        keywordPlanNetwork: 'GOOGLE_SEARCH',
+        historicalMetricsOptions: getHistoricalMetricsOptions(lookbackYears),
+      }
+    );
+  });
   // return "flat" list of results
   return results.flatMap(res => res.results);
 }
@@ -126,10 +116,7 @@ export const generateKeywordIdeas = (
   lookbackYears = LOOKBACK_YEARS
 ) => {
   return chunk(seedKeywords, MAX_NUMBER_OF_KEYWORD_SEED_IDEAS).flatMap(
-    (keywords, batchIndex) => {
-      console.log(
-        `Getting keyword ideas batch ${batchIndex + 1} / ${Math.ceil(seedKeywords.length / MAX_NUMBER_OF_KEYWORD_SEED_IDEAS)}`
-      );
+    keywords => {
       const results = [];
       const request = {
         pageSize: maxIdeas

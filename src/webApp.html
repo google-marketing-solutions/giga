@@ -671,7 +671,8 @@ limitations under the License.
     <div id="root"></div>
 
     <script>
-      const USER_EMAIL = <?= userEmail ?>;
+      const USER_EMAIL = "<?= userEmail ?>";
+      const IS_EFFECTIVE_USER = "<?= isEffectiveUser ?>" === 'true';
     </script>
 
     <!-- Backend Proxy -->
@@ -1313,7 +1314,7 @@ limitations under the License.
 
         useEffect(() => {
           googleScriptRun
-            .getAppConfiguration()
+            .getScriptPropertiesConfiguration()
             .then(status => {
               setConfigStatus({ ...status, checked: true });
               if (status.adsAccountId) {
@@ -1467,7 +1468,7 @@ limitations under the License.
           setExploreStatus('Verifying configuration...');
           let currentStatus = configStatus;
           try {
-            const status = await googleScriptRun.getAppConfiguration();
+            const status = await googleScriptRun.getScriptPropertiesConfiguration();
             setConfigStatus({ ...status, checked: true });
             if (status.adsAccountId) {
               setAdsAccountId(status.adsAccountId);
@@ -2221,7 +2222,7 @@ limitations under the License.
 
         const updateScriptProperty = async (key, value) => {
           try {
-            const status = await googleScriptRun.setUserOrScriptProperties(key, value);
+            const status = await googleScriptRun.setScriptProperty(key, value);
             setConfigStatus({ ...status, checked: true });
             if (key === 'ADS_ACCOUNT_ID') {
               setAdsAccountId(value);
@@ -2492,6 +2493,7 @@ limitations under the License.
               configStatus={configStatus}
               onSave={handleSettingsSave}
               onClearCache={clearCache}
+              isEffectiveUser={IS_EFFECTIVE_USER}
             />
             {alertModal}
 
