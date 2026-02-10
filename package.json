@@ -6,7 +6,6 @@
   "license": "Apache-2.0",
   "keywords": [],
   "scripts": {
-    "artifactregistry-login": "npm_config_registry=https://registry.npmjs.org npx google-artifactregistry-auth",
     "clean": "rimraf build dist",
     "lint": "npm run license && eslint --fix --no-error-on-unmatched-pattern src/ test/",
     "bundle": "rollup --no-treeshake -c rollup.config.mjs",
@@ -46,7 +45,7 @@
     "typescript": "5.1.6"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "google-ads-api": "^21.0.1"
