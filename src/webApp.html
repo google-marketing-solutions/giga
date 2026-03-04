@@ -15,6 +15,7 @@ limitations under the License.
 -->
 <!doctype html>
 <html>
+
 <head>
   <title>GIGA</title>
   <meta charset="utf-8" />
@@ -23,26 +24,14 @@ limitations under the License.
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <!-- Icons -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
-      rel="stylesheet"
-    />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 
   <!-- React & ReactDOM -->
-    <script
-      crossorigin
-      src="https://unpkg.com/react@18/umd/react.production.min.js"
-    ></script>
-    <script
-      crossorigin
-      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
-    ></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
   <!-- Babel for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -129,11 +118,13 @@ limitations under the License.
       cursor: text;
       transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
     }
+
     .chips-container:focus-within {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
       background: white;
     }
+
     .chip {
       background-color: rgba(37, 99, 235, 0.1);
       color: var(--primary);
@@ -144,6 +135,7 @@ limitations under the License.
       font-size: 0.95rem;
       font-weight: 500;
     }
+
     .chip .close-icon {
       font-size: 16px;
       margin-left: 4px;
@@ -153,10 +145,12 @@ limitations under the License.
       border-radius: 50%;
       padding: 2px;
     }
+
     .chip .close-icon:hover {
       opacity: 1;
       background-color: rgba(37, 99, 235, 0.1);
     }
+
     input.chips-input-field {
       border: none;
       border-radius: 0;
@@ -169,6 +163,7 @@ limitations under the License.
       padding: 4px;
       color: var(--text-main);
     }
+
     input.chips-input-field:focus {
       box-shadow: none;
       border: none;
@@ -197,10 +192,12 @@ limitations under the License.
       -webkit-text-fill-color: transparent;
       margin-bottom: 1.5rem;
     }
+
     h2 {
       font-size: 1.5rem;
       margin-bottom: 1rem;
     }
+
     h3 {
       font-size: 1.1rem;
       margin-bottom: 0.5rem;
@@ -262,11 +259,9 @@ limitations under the License.
     }
 
     .btn-primary {
-        background: linear-gradient(
-          135deg,
+      background: linear-gradient(135deg,
           var(--primary) 0%,
-          var(--primary-dark) 100%
-        );
+          var(--primary-dark) 100%);
       color: white;
       box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
     }
@@ -373,20 +368,25 @@ limitations under the License.
       grid-template-columns: 1fr 1fr;
       gap: 16px;
     }
+
     @media (max-width: 768px) {
       .grid-2 {
         grid-template-columns: 1fr;
       }
     }
+
     .mt-4 {
       margin-top: 1rem;
     }
+
     .mb-4 {
       margin-bottom: 1rem;
     }
+
     .text-sm {
       font-size: 0.875rem;
     }
+
     .text-muted {
       color: var(--text-secondary);
     }
@@ -398,6 +398,7 @@ limitations under the License.
       width: 100%;
       margin-top: 20px;
     }
+
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -412,6 +413,7 @@ limitations under the License.
       z-index: 1000;
       animation: fadeIn 0.2s ease-out;
     }
+
     .modal-content {
       background: var(--surface-color);
       color: var(--text-main);
@@ -425,10 +427,12 @@ limitations under the License.
       max-height: 90vh;
       overflow-y: auto;
     }
+
     @keyframes fadeIn {
       from {
         opacity: 0;
       }
+
       to {
         opacity: 1;
       }
@@ -464,6 +468,7 @@ limitations under the License.
       align-items: center;
       justify-content: center;
     }
+
     /* Spinner */
     .spinner {
       width: 16px;
@@ -473,32 +478,39 @@ limitations under the License.
       border-top-color: white;
       animation: spin 0.8s linear infinite;
     }
+
     @keyframes spin {
       to {
         transform: rotate(360deg);
       }
     }
+
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1.5rem;
     }
+
     .modal-header h3 {
       margin: 0;
       font-size: 1.25rem;
     }
+
     .modal-actions {
       display: flex;
       justify-content: flex-end;
       gap: 1rem;
       margin-top: 1.5rem;
     }
+
     @keyframes bounceHorizontal {
+
       0%,
       100% {
         transform: translateX(0) translateY(-50%);
       }
+
       50% {
         transform: translateX(-10px) translateY(-50%);
       }
@@ -511,11 +523,13 @@ limitations under the License.
       width: 40px;
       height: 24px;
     }
+
     .switch input {
       opacity: 0;
       width: 0;
       height: 0;
     }
+
     .slider {
       position: absolute;
       cursor: pointer;
@@ -527,6 +541,7 @@ limitations under the License.
       transition: 0.4s;
       border-radius: 24px;
     }
+
     .slider:before {
       position: absolute;
       content: '';
@@ -538,13 +553,16 @@ limitations under the License.
       transition: 0.4s;
       border-radius: 50%;
     }
-      input:checked + .slider {
+
+    input:checked+.slider {
       background-color: var(--primary);
     }
-      input:focus + .slider {
+
+    input:focus+.slider {
       box-shadow: 0 0 1px var(--primary);
     }
-      input:checked + .slider:before {
+
+    input:checked+.slider:before {
       transform: translateX(16px);
     }
 
@@ -577,6 +595,7 @@ limitations under the License.
       cursor: pointer;
       transition: all 0.2s;
     }
+
     .header-action-btn:hover {
       background: #f3f4f6;
       border-color: #e5e7eb;
@@ -593,17 +612,20 @@ limitations under the License.
       margin-top: 16px;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
+
     .ad-label {
       font-weight: bold;
       color: #202124;
       font-size: 12px;
       margin-right: 8px;
     }
+
     .ad-url {
       color: #202124;
       font-size: 12px;
       display: inline-block;
     }
+
     .ad-headline {
       color: #1a0dab;
       font-size: 20px;
@@ -613,9 +635,11 @@ limitations under the License.
       display: flex;
       align-items: center;
     }
+
     .ad-headline:hover {
       text-decoration: underline;
     }
+
     .ad-description {
       color: #4d5156;
       font-size: 14px;
@@ -623,6 +647,7 @@ limitations under the License.
       display: flex;
       align-items: center;
     }
+
     .preview-controls {
       display: flex;
       gap: 4px;
@@ -630,11 +655,13 @@ limitations under the License.
       opacity: 0.3;
       transition: opacity 0.2s;
     }
+
     .ad-headline:hover .preview-controls,
     .ad-description:hover .preview-controls {
       opacity: 1;
       text-decoration: none;
     }
+
     .control-btn {
       background: none;
       border: 1px solid #ddd;
@@ -646,29 +673,34 @@ limitations under the License.
       align-items: center;
       color: #555;
     }
+
     .control-btn:hover {
       background: #f1f1f1;
       color: #000;
     }
+
     .error-header {
       display: flex;
       align-items: center;
       gap: 10px;
       margin-bottom: 1rem;
     }
+
     .error-title {
       margin: 0;
       font-size: 1.5rem;
       color: #dc2626;
     }
+
     .error-icon {
       font-size: 2rem;
       color: #dc2626;
     }
   </style>
-  </head>
-  <body>
-    <div id="root"></div>
+</head>
+
+<body>
+  <div id="root"></div>
 
   <script>
     const USER_EMAIL = "<?= userEmail ?>";
@@ -677,11 +709,11 @@ limitations under the License.
 
   <!-- Backend Proxy -->
   <script>
-      const googleScriptRun = new Proxy(
-        {},
-        {
-          get:
-            (target, prop) =>
+    const googleScriptRun = new Proxy(
+      {},
+      {
+        get:
+          (target, prop) =>
             (...args) => {
               console.log(`Running ${prop} in AppsScript backend...`);
               return new Promise((resolve, reject) => {
@@ -696,68 +728,72 @@ limitations under the License.
                 [prop](...args);
               });
             },
-        }
-      );
-      </script>
+      }
+    );
+  </script>
 
-    <?!= include('utils'); ?> <?!= include('components'); ?> <?!=
-    include('tabExplore'); ?> <?!= include('tabInsights'); ?> <?!=
+  <?!= include('utils'); ?>
+  <?!= include('components'); ?>
+  <?!=
+    include('tabExplore'); ?>
+  <?!= include('tabInsights'); ?>
+  <?!=
     include('tabCampaigns'); ?>
 
   <script type="text/babel">
     const { useState, useEffect, useRef, useMemo } = React;
 
-      // Load Globals from Window
-      const {
-        COLOR_PALETTE,
-        LANGUAGES,
-        COUNTRIES,
-        DEFAULT_PROMPT,
-        DEFAULT_TRENDS_PROMPT,
-        LANGUAGE_INFO_URL,
-        LOCATION_INFO_URL,
-        GOOGLE_ADS_ID_HELP_URL,
-        GROWTH_METRICS,
-        useStickyState,
-        formatMicrosToCurrency,
-        htmlToMarkdown,
-        convertToCSV,
-        downloadFile,
-        APP_VERSION,
-        compareVersions,
-      } = window;
+    // Load Globals from Window
+    const {
+      COLOR_PALETTE,
+      LANGUAGES,
+      COUNTRIES,
+      DEFAULT_PROMPT,
+      DEFAULT_TRENDS_PROMPT,
+      LANGUAGE_INFO_URL,
+      LOCATION_INFO_URL,
+      GOOGLE_ADS_ID_HELP_URL,
+      GROWTH_METRICS,
+      useStickyState,
+      formatMicrosToCurrency,
+      htmlToMarkdown,
+      convertToCSV,
+      downloadFile,
+      APP_VERSION,
+      compareVersions,
+    } = window;
 
-      const {
-        TabButton,
-        InputField,
-        Modal,
-        ErrorModal,
-        SelectField,
-        ChartComponent,
-        SettingsModal,
-        AdPreview,
-      } = window;
+    const {
+      TabButton,
+      InputField,
+      Modal,
+      ErrorModal,
+      SelectField,
+      ChartComponent,
+      SettingsModal,
+      AdPreview,
+    } = window;
 
-      const { ExploreTab, InsightsTab, CampaignsTab } = window;
+    const { ExploreTab, InsightsTab, CampaignsTab } = window;
 
-      // --- Main App ---
+    // --- Main App ---
 
-      // eslint-disable-next-line no-unused-vars
-      const GigaApp = ({ onReset, isDemoMode }) => {
-        const [activeTab, setActiveTab] = useStickyState(
-          'explore',
-          'giga_activeTab'
-        );
+    // eslint-disable-next-line no-unused-vars
+    const GigaApp = ({ onReset, isDemoMode }) => {
+      const [activeTab, setActiveTab] = useStickyState(
+        'explore',
+        'giga_activeTab'
+      );
 
-        // Version State
-        const [showVersionModal, setShowVersionModal] = useState(false);
-        const [versionUpdateType, setVersionUpdateType] = useState(''); // 'major', 'minor', 'patch'
+      // Version State
+      const [showVersionModal, setShowVersionModal] = useState(false);
+      const [versionUpdateType, setVersionUpdateType] = useState(''); // 'major', 'minor', 'patch'
 
-        // Theme State
-        const [theme, setTheme] = useStickyState('light', 'giga_theme');
+      // Theme State
+      const [theme, setTheme] = useStickyState('light', 'giga_theme');
 
-        useEffect(() => {
-          document.documentElement.setAttribute('data-theme', theme);
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
 
         // Update Chart.js defaults
         const isDark = theme === 'dark';
@@ -769,19 +805,19 @@ limitations under the License.
         Chart.defaults.scale.grid.color = gridColor;
       }, [theme]);
 
-        const toggleTheme = () => {
-          setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-        };
+      const toggleTheme = () => {
+        setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+      };
 
-        // Version Check Effect
-        useEffect(() => {
-          const checkVersion = () => {
-            const cachedVersion = localStorage.getItem('giga_version');
-            if (!cachedVersion) {
-              // First run or no version set, just set it
-              localStorage.setItem('giga_version', APP_VERSION);
-              return;
-            }
+      // Version Check Effect
+      useEffect(() => {
+        const checkVersion = () => {
+          const cachedVersion = localStorage.getItem('giga_version');
+          if (!cachedVersion) {
+            // First run or no version set, just set it
+            localStorage.setItem('giga_version', APP_VERSION);
+            return;
+          }
 
           const diff = compareVersions(cachedVersion, APP_VERSION);
           if (diff === 'major' || diff === 'minor') {
@@ -795,188 +831,188 @@ limitations under the License.
         checkVersion();
       }, []);
 
-        const handleVersionUpdate = shouldClearCache => {
-          if (shouldClearCache) {
-            clearCache();
-          } else {
-            // Update version without clearing cache
-            localStorage.setItem('giga_version', APP_VERSION);
-            // Force reload to ensure fresh state if needed, or just close modal
-            // Ideally we might want to reload, but for now just updating version is enough to stop modal
+      const handleVersionUpdate = shouldClearCache => {
+        if (shouldClearCache) {
+          clearCache();
+        } else {
+          // Update version without clearing cache
+          localStorage.setItem('giga_version', APP_VERSION);
+          // Force reload to ensure fresh state if needed, or just close modal
+          // Ideally we might want to reload, but for now just updating version is enough to stop modal
+        }
+        setShowVersionModal(false);
+      };
+
+      // Explore State
+      const [keywords, setKeywords] = useStickyState('', 'giga_keywords');
+      const [language, setLanguage] = useStickyState('1000', 'giga_language');
+      const [continent, setContinent] = useStickyState('Worldwide', 'giga_continent');
+      const [country, setCountry] = useStickyState('', 'giga_country');
+
+      const continentOptions = useMemo(() => {
+        return Object.keys(window.REGION_MAP || {}).map(name => ({ id: name, name: name }));
+      }, []);
+
+      // Set default country for each continent
+      const continentDefaults = {
+        'Worldwide': '',           // Default selected category
+        'Europe': '2276',          // Germany
+        'North America': '2840',   // United States
+        'South America': '2076',   // Brazil
+        'Africa': '2710',          // South Africa
+        'Asia & Oceania': '2392',  // Japan
+      };
+
+      const [customLanguages, setCustomLanguages] = useStickyState(
+        [],
+        'giga_customLanguages'
+      );
+      const [customCountries, setCustomCountries] = useStickyState(
+        [],
+        'giga_customCountries'
+      );
+      const [promptTemplate, setPromptTemplate] = useStickyState(
+        DEFAULT_PROMPT,
+        'giga_promptTemplate'
+      );
+      const [geminiPrompt, setGeminiPrompt] = useStickyState(
+        DEFAULT_TRENDS_PROMPT,
+        'giga_geminiPrompt'
+      );
+      const [useKeywordPlanner, setUseKeywordPlanner] = useStickyState(
+        true,
+        'giga_useKeywordPlanner'
+      );
+      const [useGemini, setUseGemini] = useStickyState(
+        true,
+        'giga_useGemini'
+      );
+      const [useClustering, setUseClustering] = useStickyState(
+        true,
+        'giga_useClustering'
+      );
+      const [exploreStatus, setExploreStatus] = useState('');
+      const [isExploring, setIsExploring] = useState(false);
+      const [ideasData, setIdeasData] = useStickyState(
+        null,
+        'giga_ideasData',
+        isDemoMode
+      );
+      const [clusters, setClusters] = useStickyState(
+        null,
+        'giga_clusters',
+        isDemoMode
+      );
+      const [relevantIdeas, setRelevantIdeas] = useStickyState(
+        {},
+        'giga_relevantIdeas',
+        isDemoMode
+      );
+      const [selectedCluster, setSelectedCluster] = useState(null);
+      const [chartLabels, setChartLabels] = useStickyState(
+        [],
+        'giga_chartLabels',
+        isDemoMode
+      );
+      const [minSearchVolume, setMinSearchVolume] = useStickyState(
+        100,
+        'giga_minSearchVolume'
+      );
+      const [highlightKeywordSources, setHighlightKeywordSources] =
+        useState(false);
+
+      const [spreadsheetUrl, setSpreadsheetUrl] = useStickyState(
+        '',
+        'giga_spreadsheetUrl'
+      );
+
+      // Insights State
+      const [insights, setInsights] = useStickyState(
+        '',
+        'giga_insights',
+        isDemoMode
+      );
+      const [insightsLanguage, setInsightsLanguage] = useStickyState(
+        'English',
+        'giga_insightsLanguage'
+      );
+      const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
+      const [insightsStatus, setInsightsStatus] = useState('');
+
+      // Campaigns State
+      const [adsAccountId, setAdsAccountId] = useStickyState(
+        '',
+        'giga_adsAccountId'
+      );
+      const [brandName, setBrandName] = useStickyState('', 'giga_brandName');
+      const [campaignSuggestions, setCampaignSuggestions] = useStickyState(
+        '',
+        'giga_campaignSuggestions'
+      );
+      const [isGeneratingCampaigns, setIsGeneratingCampaigns] =
+        useState(false);
+      const [campaignStatus, setCampaignStatus] = useState('');
+      const [showIdInfo, setShowIdInfo] = useState(false);
+      const [showBrandInfo, setShowBrandInfo] = useState(false);
+
+      // Demo Mode Randomization
+      const [isRandomized, setIsRandomized] = useState(true);
+
+      // --- Sheet Export Helper ---
+      const [isExporting, setIsExporting] = useState(false);
+
+      const handleSheetExport = async (
+        sheetName,
+        header,
+        rows,
+        columnFormats = []
+      ) => {
+        setIsExporting(true);
+        try {
+          let targetUrl = spreadsheetUrl;
+          let isNewSheet = false;
+          if (!targetUrl) {
+            targetUrl =
+              await googleScriptRun.createSpreadsheet('Giga Export');
+            setSpreadsheetUrl(targetUrl);
+            isNewSheet = true;
           }
-          setShowVersionModal(false);
-        };
-
-        // Explore State
-        const [keywords, setKeywords] = useStickyState('', 'giga_keywords');
-        const [language, setLanguage] = useStickyState('1000', 'giga_language');
-        const [continent, setContinent] = useStickyState('Worldwide', 'giga_continent');
-        const [country, setCountry] = useStickyState('', 'giga_country');
-
-        const continentOptions = useMemo(() => {
-          return Object.keys(window.REGION_MAP || {}).map(name => ({ id: name, name: name }));
-        }, []);
-
-        // Set default country for each continent
-        const continentDefaults = {
-          'Worldwide': '',           // Default selected category
-          'Europe': '2276',          // Germany
-          'North America': '2840',   // United States
-          'South America': '2076',   // Brazil
-          'Africa': '2710',          // South Africa
-          'Asia & Oceania': '2392',  // Japan
-        };
-
-        const [customLanguages, setCustomLanguages] = useStickyState(
-          [],
-          'giga_customLanguages'
-        );
-        const [customCountries, setCustomCountries] = useStickyState(
-          [],
-          'giga_customCountries'
-        );
-        const [promptTemplate, setPromptTemplate] = useStickyState(
-          DEFAULT_PROMPT,
-          'giga_promptTemplate'
-        );
-        const [geminiPrompt, setGeminiPrompt] = useStickyState(
-          DEFAULT_TRENDS_PROMPT,
-          'giga_geminiPrompt'
-        );
-        const [useKeywordPlanner, setUseKeywordPlanner] = useStickyState(
-          true,
-          'giga_useKeywordPlanner'
-        );
-        const [useGemini, setUseGemini] = useStickyState(
-          true,
-          'giga_useGemini'
-        );
-        const [useClustering, setUseClustering] = useStickyState(
-          true,
-          'giga_useClustering'
-        );
-        const [exploreStatus, setExploreStatus] = useState('');
-        const [isExploring, setIsExploring] = useState(false);
-        const [ideasData, setIdeasData] = useStickyState(
-          null,
-          'giga_ideasData',
-          isDemoMode
-        );
-        const [clusters, setClusters] = useStickyState(
-          null,
-          'giga_clusters',
-          isDemoMode
-        );
-        const [relevantIdeas, setRelevantIdeas] = useStickyState(
-          {},
-          'giga_relevantIdeas',
-          isDemoMode
-        );
-        const [selectedCluster, setSelectedCluster] = useState(null);
-        const [chartLabels, setChartLabels] = useStickyState(
-          [],
-          'giga_chartLabels',
-          isDemoMode
-        );
-        const [minSearchVolume, setMinSearchVolume] = useStickyState(
-          100,
-          'giga_minSearchVolume'
-        );
-        const [highlightKeywordSources, setHighlightKeywordSources] =
-          useState(false);
-
-        const [spreadsheetUrl, setSpreadsheetUrl] = useStickyState(
-          '',
-          'giga_spreadsheetUrl'
-        );
-
-        // Insights State
-        const [insights, setInsights] = useStickyState(
-          '',
-          'giga_insights',
-          isDemoMode
-        );
-        const [insightsLanguage, setInsightsLanguage] = useStickyState(
-          'English',
-          'giga_insightsLanguage'
-        );
-        const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
-        const [insightsStatus, setInsightsStatus] = useState('');
-
-        // Campaigns State
-        const [adsAccountId, setAdsAccountId] = useStickyState(
-          '',
-          'giga_adsAccountId'
-        );
-        const [brandName, setBrandName] = useStickyState('', 'giga_brandName');
-        const [campaignSuggestions, setCampaignSuggestions] = useStickyState(
-          '',
-          'giga_campaignSuggestions'
-        );
-        const [isGeneratingCampaigns, setIsGeneratingCampaigns] =
-          useState(false);
-        const [campaignStatus, setCampaignStatus] = useState('');
-        const [showIdInfo, setShowIdInfo] = useState(false);
-        const [showBrandInfo, setShowBrandInfo] = useState(false);
-
-        // Demo Mode Randomization
-        const [isRandomized, setIsRandomized] = useState(true);
-
-        // --- Sheet Export Helper ---
-        const [isExporting, setIsExporting] = useState(false);
-
-        const handleSheetExport = async (
-          sheetName,
-          header,
-          rows,
-          columnFormats = []
-        ) => {
-          setIsExporting(true);
-          try {
-            let targetUrl = spreadsheetUrl;
-            let isNewSheet = false;
-            if (!targetUrl) {
-              targetUrl =
-                await googleScriptRun.createSpreadsheet('Giga Export');
-              setSpreadsheetUrl(targetUrl);
-              isNewSheet = true;
-            }
-            await googleScriptRun.exportToSheet(
-              targetUrl,
-              sheetName,
-              header,
-              rows,
-              columnFormats
+          await googleScriptRun.exportToSheet(
+            targetUrl,
+            sheetName,
+            header,
+            rows,
+            columnFormats
+          );
+          if (isNewSheet) {
+            showAlert(
+              `Successfully exported to a new spreadsheet. You can change the destination URL in Settings. Note: The user (${USER_EMAIL}) must have edit access to this spreadsheet for future exports.`,
+              targetUrl
             );
-            if (isNewSheet) {
-              showAlert(
-                `Successfully exported to a new spreadsheet. You can change the destination URL in Settings. Note: The user (${USER_EMAIL}) must have edit access to this spreadsheet for future exports.`,
-                targetUrl
-              );
-            } else {
-              showAlert('Successfully exported to:', targetUrl);
-            }
-          } catch (e) {
-            showError('Export Failed', e);
-          } finally {
-            setIsExporting(false);
+          } else {
+            showAlert('Successfully exported to:', targetUrl);
           }
-        };
+        } catch (e) {
+          showError('Export Failed', e);
+        } finally {
+          setIsExporting(false);
+        }
+      };
 
-        const handleExportExploreToSheet = () => {
-          if (!clusters) return;
-          const headers = [
-            'Cluster Topic',
-            'Keyword',
-            'Latest Search Volume',
-            'Cluster Growth YoY',
-            'Cluster Growth MoM',
-            'Competition',
-            'Low Bid (Micros)',
-            'High Bid (Micros)',
-            'Avg CPC (Micros)',
-          ];
-          const rows = [];
+      const handleExportExploreToSheet = () => {
+        if (!clusters) return;
+        const headers = [
+          'Cluster Topic',
+          'Keyword',
+          'Latest Search Volume',
+          'Cluster Growth YoY',
+          'Cluster Growth MoM',
+          'Competition',
+          'Low Bid (Micros)',
+          'High Bid (Micros)',
+          'Avg CPC (Micros)',
+        ];
+        const rows = [];
 
         clusters.forEach(cluster => {
           cluster.keywords.forEach(kw => {
@@ -1027,18 +1063,18 @@ limitations under the License.
         handleSheetExport('Explore', headers, rows, columnFormats);
       };
 
-        const handleExportInsightsToSheet = () => {
-          if (!insights) return;
-          // Just put the markdown text in one cell
-          const rows = [[htmlToMarkdown(insights)]];
-          handleSheetExport('Insights', ['Insights Content'], rows);
-        };
+      const handleExportInsightsToSheet = () => {
+        if (!insights) return;
+        // Just put the markdown text in one cell
+        const rows = [[htmlToMarkdown(insights)]];
+        handleSheetExport('Insights', ['Insights Content'], rows);
+      };
 
-        const formatCampaignsForExport = campaigns => {
-          if (!campaigns) return '';
-          if (typeof campaigns === 'string') return htmlToMarkdown(campaigns);
-          if (!Array.isArray(campaigns))
-            return JSON.stringify(campaigns, null, 2);
+      const formatCampaignsForExport = campaigns => {
+        if (!campaigns) return '';
+        if (typeof campaigns === 'string') return htmlToMarkdown(campaigns);
+        if (!Array.isArray(campaigns))
+          return JSON.stringify(campaigns, null, 2);
 
         return campaigns
           .map(c => {
@@ -1064,8 +1100,8 @@ limitations under the License.
           .join('\n\n' + '-'.repeat(40) + '\n\n');
       };
 
-        const handleExportCampaignsToSheet = async () => {
-          if (!campaignSuggestions) return;
+      const handleExportCampaignsToSheet = async () => {
+        if (!campaignSuggestions) return;
         setIsExporting(true);
         try {
           const text = formatCampaignsForExport(campaignSuggestions);
@@ -1083,20 +1119,20 @@ limitations under the License.
         }
       };
 
-        const handleDownloadCampaigns = () => {
-          if (!campaignSuggestions) return;
-          const text = formatCampaignsForExport(campaignSuggestions);
-          downloadFile(text, 'giga_campaign_suggestions.md', 'text/markdown');
-        };
+      const handleDownloadCampaigns = () => {
+        if (!campaignSuggestions) return;
+        const text = formatCampaignsForExport(campaignSuggestions);
+        downloadFile(text, 'giga_campaign_suggestions.md', 'text/markdown');
+      };
 
-        const loadExploreDemoData = async (randomize, delay = 0) => {
-          if (!isDemoMode) return false;
-          try {
-            const cachedIdeas = localStorage.getItem('giga_ideasData');
-            const cachedClusters = localStorage.getItem('giga_clusters');
-            const cachedRelevantIdeas =
-              localStorage.getItem('giga_relevantIdeas');
-            const cachedLaels = localStorage.getItem('giga_chartLabels');
+      const loadExploreDemoData = async (randomize, delay = 0) => {
+        if (!isDemoMode) return false;
+        try {
+          const cachedIdeas = localStorage.getItem('giga_ideasData');
+          const cachedClusters = localStorage.getItem('giga_clusters');
+          const cachedRelevantIdeas =
+            localStorage.getItem('giga_relevantIdeas');
+          const cachedLaels = localStorage.getItem('giga_chartLabels');
 
           if (cachedIdeas && cachedClusters) {
             if (delay > 0) {
@@ -1200,11 +1236,11 @@ limitations under the License.
         return false;
       };
 
-        const loadInsightsDemoData = async (randomize, delay = 0) => {
-          if (!isDemoMode) return;
-          try {
-            const key = randomize ? 'giga_insights_random' : 'giga_insights';
-            const cached = localStorage.getItem(key);
+      const loadInsightsDemoData = async (randomize, delay = 0) => {
+        if (!isDemoMode) return;
+        try {
+          const key = randomize ? 'giga_insights_random' : 'giga_insights';
+          const cached = localStorage.getItem(key);
 
           if (delay > 0) {
             await new Promise(resolve => setTimeout(resolve, delay));
@@ -1221,251 +1257,256 @@ limitations under the License.
         }
       };
 
-        useEffect(() => {
-          const updateData = async () => {
-            if (isDemoMode) {
-              if (ideasData) {
-                // setIsExploring(true);
-                // setExploreStatus('Updating demo data...');
-                await loadExploreDemoData(isRandomized, 0);
-              }
-              if (insights) {
-                await loadInsightsDemoData(isRandomized, 0);
-              }
+      useEffect(() => {
+        const updateData = async () => {
+          if (isDemoMode) {
+            if (ideasData) {
+              // setIsExploring(true);
+              // setExploreStatus('Updating demo data...');
+              await loadExploreDemoData(isRandomized, 0);
             }
-          };
-          updateData();
-        }, [isRandomized]);
-
-        useEffect(() => {
-          const handleKeyDown = e => {
-            if (!isDemoMode) return;
-            // Toggle on Shift + Alt + R
-            if (e.shiftKey && e.altKey && e.code === 'KeyR') {
-              console.log('Shortcut triggered: Toggling Randomization');
-              e.preventDefault();
-              setIsRandomized(prev => !prev);
+            if (insights) {
+              await loadInsightsDemoData(isRandomized, 0);
             }
-          };
-          window.addEventListener('keydown', handleKeyDown);
-          return () => window.removeEventListener('keydown', handleKeyDown);
-        }, [isDemoMode]);
-
-        useEffect(() => {
-          const defaultCountryId = continentDefaults[continent] || '';
-          setCountry(defaultCountryId);
-        }, [continent]);
-
-        // Campaign Creation State
-        const [creationAccountId, setCreationAccountId] = useStickyState(
-          '',
-          'giga_creationAccountId'
-        );
-        const [creationPromptTemplate, setCreationPromptTemplate] =
-          useState('');
-        const [creationStyleGuide, setCreationStyleGuide] = useStickyState(
-          '<?= DEFAULT_STYLE_GUIDE ?>',
-          'giga_creationStyleGuide'
-        );
-        const [creationInstructions, setCreationInstructions] = useStickyState(
-          '',
-          'giga_creationInstructions'
-        );
-        const [creationKeywords, setCreationKeywords] = useStickyState(
-          '',
-          'giga_creationKeywords'
-        );
-        const [growthMetric, setGrowthMetric] = useStickyState(
-          'three_months_vs_avg',
-          'growthMetric'
-        );
-
-        // Campaign Creation Settings
-        const [creationLookbackDays, setCreationLookbackDays] = useStickyState(
-          30,
-          'giga_creationLookbackDays'
-        );
-        const [creationMetric, setCreationMetric] = useStickyState(
-          'clicks',
-          'giga_creationMetric'
-        );
-
-        // Gemini Configuration
-        const [errorState, setErrorState] = useState({
-          isOpen: false,
-          title: '',
-          message: '',
-          stack: '',
-        });
-
-        const [configStatus, setConfigStatus] = useState({
-          hasDeveloperToken: false,
-          hasAdsAccountId: false,
-          adsAccountId: '',
-          checked: false,
-        });
-
-        // Sorting State
-        const [sortConfig, setSortConfig] = useState({
-          key: 'growth',
-          direction: 'descending',
-        });
-
-        const requestSort = key => {
-          let direction = 'descending';
-          if (sortConfig.key === key && sortConfig.direction === 'descending') {
-            direction = 'ascending';
           }
-          setSortConfig({ key, direction });
         };
+        updateData();
+      }, [isRandomized]);
 
-        const getSortIndicator = key => {
-          if (sortConfig.key !== key) return null;
-          return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
+      useEffect(() => {
+        const handleKeyDown = e => {
+          if (!isDemoMode) return;
+          // Toggle on Shift + Alt + R
+          if (e.shiftKey && e.altKey && e.code === 'KeyR') {
+            console.log('Shortcut triggered: Toggling Randomization');
+            e.preventDefault();
+            setIsRandomized(prev => !prev);
+          }
         };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [isDemoMode]);
 
-        useEffect(() => {
-          googleScriptRun
-            .getScriptPropertiesConfiguration()
-            .then(status => {
-              setConfigStatus({ ...status, checked: true });
-              if (status.adsAccountId) {
-                setAdsAccountId(status.adsAccountId);
-              }
-              if (status.spreadsheetUrl) {
-                setSpreadsheetUrl(status.spreadsheetUrl);
-              }
-            })
-            .catch(console.error);
-        }, []);
+      useEffect(() => {
+        const defaultCountryId = continentDefaults[continent] || '';
+        setCountry(defaultCountryId);
+      }, [continent]);
 
-        const showError = (title, error) => {
-          console.error(error);
-          setErrorState({
-            isOpen: true,
-            title: title,
-            message: error.message || String(error),
-            stack: error.stack || '',
+      useEffect(() => {
+        const defaultCountryId = continentDefaults[continent] || '';
+        setCountry(defaultCountryId);
+      }, [continent]);
+
+      // Campaign Creation State
+      const [creationAccountId, setCreationAccountId] = useStickyState(
+        '',
+        'giga_creationAccountId'
+      );
+      const [creationPromptTemplate, setCreationPromptTemplate] =
+        useState('');
+      const [creationStyleGuide, setCreationStyleGuide] = useStickyState(
+        '<?= DEFAULT_STYLE_GUIDE ?>',
+        'giga_creationStyleGuide'
+      );
+      const [creationInstructions, setCreationInstructions] = useStickyState(
+        '',
+        'giga_creationInstructions'
+      );
+      const [creationKeywords, setCreationKeywords] = useStickyState(
+        '',
+        'giga_creationKeywords'
+      );
+      const [growthMetric, setGrowthMetric] = useStickyState(
+        'three_months_vs_avg',
+        'growthMetric'
+      );
+
+      // Campaign Creation Settings
+      const [creationLookbackDays, setCreationLookbackDays] = useStickyState(
+        30,
+        'giga_creationLookbackDays'
+      );
+      const [creationMetric, setCreationMetric] = useStickyState(
+        'clicks',
+        'giga_creationMetric'
+      );
+
+      // Gemini Configuration
+      const [errorState, setErrorState] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        stack: '',
+      });
+
+      const [configStatus, setConfigStatus] = useState({
+        hasDeveloperToken: false,
+        hasAdsAccountId: false,
+        adsAccountId: '',
+        checked: false,
+      });
+
+      // Sorting State
+      const [sortConfig, setSortConfig] = useState({
+        key: 'growth',
+        direction: 'descending',
+      });
+
+      const requestSort = key => {
+        let direction = 'descending';
+        if (sortConfig.key === key && sortConfig.direction === 'descending') {
+          direction = 'ascending';
+        }
+        setSortConfig({ key, direction });
+      };
+
+      const getSortIndicator = key => {
+        if (sortConfig.key !== key) return null;
+        return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
+      };
+
+      useEffect(() => {
+        googleScriptRun
+          .getScriptPropertiesConfiguration()
+          .then(status => {
+            setConfigStatus({ ...status, checked: true });
+            if (status.adsAccountId) {
+              setAdsAccountId(status.adsAccountId);
+            }
+            if (status.spreadsheetUrl) {
+              setSpreadsheetUrl(status.spreadsheetUrl);
+            }
+          })
+          .catch(console.error);
+      }, []);
+
+      const showError = (title, error) => {
+        console.error(error);
+        setErrorState({
+          isOpen: true,
+          title: title,
+          message: error.message || String(error),
+          stack: error.stack || '',
+        });
+      };
+
+      const [geminiConfig, setGeminiConfig] = useStickyState(
+        {
+          projectId: '',
+          modelId: 'gemini-2.5-pro',
+          temperature: 0.7,
+          topP: 0.9,
+        },
+        'giga_geminiConfig'
+      );
+
+      // Migration for renamed keys
+      useEffect(() => {
+        if (
+          geminiConfig.modelID !== undefined ||
+          geminiConfig.projectID !== undefined
+        ) {
+          console.log('Migrating legacy geminiConfig keys...');
+          setGeminiConfig(prev => {
+            const newConfig = { ...prev };
+            if (prev.modelID !== undefined) {
+              newConfig.modelId = prev.modelID;
+              delete newConfig.modelID;
+            }
+            if (prev.projectID !== undefined) {
+              newConfig.projectId = prev.projectID;
+              delete newConfig.projectID;
+            }
+            return newConfig;
           });
-        };
+        }
+      }, [geminiConfig]);
+      const [creationResult, setCreationResult] = useStickyState(
+        '',
+        'giga_creationResult'
+      );
+      const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
+      const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
+      const [pendingAction, setPendingAction] = useState(null);
+      const [devTokenInput, setDevTokenInput] = useState('*****');
 
-        const [geminiConfig, setGeminiConfig] = useStickyState(
-          {
-            projectId: '',
-            modelId: 'gemini-2.5-pro',
-            temperature: 0.7,
-            topP: 0.9,
-          },
-          'giga_geminiConfig'
-        );
+      const clearCache = () => {
+        localStorage.clear();
+        onReset();
+      };
 
-        // Migration for renamed keys
-        useEffect(() => {
-          if (
-            geminiConfig.modelID !== undefined ||
-            geminiConfig.projectID !== undefined
-          ) {
-            console.log('Migrating legacy geminiConfig keys...');
-            setGeminiConfig(prev => {
-              const newConfig = { ...prev };
-              if (prev.modelID !== undefined) {
-                newConfig.modelId = prev.modelID;
-                delete newConfig.modelID;
-              }
-              if (prev.projectID !== undefined) {
-                newConfig.projectId = prev.projectID;
-                delete newConfig.projectID;
-              }
-              return newConfig;
-            });
-          }
-        }, [geminiConfig]);
-        const [creationResult, setCreationResult] = useStickyState(
-          '',
-          'giga_creationResult'
-        );
-        const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
-        const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
-        const [pendingAction, setPendingAction] = useState(null);
-        const [devTokenInput, setDevTokenInput] = useState('*****');
+      // Handlers
+      const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        type: '',
+        value: '',
+        message: '',
+        link: '',
+      });
 
-        const clearCache = () => {
-          localStorage.clear();
-          onReset();
-        };
-
-        // Handlers
-        const [modalConfig, setModalConfig] = useState({
-          isOpen: false,
-          type: '',
+      const showAlert = (message, link = '') => {
+        setModalConfig({
+          isOpen: true,
+          type: 'alert',
+          message: message,
           value: '',
-          message: '',
-          link: '',
+          link: link,
         });
+      };
 
-        const showAlert = (message, link = '') => {
-          setModalConfig({
-            isOpen: true,
-            type: 'alert',
-            message: message,
-            value: '',
-            link: link,
-          });
-        };
+      const handleCustomOption = type => {
+        setModalConfig({ isOpen: true, type, value: '' });
+      };
 
-        const handleCustomOption = type => {
-          setModalConfig({ isOpen: true, type, value: '' });
-        };
-
-        const submitModal = () => {
-          const { type, value } = modalConfig;
-          if (value && !isNaN(Number(value))) {
-            if (type === 'language') {
-              setCustomLanguages([
-                ...customLanguages,
-                { id: value, name: value },
-              ]);
-              setLanguage(value);
-            } else {
-              setCustomCountries([
-                ...customCountries,
-                { id: value, name: value },
-              ]);
-              setCountry(value);
-            }
-            setModalConfig({ isOpen: false, type: '', value: '' });
+      const submitModal = () => {
+        const { type, value } = modalConfig;
+        if (value && !isNaN(Number(value))) {
+          if (type === 'language') {
+            setCustomLanguages([
+              ...customLanguages,
+              { id: value, name: value },
+            ]);
+            setLanguage(value);
           } else {
-            showAlert('Only Number IDs are allowed.');
+            setCustomCountries([
+              ...customCountries,
+              { id: value, name: value },
+            ]);
+            setCountry(value);
           }
-        };
+          setModalConfig({ isOpen: false, type: '', value: '' });
+        } else {
+          showAlert('Only Number IDs are allowed.');
+        }
+      };
 
-        useEffect(() => {
-          if (configStatus.checked) {
-            setDevTokenInput('');
-          }
-        }, [configStatus]);
+      useEffect(() => {
+        if (configStatus.checked) {
+          setDevTokenInput('');
+        }
+      }, [configStatus]);
 
-        const runExplore = async overrideKeywords => {
-          if (!useKeywordPlanner && !useGemini) {
-            setHighlightKeywordSources(true);
-            showAlert('At least one source needs to be selected.');
-            return;
-          }
-          setHighlightKeywordSources(false);
-          const keywordsToUse =
-            typeof overrideKeywords === 'string' ? overrideKeywords : keywords;
-          if (!keywordsToUse.trim()) {
-            showAlert('Please enter at least one seed keyword.');
-            return;
-          }
-          const seedKeywords = keywordsToUse
-            .split(',')
-            .map(k => k.trim())
-            .filter(Boolean);
-          if (seedKeywords.length > 20) {
-            showAlert('Maximum 20 keywords allowed.');
-            return;
-          }
+      const runExplore = async overrideKeywords => {
+        if (!useKeywordPlanner && !useGemini) {
+          setHighlightKeywordSources(true);
+          showAlert('At least one source needs to be selected.');
+          return;
+        }
+        setHighlightKeywordSources(false);
+        const keywordsToUse =
+          typeof overrideKeywords === 'string' ? overrideKeywords : keywords;
+        if (!keywordsToUse.trim()) {
+          showAlert('Please enter at least one seed keyword.');
+          return;
+        }
+        const seedKeywords = keywordsToUse
+          .split(',')
+          .map(k => k.trim())
+          .filter(Boolean);
+        if (seedKeywords.length > 20) {
+          showAlert('Maximum 20 keywords allowed.');
+          return;
+        }
 
         setIsExploring(true);
 
@@ -1769,12 +1810,12 @@ limitations under the License.
         }
       };
 
-        const generateInsights = async (language = 'English') => {
-          if (Object.keys(relevantIdeas).length === 0) {
-            showAlert('Please generate keywords in Explore tab first.');
-            return;
-          }
-          setIsGeneratingInsights(true);
+      const generateInsights = async (language = 'English') => {
+        if (Object.keys(relevantIdeas).length === 0) {
+          showAlert('Please generate keywords in Explore tab first.');
+          return;
+        }
+        setIsGeneratingInsights(true);
 
         if (isDemoMode) {
           const key = isRandomized ? 'giga_insights_random' : 'giga_insights';
@@ -1820,16 +1861,16 @@ limitations under the License.
         }
       };
 
-        const generateCampaignSuggestions = async () => {
-          if (!relevantIdeas || Object.keys(relevantIdeas).length === 0) {
-            showAlert('Please generate keywords in Explore tab first.');
-            return;
-          }
-          setIsGeneratingCampaigns(true);
-          setCampaignStatus('Generating suggestions...');
-          try {
-            let adExamples = '';
-            let template = creationPromptTemplate;
+      const generateCampaignSuggestions = async () => {
+        if (!relevantIdeas || Object.keys(relevantIdeas).length === 0) {
+          showAlert('Please generate keywords in Explore tab first.');
+          return;
+        }
+        setIsGeneratingCampaigns(true);
+        setCampaignStatus('Generating suggestions...');
+        try {
+          let adExamples = '';
+          let template = creationPromptTemplate;
 
           // If prompt template is missing but account ID is present, try to generate it first
           if (!template && creationAccountId.length >= 10) {
@@ -1870,9 +1911,9 @@ limitations under the License.
         }
       };
 
-        const generatePrompt = async () => {
-          const id = creationAccountId.replaceAll('-', '').trim();
-          if (!id) return null;
+      const generatePrompt = async () => {
+        const id = creationAccountId.replaceAll('-', '').trim();
+        if (!id) return null;
 
         setIsGeneratingPrompt(true);
         try {
@@ -1893,14 +1934,14 @@ limitations under the License.
         }
       };
 
-        const generateNewCampaigns = async () => {
-          setIsCreatingCampaign(true);
-          try {
-            let template = creationPromptTemplate;
-            if (!template && creationAccountId.length >= 10) {
-              setCreationResult('Generating Prompt Template...');
-              template = await generatePrompt();
-            }
+      const generateNewCampaigns = async () => {
+        setIsCreatingCampaign(true);
+        try {
+          let template = creationPromptTemplate;
+          if (!template && creationAccountId.length >= 10) {
+            setCreationResult('Generating Prompt Template...');
+            template = await generatePrompt();
+          }
 
           setCreationResult('Generating Ad Suggestions...');
           const kws = creationKeywords
@@ -1922,10 +1963,10 @@ limitations under the License.
         }
       };
 
-        // Charts Data Preparation
-        const clustersChartData = useMemo(() => {
-          if (!clusters) return null;
-          const maxVol = Math.max(...clusters.map(c => c.searchVolume), 1);
+      // Charts Data Preparation
+      const clustersChartData = useMemo(() => {
+        if (!clusters) return null;
+        const maxVol = Math.max(...clusters.map(c => c.searchVolume), 1);
 
         return {
           datasets: clusters.map((c, i) => {
@@ -1958,9 +1999,9 @@ limitations under the License.
         };
       }, [clusters, growthMetric]);
 
-        const selectedClusterChartData = useMemo(() => {
-          if (!selectedCluster || !chartLabels.length) return null;
-          const data = selectedCluster.searchVolumeHistory.slice();
+      const selectedClusterChartData = useMemo(() => {
+        if (!selectedCluster || !chartLabels.length) return null;
+        const data = selectedCluster.searchVolumeHistory.slice();
 
         return {
           labels: chartLabels,
@@ -1977,15 +2018,15 @@ limitations under the License.
         };
       }, [selectedCluster, chartLabels]);
 
-        const seedChartData = useMemo(() => {
-          if (!ideasData || !keywords || !chartLabels.length) return null;
-          const seeds = keywords
-            .split(',')
-            .map(k => k.trim().toLowerCase())
-            .filter(Boolean);
-          const seedIdeas = ideasData.filter(idea =>
-            seeds.includes(idea.text.toLowerCase())
-          );
+      const seedChartData = useMemo(() => {
+        if (!ideasData || !keywords || !chartLabels.length) return null;
+        const seeds = keywords
+          .split(',')
+          .map(k => k.trim().toLowerCase())
+          .filter(Boolean);
+        const seedIdeas = ideasData.filter(idea =>
+          seeds.includes(idea.text.toLowerCase())
+        );
 
         if (seedIdeas.length === 0) return null;
 
@@ -2008,76 +2049,76 @@ limitations under the License.
         };
       }, [ideasData, keywords, chartLabels]);
 
-        const bubbleChartOptions = useMemo(() => {
-          const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
-          const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
-          return {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: {
-                title: {
-                  display: true,
-                  text: 'Search Volume',
-                  color: textColor,
-                },
-                ticks: { color: textColor },
-                grid: { color: gridColor },
+      const bubbleChartOptions = useMemo(() => {
+        const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+        const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
+        return {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Search Volume',
+                color: textColor,
               },
-              y: {
-                title: {
-                  display: true,
-                  text:
-                    GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
-                    'Growth',
-                  color: textColor,
-                },
-                ticks: {
-                  color: textColor,
-                  callback: value =>
-                    (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%',
-                },
-                grid: { color: gridColor },
+              ticks: { color: textColor },
+              grid: { color: gridColor },
+            },
+            y: {
+              title: {
+                display: true,
+                text:
+                  GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
+                  'Growth',
+                color: textColor,
+              },
+              ticks: {
+                color: textColor,
+                callback: value =>
+                  (value > 0 ? '+' : '') + (value * 100).toFixed(0) + '%',
+              },
+              grid: { color: gridColor },
+            },
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: ctx =>
+                  `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
               },
             },
-            plugins: {
-              tooltip: {
-                callbacks: {
-                  label: ctx =>
-                    `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
-                },
-              },
-            },
-            onClick: (evt, elements) => {
-              if (elements.length > 0) {
-                const index = elements[0].datasetIndex;
-                if (clusters && clusters[index]) {
-                  setSelectedCluster(clusters[index]);
-                  setTimeout(() => {
-                    document
-                      .getElementById('cluster-details')
-                      ?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
-                }
+          },
+          onClick: (evt, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].datasetIndex;
+              if (clusters && clusters[index]) {
+                setSelectedCluster(clusters[index]);
+                setTimeout(() => {
+                  document
+                    .getElementById('cluster-details')
+                    ?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
               }
-            },
-          };
-        }, [growthMetric, clusters, theme]);
+            }
+          },
+        };
+      }, [growthMetric, clusters, theme]);
 
-        const handleDownloadExplore = () => {
-          if (!clusters) return;
-          const headers = [
-            'Cluster Topic',
-            'Keyword',
-            'Latest Search Volume',
-            'Cluster Growth YoY',
-            'Cluster Growth MoM',
-            'Competition',
-            'Low Bid (USD)',
-            'High Bid (USD)',
-            'Avg CPC (USD)',
-          ];
-          const rows = [];
+      const handleDownloadExplore = () => {
+        if (!clusters) return;
+        const headers = [
+          'Cluster Topic',
+          'Keyword',
+          'Latest Search Volume',
+          'Cluster Growth YoY',
+          'Cluster Growth MoM',
+          'Competition',
+          'Low Bid (USD)',
+          'High Bid (USD)',
+          'Avg CPC (USD)',
+        ];
+        const rows = [];
 
         clusters.forEach(cluster => {
           cluster.keywords.forEach(kw => {
@@ -2109,18 +2150,18 @@ limitations under the License.
         downloadFile(csv, 'giga_explore_clusters.csv', 'text/csv');
       };
 
-        const handleDownloadInsights = () => {
-          if (!insights) return;
-          const md = htmlToMarkdown(insights);
-          downloadFile(md, 'giga_insights.md', 'text/markdown');
-        };
+      const handleDownloadInsights = () => {
+        if (!insights) return;
+        const md = htmlToMarkdown(insights);
+        downloadFile(md, 'giga_insights.md', 'text/markdown');
+      };
 
-        // --- Render ---
+      // --- Render ---
 
-        const handleSettingsSave = async newSettings => {
-          setGeminiConfig(newSettings.geminiConfig);
-          setMinSearchVolume(newSettings.minSearchVolume);
-          setSpreadsheetUrl(newSettings.spreadsheetUrl);
+      const handleSettingsSave = async newSettings => {
+        setGeminiConfig(newSettings.geminiConfig);
+        setMinSearchVolume(newSettings.minSearchVolume);
+        setSpreadsheetUrl(newSettings.spreadsheetUrl);
 
         const promises = [];
         if (newSettings.adsAccountId !== configStatus.adsAccountId) {
@@ -2145,223 +2186,223 @@ limitations under the License.
         }
       };
 
-        const languageModal = (
-          <Modal
-            isOpen={modalConfig.isOpen && modalConfig.type === 'language'}
-            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
-            title="Add Custom Language"
-          >
-            <div className="modal-body">
-              <p className="text-sm text-muted mb-4">
-                Enter the numeric Language ID from Google Ads API.
+      const languageModal = (
+        <Modal
+          isOpen={modalConfig.isOpen && modalConfig.type === 'language'}
+          onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+          title="Add Custom Language"
+        >
+          <div className="modal-body">
+            <p className="text-sm text-muted mb-4">
+              Enter the numeric Language ID from Google Ads API.
+              <a
+                href={LANGUAGE_INFO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ marginLeft: '4px', verticalAlign: 'middle' }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: '16px' }}
+                >
+                  info
+                </span>
+              </a>
+            </p>
+            <div className="input-group">
+              <label>Language ID</label>
+              <input
+                type="text"
+                value={modalConfig.value}
+                onChange={e =>
+                  setModalConfig({ ...modalConfig, value: e.target.value })
+                }
+                placeholder="e.g. 1000"
+                autoFocus
+              />
+            </div>
+            <div className="modal-actions">
+              <button
+                className="btn"
+                onClick={() =>
+                  setModalConfig({ ...modalConfig, isOpen: false })
+                }
+              >
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={submitModal}>
+                Add
+              </button>
+            </div>
+          </div>
+        </Modal>
+      );
+
+      const alertModal = (
+        <Modal
+          isOpen={modalConfig.isOpen && modalConfig.type === 'alert'}
+          onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+          title="Alert"
+          showCloseButton={false}
+        >
+          <div className="modal-body">
+            <p>{modalConfig.message}</p>
+            {modalConfig.link && (
+              <p>
                 <a
-                  href={LANGUAGE_INFO_URL}
+                  href={modalConfig.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ marginLeft: '4px', verticalAlign: 'middle' }}
+                  style={{ wordBreak: 'break-all' }}
                 >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: '16px' }}
-                  >
-                    info
-                  </span>
+                  {modalConfig.link}
                 </a>
               </p>
-              <div className="input-group">
-                <label>Language ID</label>
-                <input
-                  type="text"
-                  value={modalConfig.value}
-                  onChange={e =>
-                    setModalConfig({ ...modalConfig, value: e.target.value })
-                  }
-                  placeholder="e.g. 1000"
-                  autoFocus
-                />
-              </div>
-              <div className="modal-actions">
-                <button
-                  className="btn"
-                  onClick={() =>
-                    setModalConfig({ ...modalConfig, isOpen: false })
-                  }
-                >
-                  Cancel
-                </button>
-                <button className="btn btn-primary" onClick={submitModal}>
-                  Add
-                </button>
-              </div>
-            </div>
-          </Modal>
-        );
-
-        const alertModal = (
-          <Modal
-            isOpen={modalConfig.isOpen && modalConfig.type === 'alert'}
-            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
-            title="Alert"
-            showCloseButton={false}
-          >
-            <div className="modal-body">
-              <p>{modalConfig.message}</p>
-              {modalConfig.link && (
-                <p>
-                  <a
-                    href={modalConfig.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ wordBreak: 'break-all' }}
-                  >
-                    {modalConfig.link}
-                  </a>
-                </p>
-              )}
-              <div className="modal-actions">
-                <button
-                  className="btn btn-primary"
-                  onClick={() =>
-                    setModalConfig({ ...modalConfig, isOpen: false })
-                  }
-                >
-                  OK
-                </button>
-              </div>
-            </div>
-          </Modal>
-        );
-
-        const updateScriptProperty = async (key, value) => {
-          try {
-            const status = await googleScriptRun.setScriptProperty(key, value);
-            setConfigStatus({ ...status, checked: true });
-            if (key === 'ADS_ACCOUNT_ID') {
-              setAdsAccountId(value);
-            }
-            return true;
-          } catch (e) {
-            showError('Error updating property', e);
-            return false;
-          }
-        };
-
-        const handleOpenSettings = () => {
-          setModalConfig({
-            isOpen: true,
-            type: 'settings',
-            value: '',
-            spreadsheetUrl: spreadsheetUrl,
-          });
-        };
-
-        const locationModal = (
-          <Modal
-            isOpen={modalConfig.isOpen && modalConfig.type === 'country'}
-            onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
-            title="Add Custom Location"
-          >
-            <div className="modal-body">
-              <p className="text-sm text-muted mb-4">
-                Enter the numeric Location ID from Google Ads API.
-                <a
-                  href={LOCATION_INFO_URL}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  style={{ marginLeft: '4px', verticalAlign: 'middle' }}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: '16px' }}
-                  >
-                    info
-                  </span>
-                </a>
-              </p>
-              <div className="input-group">
-                <label>Location ID</label>
-                <input
-                  type="text"
-                  value={modalConfig.value}
-                  onChange={e =>
-                    setModalConfig({ ...modalConfig, value: e.target.value })
-                  }
-                  placeholder="e.g. 2840"
-                  autoFocus
-                />
-              </div>
-              <div className="modal-actions">
-                <button
-                  className="btn"
-                  onClick={() =>
-                    setModalConfig({ ...modalConfig, isOpen: false })
-                  }
-                >
-                  Cancel
-                </button>
-                <button className="btn btn-primary" onClick={submitModal}>
-                  Add
-                </button>
-              </div>
-            </div>
-          </Modal>
-        );
-
-        return (
-          <div className="app">
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px',
-              }}
-            >
-              <h1>GIGA</h1>
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
+            )}
+            <div className="modal-actions">
+              <button
+                className="btn btn-primary"
+                onClick={() =>
+                  setModalConfig({ ...modalConfig, isOpen: false })
+                }
               >
-                <button
-                  className="btn"
-                  onClick={handleOpenSettings}
-                  style={{
-                    background: 'transparent',
-                    color: 'var(--text-secondary)',
-                    border: '1px solid var(--border-color)',
-                    padding: '8px',
-                  }}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: '1.5rem' }}
-                  >
-                    settings
-                  </span>
-                </button>
-                <button
-                  className="btn"
-                  onClick={toggleTheme}
-                  style={{
-                    background: 'transparent',
-                    color: 'var(--text-secondary)',
-                    border: '1px solid var(--border-color)',
-                    padding: '8px',
-                  }}
-                  title={
-                    theme === 'light'
-                      ? 'Switch to Dark Mode'
-                      : 'Switch to Light Mode'
-                  }
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: '1.5rem' }}
-                  >
-                    {theme === 'light' ? 'dark_mode' : 'light_mode'}
-                  </span>
-                </button>
-              </div>
+                OK
+              </button>
             </div>
+          </div>
+        </Modal>
+      );
+
+      const updateScriptProperty = async (key, value) => {
+        try {
+          const status = await googleScriptRun.setScriptProperty(key, value);
+          setConfigStatus({ ...status, checked: true });
+          if (key === 'ADS_ACCOUNT_ID') {
+            setAdsAccountId(value);
+          }
+          return true;
+        } catch (e) {
+          showError('Error updating property', e);
+          return false;
+        }
+      };
+
+      const handleOpenSettings = () => {
+        setModalConfig({
+          isOpen: true,
+          type: 'settings',
+          value: '',
+          spreadsheetUrl: spreadsheetUrl,
+        });
+      };
+
+      const locationModal = (
+        <Modal
+          isOpen={modalConfig.isOpen && modalConfig.type === 'country'}
+          onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+          title="Add Custom Location"
+        >
+          <div className="modal-body">
+            <p className="text-sm text-muted mb-4">
+              Enter the numeric Location ID from Google Ads API.
+              <a
+                href={LOCATION_INFO_URL}
+                target="_blank"
+                rel="noreferrer noopener"
+                style={{ marginLeft: '4px', verticalAlign: 'middle' }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: '16px' }}
+                >
+                  info
+                </span>
+              </a>
+            </p>
+            <div className="input-group">
+              <label>Location ID</label>
+              <input
+                type="text"
+                value={modalConfig.value}
+                onChange={e =>
+                  setModalConfig({ ...modalConfig, value: e.target.value })
+                }
+                placeholder="e.g. 2840"
+                autoFocus
+              />
+            </div>
+            <div className="modal-actions">
+              <button
+                className="btn"
+                onClick={() =>
+                  setModalConfig({ ...modalConfig, isOpen: false })
+                }
+              >
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={submitModal}>
+                Add
+              </button>
+            </div>
+          </div>
+        </Modal>
+      );
+
+      return (
+        <div className="app">
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+            }}
+          >
+            <h1>GIGA</h1>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
+            >
+              <button
+                className="btn"
+                onClick={handleOpenSettings}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-color)',
+                  padding: '8px',
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: '1.5rem' }}
+                >
+                  settings
+                </span>
+              </button>
+              <button
+                className="btn"
+                onClick={toggleTheme}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-color)',
+                  padding: '8px',
+                }}
+                title={
+                  theme === 'light'
+                    ? 'Switch to Dark Mode'
+                    : 'Switch to Light Mode'
+                }
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: '1.5rem' }}
+                >
+                  {theme === 'light' ? 'dark_mode' : 'light_mode'}
+                </span>
+              </button>
+            </div>
+          </div>
 
           <div className="tabs">
             <TabButton
@@ -2511,7 +2552,7 @@ limitations under the License.
 
           <Modal
             isOpen={showVersionModal}
-              onClose={() => {}}
+            onClose={() => { }}
             title={`Update Available (${APP_VERSION})`}
             showCloseButton={false}
           >
@@ -2557,49 +2598,49 @@ limitations under the License.
             </div>
           </Modal>
 
-            <ErrorModal
-              isOpen={errorState.isOpen}
-              onClose={() => setErrorState({ ...errorState, isOpen: false })}
-              error={errorState}
-            />
-            {isDemoMode && isRandomized && (
-              <div className="warning-footer">
-                ⚠ Search volume and other metrics are randomized for
-                demonstration ⚠
-              </div>
-            )}
-          </div>
-        );
-      };
+          <ErrorModal
+            isOpen={errorState.isOpen}
+            onClose={() => setErrorState({ ...errorState, isOpen: false })}
+            error={errorState}
+          />
+          {isDemoMode && isRandomized && (
+            <div className="warning-footer">
+              ⚠ Search volume and other metrics are randomized for
+              demonstration ⚠
+            </div>
+          )}
+        </div>
+      );
+    };
 
-      // eslint-disable-next-line no-unused-vars
-      const App = () => {
-        const [resetKey, setResetKey] = useState(0);
-        const [isDemoMode, setIsDemoMode] = useState(false);
-        const [isReady, setIsReady] = useState(false);
+    // eslint-disable-next-line no-unused-vars
+    const App = () => {
+      const [resetKey, setResetKey] = useState(0);
+      const [isDemoMode, setIsDemoMode] = useState(false);
+      const [isReady, setIsReady] = useState(false);
 
-        useEffect(() => {
-          const checkDemo = () => {
-            if (
-              typeof google !== 'undefined' &&
-              google.script &&
-              google.script.url
-            ) {
-              try {
-                google.script.url.getLocation(location => {
-                  const demo = location.parameter['demo'] === 'true';
-                  console.log('Demo Mode:', demo);
-                  setIsDemoMode(demo);
-                  setIsReady(true);
-                });
-              } catch (e) {
-                console.warn('Error checking location:', e);
+      useEffect(() => {
+        const checkDemo = () => {
+          if (
+            typeof google !== 'undefined' &&
+            google.script &&
+            google.script.url
+          ) {
+            try {
+              google.script.url.getLocation(location => {
+                const demo = location.parameter['demo'] === 'true';
+                console.log('Demo Mode:', demo);
+                setIsDemoMode(demo);
                 setIsReady(true);
-              }
-            } else {
+              });
+            } catch (e) {
+              console.warn('Error checking location:', e);
               setIsReady(true);
             }
-          };
+          } else {
+            setIsReady(true);
+          }
+        };
 
         checkDemo();
 
@@ -2610,36 +2651,37 @@ limitations under the License.
         return () => clearTimeout(timer);
       }, [isReady]);
 
-        const handleReset = () => setResetKey(prev => prev + 1);
+      const handleReset = () => setResetKey(prev => prev + 1);
 
-        if (!isReady) {
-          return (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-                fontFamily: 'sans-serif',
-                color: '#64748b',
-              }}
-            >
-              Loading GIGA...
-            </div>
-          );
-        }
-
+      if (!isReady) {
         return (
-          <GigaApp
-            key={resetKey}
-            onReset={handleReset}
-            isDemoMode={isDemoMode}
-          />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100vh',
+              fontFamily: 'sans-serif',
+              color: '#64748b',
+            }}
+          >
+            Loading GIGA...
+          </div>
         );
-      };
+      }
 
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<App />);
-    </script>
-  </body>
+      return (
+        <GigaApp
+          key={resetKey}
+          onReset={handleReset}
+          isDemoMode={isDemoMode}
+        />
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+
 </html>
