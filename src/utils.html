@@ -359,4 +359,17 @@ The Google Ads keyword ideas are:
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  window.flattenCampaignsForSheet = (campaigns) => {
+    if (!Array.isArray(campaigns)) return [];
+    const rows = [];
+    campaigns.forEach((campaign) => {
+      campaign.adGroups.forEach((adGroup) => {
+        adGroup.keywords.forEach((keyword) => {
+          rows.push([campaign.campaignName, adGroup.name, keyword]);
+        });
+      });
+    });
+    return rows;
+  };
 </script>

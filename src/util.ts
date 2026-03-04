@@ -350,11 +350,28 @@ export const exportToSheet = (
 export const createSpreadsheet = name => {
   const spreadsheet = SpreadsheetApp.create(name);
   const url = spreadsheet.getUrl();
-  const file = DriveApp.getFileById(spreadsheet.getId());
-  const activeUserEmail = Session.getEffectiveUser().getEmail();
-  const currentOwnerEmail = file.getOwner().getEmail();
-  if (activeUserEmail && currentOwnerEmail !== activeUserEmail) {
-    file.setOwner(activeUserEmail);
+
+  let file;
+  for (let idx = 0; idx < 3; idx++) {
+    try {
+      file = DriveApp.getFileById(spreadsheet.getId());
+      break;
+    } catch (e) {
+      if (idx === 2) {
+        return url;
+      }
+      Utilities.sleep(1500);
+    }
+  }
+
+  try {
+    const activeUserEmail = Session.getEffectiveUser().getEmail();
+    const currentOwnerEmail = file.getOwner().getEmail();
+    if (activeUserEmail && currentOwnerEmail !== activeUserEmail) {
+      file.setOwner(activeUserEmail);
+    }
+  } catch (e) {
+    console.warn('Could not set owner of spreadsheet', e);
   }
   return url;
 };
