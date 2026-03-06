@@ -224,6 +224,72 @@ limitations under the License.
           </div>
         </details>
 
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '16px',
+          }}
+        >
+          <button
+            className="btn btn-primary"
+            onClick={generateCampaignSuggestions}
+            disabled={isGeneratingCampaigns}
+          >
+            {isGeneratingCampaigns ? (
+              <>
+                <div className="spinner"></div>{' '}
+                {campaignStatus || 'Generating...'}
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined">campaign</span>{' '}
+                Generate Suggestions
+              </>
+            )}
+          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {campaignSuggestions && (
+              <button
+                className="btn btn-secondary"
+                onClick={handleDownloadCampaigns}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border-color)',
+                }}
+                title="Download Markdown"
+              >
+                <span className="material-symbols-outlined">download</span>
+              </button>
+            )}
+            {campaignSuggestions && (
+              <button
+                className="btn btn-secondary"
+                onClick={handleExportCampaignsToSheet}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border-color)',
+                }}
+                disabled={isExporting}
+                title="Export to Sheet"
+              >
+                {isExporting ? (
+                  <div
+                    className="spinner"
+                    style={{
+                      borderColor: 'rgba(37, 99, 235, 0.3)',
+                      borderTopColor: '#2563eb',
+                    }}
+                  ></div>
+                ) : (
+                  <span className="material-symbols-outlined">table</span>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="mb-4 mt-4">
           <h3>Suggestions</h3>
           {Array.isArray(campaignSuggestions) ? (
@@ -293,72 +359,6 @@ limitations under the License.
           ) : (
             <div dangerouslySetInnerHTML={{ __html: campaignSuggestions }} />
           )}
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: '16px',
-          }}
-        >
-          <button
-            className="btn btn-primary"
-            onClick={generateCampaignSuggestions}
-            disabled={isGeneratingCampaigns}
-          >
-            {isGeneratingCampaigns ? (
-              <>
-                <div className="spinner"></div>{' '}
-                {campaignStatus || 'Generating...'}
-              </>
-            ) : (
-              <>
-                <span className="material-symbols-outlined">campaign</span>{' '}
-                Generate Suggestions
-              </>
-            )}
-          </button>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {campaignSuggestions && (
-              <button
-                className="btn btn-secondary"
-                onClick={handleDownloadCampaigns}
-                style={{
-                  background: 'white',
-                  border: '1px solid var(--border-color)',
-                }}
-                title="Download Markdown"
-              >
-                <span className="material-symbols-outlined">download</span>
-              </button>
-            )}
-            {campaignSuggestions && (
-              <button
-                className="btn btn-secondary"
-                onClick={handleExportCampaignsToSheet}
-                style={{
-                  background: 'white',
-                  border: '1px solid var(--border-color)',
-                }}
-                disabled={isExporting}
-                title="Export to Sheet"
-              >
-                {isExporting ? (
-                  <div
-                    className="spinner"
-                    style={{
-                      borderColor: 'rgba(37, 99, 235, 0.3)',
-                      borderTopColor: '#2563eb',
-                    }}
-                  ></div>
-                ) : (
-                  <span className="material-symbols-outlined">table</span>
-                )}
-              </button>
-            )}
-          </div>
         </div>
 
         <hr
