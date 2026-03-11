@@ -25,7 +25,12 @@ import {
 } from './reporting';
 import { generateTrendsKeywords } from './trends';
 import { exportToSheet, createSpreadsheet } from './util';
-import { getLanguageId, getLanguageById } from './geo';
+import {
+  getLanguageId,
+  getLanguageById,
+  getLocationId,
+  getLocationById,
+} from './geo';
 
 // include references to prevent tree shaking due to methods being called in
 //  webApp.html with google script run dynamically
@@ -42,3 +47,5 @@ exportToSheet;
 createSpreadsheet;
 getLanguageId;
 getLanguageById;
+getLocationId;
+getLocationById;

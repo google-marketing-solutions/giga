@@ -78,9 +78,12 @@ limitations under the License.
     );
 
     const filteredCountries = useMemo(() => {
+      if (continent === 'Custom Locations') {
+        return customCountries;
+      }
       const countriesForContinent = window.REGION_MAP[continent] || [];
       return countriesForContinent;
-    }, [continent]);
+    }, [continent, customCountries]);
 
     const [activeInfoModal, setActiveInfoModal] = useState(null);
     const detailsRef = useRef(null);
@@ -443,10 +446,14 @@ limitations under the License.
             }
             value={country}
             onChange={setCountry}
-            options={[
-              ...filteredCountries,
-              ...customCountries.map(c => ({ ...c, isCustom: true })),
-            ]}
+            options={
+              continent === 'Custom Locations'
+                ? customCountries.map(c => ({ ...c, isCustom: true }))
+                : [
+                    ...filteredCountries,
+                    ...customCountries.map(c => ({ ...c, isCustom: true })),
+                  ]
+            }
             onCustomOption={() => handleCustomOption('country')}
             onDeleteOption={id => handleCustomOption('country_delete', id)}
           />

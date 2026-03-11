@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { getCriterionIDs } from './geo';
+import { getLocationId } from './geo';
 import { generateKeywordIdeas } from './ideas';
 import { getInsightsPrompt } from './prompt';
 import {
@@ -70,7 +70,7 @@ export const getIdeas = (
   maxIdeas: number
 ) => {
   const languageID = isNaN(Number(language))
-    ? getCriterionIDs([language])[0]
+    ? getLocationId(language)?.id
     : language;
   const ideas = generateKeywordIdeas(keywords, geoID, languageID, maxIdeas);
   return convertIdeasToRows(ideas);
