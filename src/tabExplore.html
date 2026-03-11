@@ -408,8 +408,12 @@ limitations under the License.
             }
             value={language}
             onChange={setLanguage}
-            options={[...LANGUAGES, ...customLanguages]}
+            options={[
+              ...LANGUAGES,
+              ...customLanguages.map(l => ({ ...l, isCustom: true })),
+            ]}
             onCustomOption={() => handleCustomOption('language')}
+            onDeleteOption={id => handleCustomOption('language_delete', id)}
           />
           <SelectField
             label="Continent"
@@ -439,8 +443,12 @@ limitations under the License.
             }
             value={country}
             onChange={setCountry}
-            options={filteredCountries}
+            options={[
+              ...filteredCountries,
+              ...customCountries.map(c => ({ ...c, isCustom: true })),
+            ]}
             onCustomOption={() => handleCustomOption('country')}
+            onDeleteOption={id => handleCustomOption('country_delete', id)}
           />
         </div>
 

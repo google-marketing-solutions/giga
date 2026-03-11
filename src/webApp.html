@@ -469,20 +469,114 @@ limitations under the License.
       justify-content: center;
     }
 
-    /* Spinner */
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 0.8s linear infinite;
-    }
-
     @keyframes spin {
       to {
         transform: rotate(360deg);
       }
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top-color: currentColor;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    [data-theme='dark'] .spinner {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Custom Select Dropdown */
+    .select-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .custom-select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: var(--bg-color);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      box-sizing: border-box;
+    }
+
+    .custom-select:hover {
+      border-color: var(--primary);
+      background: var(--surface-color);
+    }
+
+    .custom-select.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      background: var(--surface-color);
+    }
+
+    .select-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      max-height: 250px;
+      overflow-y: auto;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    .select-option {
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+      font-size: 0.95rem;
+    }
+
+    .select-option:hover {
+      background: var(--bg-color);
+    }
+
+    .select-option.selected {
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .select-option .delete-btn {
+      opacity: 0.5;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      color: var(--text-secondary);
+    }
+
+    .select-option .delete-btn:hover {
+      opacity: 1;
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+    }
+
+    .select-option.custom-divider {
+      border-top: 1px solid var(--border-color);
+      color: var(--primary);
+      font-weight: 600;
+      justify-content: center;
     }
 
     .modal-header {
@@ -1458,15 +1552,32 @@ limitations under the License.
         });
       };
 
-      const handleCustomOption = type => {
-        setModalConfig({ isOpen: true, type, value: '' });
+      const handleCustomOption = (type, id) => {
+        if (type === 'language_delete') {
+          setCustomLanguages(prev => prev.filter(l => l.id !== id));
+          if (language === id) setLanguage('1000');
+          return;
+        }
+        if (type === 'country_delete') {
+          setCustomCountries(prev => prev.filter(c => c.id !== id));
+          if (country === id) setCountry('');
+          return;
+        }
+        setModalConfig({
+          isOpen: true,
+          type,
+          languageId: '',
+          languageText: '',
+          isLoading: false,
+          result: null,
+        });
       };
 
       const handleLookup = async () => {
         const { type, languageText } = modalConfig;
         if (!languageText || type !== 'language') return;
-
-        setModalConfig(prev => ({ ...prev, isLoading: true, result: null }));
+  
+        setModalConfig(prev => ({ ...prev, isLoading: true, lastLookup: 'text', result: null }));
         try {
           const res = await googleScriptRun.getLanguageId(languageText, geminiConfig);
           if (res) {
@@ -1490,8 +1601,8 @@ limitations under the License.
       const handleIdLookup = async () => {
         const { type, languageId } = modalConfig;
         if (!languageId || type !== 'language') return;
-
-        setModalConfig(prev => ({ ...prev, isLoading: true, result: null }));
+  
+        setModalConfig(prev => ({ ...prev, isLoading: true, lastLookup: 'id', result: null }));
         try {
           const res = await googleScriptRun.getLanguageById(languageId);
           if (res) {
@@ -2283,31 +2394,6 @@ limitations under the License.
               </a>
             </p>
             <div className="input-group">
-              <label>Language ID</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="text"
-                  value={modalConfig.languageId}
-                  onChange={e =>
-                    setModalConfig({ ...modalConfig, languageId: e.target.value })
-                  }
-                  onKeyDown={e => e.key === 'Enter' && handleIdLookup()}
-                  placeholder="e.g. 1000"
-                  disabled={modalConfig.isLoading}
-                  autoFocus
-                />
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleIdLookup}
-                  disabled={modalConfig.isLoading || !modalConfig.languageId}
-                  style={{ minWidth: '40px' }}
-                  title="Lookup Name"
-                >
-                  <span className="material-symbols-outlined">search</span>
-                </button>
-              </div>
-            </div>
-            <div className="input-group">
               <label>Language Text</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
@@ -2319,23 +2405,51 @@ limitations under the License.
                   onKeyDown={e => e.key === 'Enter' && handleLookup()}
                   placeholder="e.g. German"
                   disabled={modalConfig.isLoading}
+                  autoFocus
                 />
                 <button
                   className="btn btn-secondary"
                   onClick={handleLookup}
                   disabled={modalConfig.isLoading || !modalConfig.languageText}
-                  style={{ minWidth: '40px' }}
+                  style={{ minWidth: '40px', position: 'relative' }}
                   title="Lookup ID"
                 >
-                  <span className="material-symbols-outlined">search</span>
+                  {modalConfig.isLoading && modalConfig.lastLookup === 'text' ? (
+                    <div className="spinner"></div>
+                  ) : (
+                    <span className="material-symbols-outlined">search</span>
+                  )}
                 </button>
               </div>
             </div>
-            {modalConfig.isLoading && (
-              <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
-                <div className="spinner" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }}></div>
+            <div className="input-group">
+              <label>Language ID</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={modalConfig.languageId}
+                  onChange={e =>
+                    setModalConfig({ ...modalConfig, languageId: e.target.value })
+                  }
+                  onKeyDown={e => e.key === 'Enter' && handleIdLookup()}
+                  placeholder="e.g. 1000"
+                  disabled={modalConfig.isLoading}
+                />
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleIdLookup}
+                  disabled={modalConfig.isLoading || !modalConfig.languageId}
+                  style={{ minWidth: '40px', position: 'relative' }}
+                  title="Lookup Name"
+                >
+                  {modalConfig.isLoading && modalConfig.lastLookup === 'id' ? (
+                    <div className="spinner"></div>
+                  ) : (
+                    <span className="material-symbols-outlined">search</span>
+                  )}
+                </button>
               </div>
-            )}
+            </div>
             <div className="modal-actions">
               <button
                 className="btn"

@@ -221,26 +221,92 @@ limitations under the License.
     onChange,
     options,
     onCustomOption,
+    onDeleteOption,
   }) => {
-    const handleChange = e => {
-      if (e.target.value === 'custom') {
-        onCustomOption();
-      } else {
-        onChange(e.target.value);
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef(null);
+
+    const selectedOption = options.find(opt => opt.id === value);
+
+    useEffect(() => {
+      const handleClickOutside = event => {
+        if (
+          containerRef.current &&
+          !containerRef.current.contains(event.target)
+        ) {
+          setIsOpen(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, []);
+
+    const handleSelect = id => {
+      onChange(id);
+      setIsOpen(false);
+    };
+
+    const handleDelete = (e, id) => {
+      e.stopPropagation();
+      if (onDeleteOption) {
+        onDeleteOption(id);
       }
     };
+
     return (
-      <div className="input-group">
+      <div className="input-group" ref={containerRef}>
         <label>{label}</label>
         <div className="select-wrapper">
-          <select value={value} onChange={handleChange}>
-            {options.map(opt => (
-              <option key={opt.id} value={opt.id}>
-                {opt.name}
-              </option>
-            ))}
-            {onCustomOption && <option value="custom">Custom ID...</option>}
-          </select>
+          <div
+            className={`custom-select ${isOpen ? 'active' : ''}`}
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <span>{selectedOption ? selectedOption.name : 'Select...'}</span>
+            <span className="material-symbols-outlined">
+              {isOpen ? 'expand_less' : 'expand_more'}
+            </span>
+          </div>
+          {isOpen && (
+            <div className="select-dropdown">
+              {options.map(opt => (
+                <div
+                  key={opt.id}
+                  className={`select-option ${opt.id === value ? 'selected' : ''}`}
+                  onClick={() => handleSelect(opt.id)}
+                >
+                  <span>{opt.name}</span>
+                  {onDeleteOption && opt.isCustom && (
+                    <button
+                      className="btn-icon delete-btn"
+                      onClick={e => handleDelete(e, opt.id)}
+                      title="Remove custom option"
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: '1rem' }}
+                      >
+                        close
+                      </span>
+                    </button>
+                  )}
+                </div>
+              ))}
+              {onCustomOption && (
+                <div
+                  className="select-option custom-divider"
+                  onClick={() => {
+                    onCustomOption();
+                    setIsOpen(false);
+                  }}
+                >
+                  <span className="material-symbols-outlined">add</span>
+                  Add Custom...
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
