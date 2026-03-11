@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { post } from './ideas';
+import { getCustomerId, post } from './ideas';
 import { chunk } from './util';
+import {
+  gemini,
+  GeminiConfig,
+  getGcpProjectId,
+  ResponseSchema,
+} from './vertex';
 
 /**
  * Maximum number of countries to process in a single batch.
@@ -56,4 +62,101 @@ export const getCriterionIDs = (names: string[]) => {
       .geoTargetConstant.id,
   ]);
   return Object.fromEntries(geo);
+};
+
+/**
+ * Retrieves the language ID for a given language name.
+ *
+ * @param name - The name of the language to search for (e.g. 'German').
+ * @returns The language ID, or undefined if not found.
+ */
+export const getLanguageId = (
+  name: string,
+  geminiConfig?: Partial<GeminiConfig>
+) => {
+  const query = `
+    SELECT language_constant.id, language_constant.name
+    FROM language_constant
+    WHERE language_constant.name = "${name}"
+  `;
+  const response = post(`customers/${getCustomerId()}/googleAds:search`, {
+    query,
+  });
+  const result = response?.results?.[0]?.languageConstant;
+  if (result) {
+    return { id: result.id, name: result.name };
+  }
+
+  return suggestLanguageId(name, geminiConfig);
+};
+
+/**
+ * Suggests a language ID using Gemini
+ *
+ * @param name - The name of the language to search for.
+ * @param geminiConfig - The Gemini configuration.
+ * @returns The verified language object { id, name }.
+ * @throws Error if no language could be found or verified.
+ */
+export const suggestLanguageId = (
+  name: string,
+  geminiConfig?: Partial<GeminiConfig>
+) => {
+  const responseSchema: ResponseSchema = {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'string',
+        description: 'The Google Ads language constant integer ID',
+      },
+    },
+    required: ['id'],
+  };
+
+  const config = {
+    modelId: geminiConfig?.modelId || 'gemini-2.5-flash',
+    projectId: getGcpProjectId(),
+    temperature: 0,
+    topP: 1,
+    responseType: 'application/json',
+    responseSchema,
+  };
+
+  const prompt = `Find the Google Ads language constant integer ID for the language: "${name}".
+  Return ONLY the ID in the requested JSON format.`;
+
+  try {
+    const geminiResult = gemini(config)(prompt);
+    const geminiId = geminiResult?.id;
+
+    if (geminiId) {
+      // Verify the ID with GAQL
+      return getLanguageById(geminiId);
+    }
+  } catch (e) {
+    console.error('Gemini fallback failed or verification failed:', e);
+  }
+
+  throw new Error(
+    `Could not find language ID for "${name}" even after Gemini fallback.`
+  );
+};
+
+/**
+ * Retrieves the language name for a given language ID.
+ *
+ * @param id - The numeric ID of the language (e.g. '1000').
+ * @returns The language object { id, name }, or undefined if not found.
+ */
+export const getLanguageById = (id: string) => {
+  const query = `
+    SELECT language_constant.id, language_constant.name
+    FROM language_constant
+    WHERE language_constant.id = ${id}
+  `;
+  const response = post(`customers/${getCustomerId()}/googleAds:search`, {
+    query,
+  });
+  const result = response?.results?.[0]?.languageConstant;
+  return result ? { id: result.id, name: result.name } : undefined;
 };

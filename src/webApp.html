@@ -1442,6 +1442,10 @@ limitations under the License.
         value: '',
         message: '',
         link: '',
+        isLoading: false,
+        result: null,
+        languageId: '',
+        languageText: '',
       });
 
       const showAlert = (message, link = '') => {
@@ -1458,25 +1462,93 @@ limitations under the License.
         setModalConfig({ isOpen: true, type, value: '' });
       };
 
+      const handleLookup = async () => {
+        const { type, languageText } = modalConfig;
+        if (!languageText || type !== 'language') return;
+
+        setModalConfig(prev => ({ ...prev, isLoading: true, result: null }));
+        try {
+          const res = await googleScriptRun.getLanguageId(languageText, geminiConfig);
+          if (res) {
+            setModalConfig(prev => ({
+              ...prev,
+              result: res,
+              languageId: res.id.toString(),
+              languageText: res.name,
+            }));
+          } else {
+            showAlert(`Language "${languageText}" not found.`);
+          }
+        } catch (e) {
+          console.error('Lookup failed:', e);
+          showAlert('Lookup failed. Please check your connection.');
+        } finally {
+          setModalConfig(prev => ({ ...prev, isLoading: false }));
+        }
+      };
+
+      const handleIdLookup = async () => {
+        const { type, languageId } = modalConfig;
+        if (!languageId || type !== 'language') return;
+
+        setModalConfig(prev => ({ ...prev, isLoading: true, result: null }));
+        try {
+          const res = await googleScriptRun.getLanguageById(languageId);
+          if (res) {
+            setModalConfig(prev => ({
+              ...prev,
+              result: res,
+              languageId: res.id.toString(),
+              languageText: res.name,
+            }));
+          } else {
+            showAlert(`Language ID "${languageId}" not found.`);
+          }
+        } catch (e) {
+          console.error('Lookup failed:', e);
+          showAlert('Lookup failed. Please check your connection.');
+        } finally {
+          setModalConfig(prev => ({ ...prev, isLoading: false }));
+        }
+      };
+
       const submitModal = () => {
-        const { type, value } = modalConfig;
-        if (value && !isNaN(Number(value))) {
-          if (type === 'language') {
+        const { type, value, result, languageId, languageText } = modalConfig;
+
+        if (type === 'language') {
+          const id = result ? result.id.toString() : languageId;
+          const name = result ? result.name : (languageText || `ID: ${languageId}`);
+
+          if (id && !isNaN(Number(id))) {
             setCustomLanguages([
               ...customLanguages,
-              { id: value, name: value },
+              { id, name },
             ]);
-            setLanguage(value);
+            setLanguage(id);
+            setModalConfig({
+              ...modalConfig,
+              isOpen: false,
+              type: '',
+              value: '',
+              result: null,
+              languageId: '',
+              languageText: '',
+            });
           } else {
+            showAlert('Valid Language ID is required.');
+          }
+        } else {
+          // Country logic (remains as is)
+          if (value && !isNaN(Number(value))) {
             setCustomCountries([
               ...customCountries,
               { id: value, name: value },
             ]);
             setCountry(value);
+            setModalConfig({ ...modalConfig, isOpen: false, type: '', value: '' });
+          } else {
+            showAlert('Only Number IDs are allowed.');
           }
-          setModalConfig({ isOpen: false, type: '', value: '' });
-        } else {
-          showAlert('Only Number IDs are allowed.');
         }
       };
 
@@ -2194,7 +2266,8 @@ limitations under the License.
         >
           <div className="modal-body">
             <p className="text-sm text-muted mb-4">
-              Enter the numeric Language ID from Google Ads API.
+              Enter a Language ID or Name. Use the lookup buttons to resolve
+              the missing field.
               <a
                 href={LANGUAGE_INFO_URL}
                 target="_blank"
@@ -2211,26 +2284,78 @@ limitations under the License.
             </p>
             <div className="input-group">
               <label>Language ID</label>
-              <input
-                type="text"
-                value={modalConfig.value}
-                onChange={e =>
-                  setModalConfig({ ...modalConfig, value: e.target.value })
-                }
-                placeholder="e.g. 1000"
-                autoFocus
-              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={modalConfig.languageId}
+                  onChange={e =>
+                    setModalConfig({ ...modalConfig, languageId: e.target.value })
+                  }
+                  onKeyDown={e => e.key === 'Enter' && handleIdLookup()}
+                  placeholder="e.g. 1000"
+                  disabled={modalConfig.isLoading}
+                  autoFocus
+                />
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleIdLookup}
+                  disabled={modalConfig.isLoading || !modalConfig.languageId}
+                  style={{ minWidth: '40px' }}
+                  title="Lookup Name"
+                >
+                  <span className="material-symbols-outlined">search</span>
+                </button>
+              </div>
             </div>
+            <div className="input-group">
+              <label>Language Text</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={modalConfig.languageText}
+                  onChange={e =>
+                    setModalConfig({ ...modalConfig, languageText: e.target.value })
+                  }
+                  onKeyDown={e => e.key === 'Enter' && handleLookup()}
+                  placeholder="e.g. German"
+                  disabled={modalConfig.isLoading}
+                />
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleLookup}
+                  disabled={modalConfig.isLoading || !modalConfig.languageText}
+                  style={{ minWidth: '40px' }}
+                  title="Lookup ID"
+                >
+                  <span className="material-symbols-outlined">search</span>
+                </button>
+              </div>
+            </div>
+            {modalConfig.isLoading && (
+              <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
+                <div className="spinner" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }}></div>
+              </div>
+            )}
             <div className="modal-actions">
               <button
                 className="btn"
                 onClick={() =>
-                  setModalConfig({ ...modalConfig, isOpen: false })
+                  setModalConfig({
+                    ...modalConfig,
+                    isOpen: false,
+                    result: null,
+                    languageId: '',
+                    languageText: '',
+                  })
                 }
               >
                 Cancel
               </button>
-              <button className="btn btn-primary" onClick={submitModal}>
+              <button
+                className="btn btn-primary"
+                onClick={submitModal}
+                disabled={modalConfig.isLoading || !modalConfig.languageId}
+              >
                 Add
               </button>
             </div>

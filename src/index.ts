@@ -25,6 +25,7 @@ import {
 } from './reporting';
 import { generateTrendsKeywords } from './trends';
 import { exportToSheet, createSpreadsheet } from './util';
+import { getLanguageId, getLanguageById } from './geo';
 
 // include references to prevent tree shaking due to methods being called in
 //  webApp.html with google script run dynamically
@@ -39,3 +40,5 @@ createAdSuggestion;
 DEFAULT_STYLE_GUIDE;
 exportToSheet;
 createSpreadsheet;
+getLanguageId;
+getLanguageById;
