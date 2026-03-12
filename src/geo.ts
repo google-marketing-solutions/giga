@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { post } from './ideas';
-import { chunk } from './util';
+import { getCustomerId, post } from './ideas';
+import {
+  gemini,
+  GeminiConfig,
+  getGcpProjectId,
+  ResponseSchema,
+} from './vertex';
 
-/**
- * Maximum number of countries to process in a single batch.
- */
-export const MAX_COUNTRIES = 25;
-
-/**
- * Retrieves geo target constant suggestions for a list of location names.
- *
- * @param names - An array of location names to search for.
- * @returns A list of geo target constant suggestions.
- */
 export const getGeoTargetConstantSuggestions = (names: string[]) =>
   post('geoTargetConstants:suggest', {
     locale: 'en',
@@ -34,26 +28,203 @@ export const getGeoTargetConstantSuggestions = (names: string[]) =>
   }).geoTargetConstantSuggestions;
 
 /**
- * Resolves a list of country names to their corresponding criterion IDs.
+ * Retrieves the language ID for a given language name.
  *
- * This function chunks the input names, queries for suggestions, filters for
- * targets of type 'Country', and maps the original names (lowercased) to their IDs.
- *
- * @param names - An array of country names to resolve.
- * @returns An object mapping lowercased country names to their criterion IDs.
+ * @param name - The name of the language to search for (e.g. 'German').
+ * @returns The language ID, or undefined if not found.
  */
-export const getCriterionIDs = (names: string[]) => {
-  const suggestions = chunk(names, MAX_COUNTRIES)
-    .flatMap(getGeoTargetConstantSuggestions)
-    .filter(
-      (suggestion: { geoTargetConstant: { targetType: string } }) =>
-        suggestion.geoTargetConstant.targetType === 'Country'
-    );
+export const getLanguageId = (
+  name: string,
+  geminiConfig?: Partial<GeminiConfig>
+) => {
+  const query = `
+    SELECT language_constant.id, language_constant.name
+    FROM language_constant
+    WHERE language_constant.name = "${name}"
+  `;
+  const response = post(`customers/${getCustomerId()}/googleAds:search`, {
+    query,
+  });
+  const result = response?.results?.[0]?.languageConstant;
+  if (result) {
+    return { id: result.id, name: result.name };
+  }
 
-  const geo = names.map((country: string) => [
-    country.toLowerCase(),
-    suggestions.find((s: { searchTerm: string }) => s.searchTerm === country)
-      .geoTargetConstant.id,
-  ]);
-  return Object.fromEntries(geo);
+  return suggestLanguageId(name, geminiConfig);
+};
+
+/**
+ * Suggests a language ID using Gemini
+ *
+ * @param name - The name of the language to search for.
+ * @param geminiConfig - The Gemini configuration.
+ * @returns The verified language object { id, name }.
+ * @throws Error if no language could be found or verified.
+ */
+export const suggestLanguageId = (
+  name: string,
+  geminiConfig?: Partial<GeminiConfig>
+) => {
+  const responseSchema: ResponseSchema = {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'string',
+        description: 'The Google Ads language constant integer ID',
+      },
+    },
+    required: ['id'],
+  };
+
+  const config = {
+    modelId: geminiConfig?.modelId || 'gemini-3.1-pro-preview',
+    projectId: getGcpProjectId(),
+    temperature: 0,
+    topP: 1,
+    responseType: 'application/json',
+    responseSchema,
+  };
+
+  const prompt = `Find the Google Ads language constant integer ID for the language: "${name}".
+  Return ONLY the ID in the requested JSON format.`;
+
+  try {
+    const geminiResult = gemini(config)(prompt);
+    const geminiId = geminiResult?.id;
+
+    if (geminiId) {
+      // Verify the ID with GAQL
+      return getLanguageById(geminiId);
+    }
+  } catch (e) {
+    console.error('Gemini fallback failed or verification failed:', e);
+  }
+
+  throw new Error(
+    `Could not find language ID for "${name}" even after Gemini fallback.`
+  );
+};
+
+/**
+ * Retrieves the language name for a given language ID.
+ *
+ * @param id - The numeric ID of the language (e.g. '1000').
+ * @returns The language object { id, name }, or undefined if not found.
+ */
+export const getLanguageById = (id: string) => {
+  const query = `
+    SELECT language_constant.id, language_constant.name
+    FROM language_constant
+    WHERE language_constant.id = ${id}
+  `;
+  const response = post(`customers/${getCustomerId()}/googleAds:search`, {
+    query,
+  });
+  const result = response?.results?.[0]?.languageConstant;
+  return result ? { id: result.id, name: result.name } : undefined;
+};
+/**
+ * Retrieves the location ID for a given location name.
+ *
+ * This function uses Google Ads' geoTargetConstants:suggest and returns the
+ * first result that is ENABLED.
+ *
+ * @param name - The name of the location to search for (e.g. 'France', 'Paris').
+ * @param geminiConfig - The Gemini configuration.
+ * @returns The location object { id, name }.
+ * @throws Error if location is not found.
+ */
+export const getLocationId = (
+  name: string,
+  geminiConfig?: Partial<GeminiConfig>
+) => {
+  const suggestions = getGeoTargetConstantSuggestions([name]);
+  const bestMatch = (suggestions || []).find(
+    (s: { geoTargetConstant: { status: string } }) =>
+      s.geoTargetConstant.status === 'ENABLED'
+  );
+
+  if (bestMatch) {
+    return {
+      id: bestMatch.geoTargetConstant.id,
+      name:
+        bestMatch.geoTargetConstant.name ||
+        bestMatch.geoTargetConstant.canonicalName,
+    };
+  }
+
+  return suggestLocationId(name, geminiConfig);
+};
+
+/**
+ * Suggests a location ID using Gemini
+ *
+ * @param name - The name of the location to search for.
+ * @param geminiConfig - The Gemini configuration.
+ * @returns The verified location object { id, name }.
+ * @throws Error if no location could be found or verified.
+ */
+export const suggestLocationId = (
+  name: string,
+  geminiConfig?: Partial<GeminiConfig>
+) => {
+  const responseSchema: ResponseSchema = {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'string',
+        description: 'The Google Ads location criterion ID',
+      },
+    },
+    required: ['id'],
+  };
+
+  const config = {
+    modelId: geminiConfig?.modelId || 'gemini-3.1-pro-preview',
+    projectId: getGcpProjectId(),
+    temperature: 0,
+    topP: 1,
+    responseType: 'application/json',
+    responseSchema,
+  };
+
+  const prompt = `Find the Google Ads criterion ID for the location: "${name}".
+  Return ONLY the ID in the requested JSON format.`;
+
+  try {
+    const geminiResult = gemini(config)(prompt);
+    const geminiId = geminiResult?.id;
+
+    if (geminiId) {
+      // Verify the ID with GAQL
+      return getLocationById(geminiId);
+    }
+  } catch (e) {
+    console.error('Gemini fallback failed or verification failed:', e);
+  }
+
+  throw new Error(
+    `Could not find location ID for "${name}" even after Gemini fallback.`
+  );
+};
+
+/**
+ * Retrieves the location name for a given location ID.
+ *
+ * @param id - The criterion ID of the location (e.g. '2250').
+ * @returns The location object { id, name }, or undefined if not found.
+ */
+export const getLocationById = (id: string) => {
+  const query = `
+    SELECT geo_target_constant.id, geo_target_constant.name, geo_target_constant.canonical_name
+    FROM geo_target_constant
+    WHERE geo_target_constant.id = ${id}
+  `;
+  const response = post(`customers/${getCustomerId()}/googleAds:search`, {
+    query,
+  });
+  const result = response?.results?.[0]?.geoTargetConstant;
+  return result
+    ? { id: result.id, name: result.name || result.canonicalName }
+    : undefined;
 };

@@ -469,20 +469,114 @@ limitations under the License.
       justify-content: center;
     }
 
-    /* Spinner */
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 0.8s linear infinite;
-    }
-
     @keyframes spin {
       to {
         transform: rotate(360deg);
       }
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top-color: currentColor;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    [data-theme='dark'] .spinner {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Custom Select Dropdown */
+    .select-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .custom-select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: var(--bg-color);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      box-sizing: border-box;
+    }
+
+    .custom-select:hover {
+      border-color: var(--primary);
+      background: var(--surface-color);
+    }
+
+    .custom-select.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      background: var(--surface-color);
+    }
+
+    .select-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      max-height: 350px;
+      overflow-y: auto;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    .select-option {
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+      font-size: 0.95rem;
+    }
+
+    .select-option:hover {
+      background: var(--bg-color);
+    }
+
+    .select-option.selected {
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .select-option .delete-btn {
+      opacity: 0.5;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      color: var(--text-secondary);
+    }
+
+    .select-option .delete-btn:hover {
+      opacity: 1;
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+    }
+
+    .select-option.custom-divider {
+      border-top: 1px solid var(--border-color);
+      color: var(--primary);
+      font-weight: 600;
+      justify-content: center;
     }
 
     .modal-header {
@@ -849,9 +943,25 @@ limitations under the License.
       const [continent, setContinent] = useStickyState('Worldwide', 'giga_continent');
       const [country, setCountry] = useStickyState('', 'giga_country');
 
+      const [customLanguages, setCustomLanguages] = useStickyState(
+        [],
+        'giga_customLanguages'
+      );
+      const [customCountries, setCustomCountries] = useStickyState(
+        [],
+        'giga_customCountries'
+      );
+
       const continentOptions = useMemo(() => {
-        return Object.keys(window.REGION_MAP || {}).map(name => ({ id: name, name: name }));
-      }, []);
+        const options = Object.keys(window.REGION_MAP || {}).map(name => ({
+          id: name,
+          name: name,
+        }));
+        if (customCountries && customCountries.length > 0) {
+          options.push({ id: 'Custom Locations', name: 'Custom Locations' });
+        }
+        return options;
+      }, [customCountries]);
 
       // Set default country for each continent
       const continentDefaults = {
@@ -863,14 +973,6 @@ limitations under the License.
         'Asia & Oceania': '2392',  // Japan
       };
 
-      const [customLanguages, setCustomLanguages] = useStickyState(
-        [],
-        'giga_customLanguages'
-      );
-      const [customCountries, setCustomCountries] = useStickyState(
-        [],
-        'giga_customCountries'
-      );
       const [promptTemplate, setPromptTemplate] = useStickyState(
         DEFAULT_PROMPT,
         'giga_promptTemplate'
@@ -1288,11 +1390,7 @@ limitations under the License.
       }, [isDemoMode]);
 
       useEffect(() => {
-        const defaultCountryId = continentDefaults[continent] || '';
-        setCountry(defaultCountryId);
-      }, [continent]);
-
-      useEffect(() => {
+        if (continent === 'Custom Locations') return;
         const defaultCountryId = continentDefaults[continent] || '';
         setCountry(defaultCountryId);
       }, [continent]);
@@ -1442,6 +1540,13 @@ limitations under the License.
         value: '',
         message: '',
         link: '',
+        isLoading: false,
+        lastLookup: '',
+        result: null,
+        languageId: '',
+        languageText: '',
+        countryId: '',
+        countryText: '',
       });
 
       const showAlert = (message, link = '') => {
@@ -1454,29 +1559,153 @@ limitations under the License.
         });
       };
 
-      const handleCustomOption = type => {
-        setModalConfig({ isOpen: true, type, value: '' });
+      const handleCustomOption = (type, id) => {
+        if (type === 'language_delete') {
+          setCustomLanguages(prev => prev.filter(l => l.id !== id));
+          if (language === id) setLanguage('1000');
+          return;
+        }
+        if (type === 'country_delete') {
+          setCustomCountries(prev => prev.filter(c => c.id !== id));
+          if (country === id) setCountry('');
+          return;
+        }
+        setModalConfig({
+          isOpen: true,
+          type,
+          languageId: '',
+          languageText: '',
+          countryId: '',
+          countryText: '',
+          isLoading: false,
+          result: null,
+        });
+      };
+
+      const handleLookup = async () => {
+        const { type, languageText, countryText } = modalConfig;
+        const lookupText = type === 'language' ? languageText : countryText;
+        if (!lookupText) return;
+
+        setModalConfig(prev => ({ ...prev, isLoading: true, lastLookup: 'text', result: null }));
+        try {
+          const res = type === 'language'
+            ? await googleScriptRun.getLanguageId(lookupText, geminiConfig)
+            : await googleScriptRun.getLocationId(lookupText, geminiConfig);
+          if (res) {
+            console.log('Location lookup response:', res);
+            const update = type === 'language'
+              ? { languageId: res.id.toString(), languageText: res.name }
+              : { countryId: res.id.toString(), countryText: res.name };
+            setModalConfig(prev => ({
+              ...prev,
+              result: res,
+              ...update,
+            }));
+          } else {
+            const errorMsg = type === 'language'
+              ? `Language "${lookupText}" not found.`
+              : `Location "${lookupText}" not found. This must be a valid Name or Criterion ID for a location.`;
+            showAlert(errorMsg, type === 'language' ? '' : LOCATION_INFO_URL);
+          }
+        } catch (e) {
+          console.error('Lookup failed:', e);
+          showAlert('Lookup failed.', type === 'language' ? '' : LOCATION_INFO_URL);
+        } finally {
+          setModalConfig(prev => ({ ...prev, isLoading: false }));
+        }
+      };
+
+      const handleIdLookup = async () => {
+        const { type, languageId, countryId } = modalConfig;
+        const lookupId = type === 'language' ? languageId : countryId;
+        if (!lookupId) return;
+
+        setModalConfig(prev => ({ ...prev, isLoading: true, lastLookup: 'id', result: null }));
+        try {
+          const res = type === 'language'
+            ? await googleScriptRun.getLanguageById(lookupId)
+            : await googleScriptRun.getLocationById(lookupId);
+          if (res) {
+            if (type === 'country') {
+              console.log('Location ID lookup response:', res);
+            }
+            const update = type === 'language'
+              ? { languageId: res.id.toString(), languageText: res.name }
+              : { countryId: res.id.toString(), countryText: res.name };
+            setModalConfig(prev => ({
+              ...prev,
+              result: res,
+              ...update,
+            }));
+          } else {
+            const errorMsg = type === 'language'
+              ? `Language ID "${lookupId}" not found.`
+              : `Location ID "${lookupId}" not found. This must be a valid Name or Criterion ID for a location.`;
+            showAlert(errorMsg, type === 'language' ? '' : LOCATION_INFO_URL);
+          }
+        } catch (e) {
+          console.error('Lookup failed:', e);
+          showAlert('Lookup failed. Please check your connection.', type === 'language' ? '' : LOCATION_INFO_URL);
+        } finally {
+          setModalConfig(prev => ({ ...prev, isLoading: false }));
+        }
       };
 
       const submitModal = () => {
-        const { type, value } = modalConfig;
-        if (value && !isNaN(Number(value))) {
-          if (type === 'language') {
-            setCustomLanguages([
-              ...customLanguages,
-              { id: value, name: value },
-            ]);
-            setLanguage(value);
+        const {
+          type,
+          value,
+          result,
+          languageId,
+          languageText,
+          countryId,
+          countryText,
+        } = modalConfig;
+
+        if (type === 'language') {
+          const id = result ? result.id.toString() : languageId;
+          const name = result
+            ? result.name
+            : languageText || `ID: ${languageId}`;
+
+          if (id && !isNaN(Number(id))) {
+            setCustomLanguages([...customLanguages, { id, name }]);
+            setLanguage(id);
+            setModalConfig({
+              ...modalConfig,
+              isOpen: false,
+              type: '',
+              value: '',
+              result: null,
+              languageId: '',
+              languageText: '',
+            });
           } else {
-            setCustomCountries([
-              ...customCountries,
-              { id: value, name: value },
-            ]);
-            setCountry(value);
+            showAlert('Valid Language ID is required.');
           }
-          setModalConfig({ isOpen: false, type: '', value: '' });
-        } else {
-          showAlert('Only Number IDs are allowed.');
+        } else if (type === 'country') {
+          const id = result ? result.id.toString() : countryId;
+          const name = result ? result.name : countryText || `ID: ${countryId}`;
+
+          if (id && !isNaN(Number(id))) {
+            setCustomCountries([...customCountries, { id, name }]);
+            setContinent('Custom Locations');
+            setCountry(id);
+            setModalConfig({
+              ...modalConfig,
+              isOpen: false,
+              type: '',
+              value: '',
+              result: null,
+              countryId: '',
+              countryText: '',
+            });
+          } else {
+            showAlert('Valid Country ID is required.');
+          }
+        } else if (type === 'settings') {
+          setModalConfig({ ...modalConfig, isOpen: false, type: '', value: '' });
         }
       };
 
@@ -2194,7 +2423,8 @@ limitations under the License.
         >
           <div className="modal-body">
             <p className="text-sm text-muted mb-4">
-              Enter the numeric Language ID from Google Ads API.
+              Enter a Language ID or Name. Use the lookup buttons to resolve
+              the missing field.
               <a
                 href={LANGUAGE_INFO_URL}
                 target="_blank"
@@ -2210,27 +2440,82 @@ limitations under the License.
               </a>
             </p>
             <div className="input-group">
+              <label>Language Text</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={modalConfig.languageText}
+                  onChange={e =>
+                    setModalConfig({ ...modalConfig, languageText: e.target.value })
+                  }
+                  onKeyDown={e => e.key === 'Enter' && handleLookup()}
+                  placeholder="e.g. German"
+                  disabled={modalConfig.isLoading}
+                  autoFocus
+                />
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleLookup}
+                  disabled={modalConfig.isLoading || !modalConfig.languageText}
+                  style={{ minWidth: '40px', position: 'relative' }}
+                  title="Lookup ID"
+                >
+                  {modalConfig.isLoading && modalConfig.lastLookup === 'text' ? (
+                    <div className="spinner"></div>
+                  ) : (
+                    <span className="material-symbols-outlined">search</span>
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="input-group">
               <label>Language ID</label>
-              <input
-                type="text"
-                value={modalConfig.value}
-                onChange={e =>
-                  setModalConfig({ ...modalConfig, value: e.target.value })
-                }
-                placeholder="e.g. 1000"
-                autoFocus
-              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={modalConfig.languageId}
+                  onChange={e =>
+                    setModalConfig({ ...modalConfig, languageId: e.target.value })
+                  }
+                  onKeyDown={e => e.key === 'Enter' && handleIdLookup()}
+                  placeholder="e.g. 1000"
+                  disabled={modalConfig.isLoading}
+                />
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleIdLookup}
+                  disabled={modalConfig.isLoading || !modalConfig.languageId}
+                  style={{ minWidth: '40px', position: 'relative' }}
+                  title="Lookup Name"
+                >
+                  {modalConfig.isLoading && modalConfig.lastLookup === 'id' ? (
+                    <div className="spinner"></div>
+                  ) : (
+                    <span className="material-symbols-outlined">search</span>
+                  )}
+                </button>
+              </div>
             </div>
             <div className="modal-actions">
               <button
                 className="btn"
                 onClick={() =>
-                  setModalConfig({ ...modalConfig, isOpen: false })
+                  setModalConfig({
+                    ...modalConfig,
+                    isOpen: false,
+                    result: null,
+                    languageId: '',
+                    languageText: '',
+                  })
                 }
               >
                 Cancel
               </button>
-              <button className="btn btn-primary" onClick={submitModal}>
+              <button
+                className="btn btn-primary"
+                onClick={submitModal}
+                disabled={modalConfig.isLoading || !modalConfig.languageId}
+              >
                 Add
               </button>
             </div>
@@ -2253,9 +2538,10 @@ limitations under the License.
                   href={modalConfig.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ wordBreak: 'break-all' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 >
-                  {modalConfig.link}
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>info</span>
+                  More Information
                 </a>
               </p>
             )}
@@ -2304,7 +2590,8 @@ limitations under the License.
         >
           <div className="modal-body">
             <p className="text-sm text-muted mb-4">
-              Enter the numeric Location ID from Google Ads API.
+              Enter a Google Ads Criterion ID for a location (e.g. 2250 for
+              France) or use the search to find it by name.
               <a
                 href={LOCATION_INFO_URL}
                 target="_blank"
@@ -2320,27 +2607,88 @@ limitations under the License.
               </a>
             </p>
             <div className="input-group">
+              <label>Location Name (canonical English name)</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={modalConfig.countryText}
+                  onChange={e =>
+                    setModalConfig({
+                      ...modalConfig,
+                      countryText: e.target.value,
+                    })
+                  }
+                  onKeyDown={e => e.key === 'Enter' && handleLookup()}
+                  placeholder="e.g. France"
+                  disabled={modalConfig.isLoading}
+                  autoFocus
+                />
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleLookup}
+                  disabled={modalConfig.isLoading || !modalConfig.countryText}
+                  style={{ minWidth: '40px', position: 'relative' }}
+                  title="Lookup ID"
+                >
+                  {modalConfig.isLoading && modalConfig.lastLookup === 'text' ? (
+                    <div className="spinner"></div>
+                  ) : (
+                    <span className="material-symbols-outlined">search</span>
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="input-group">
               <label>Location ID</label>
-              <input
-                type="text"
-                value={modalConfig.value}
-                onChange={e =>
-                  setModalConfig({ ...modalConfig, value: e.target.value })
-                }
-                placeholder="e.g. 2840"
-                autoFocus
-              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={modalConfig.countryId}
+                  onChange={e =>
+                    setModalConfig({
+                      ...modalConfig,
+                      countryId: e.target.value,
+                    })
+                  }
+                  onKeyDown={e => e.key === 'Enter' && handleIdLookup()}
+                  placeholder="e.g. 2250"
+                  disabled={modalConfig.isLoading}
+                />
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleIdLookup}
+                  disabled={modalConfig.isLoading || !modalConfig.countryId}
+                  style={{ minWidth: '40px', position: 'relative' }}
+                  title="Lookup Name"
+                >
+                  {modalConfig.isLoading && modalConfig.lastLookup === 'id' ? (
+                    <div className="spinner"></div>
+                  ) : (
+                    <span className="material-symbols-outlined">search</span>
+                  )}
+                </button>
+              </div>
             </div>
             <div className="modal-actions">
               <button
                 className="btn"
                 onClick={() =>
-                  setModalConfig({ ...modalConfig, isOpen: false })
+                  setModalConfig({
+                    ...modalConfig,
+                    isOpen: false,
+                    result: null,
+                    countryId: '',
+                    countryText: '',
+                  })
                 }
               >
                 Cancel
               </button>
-              <button className="btn btn-primary" onClick={submitModal}>
+              <button
+                className="btn btn-primary"
+                onClick={submitModal}
+                disabled={modalConfig.isLoading || !modalConfig.countryId}
+              >
                 Add
               </button>
             </div>

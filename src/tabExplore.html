@@ -77,10 +77,20 @@ limitations under the License.
       </div>
     );
 
+    const promptCustomizationNote = (promptName) => (
+      <p>
+        The {promptName} can be customized to your needs. Any changes you make are stored locally in your
+        browser and will only affect your current session, not other users of the application.
+      </p>
+    );
+
     const filteredCountries = useMemo(() => {
+      if (continent === 'Custom Locations') {
+        return customCountries;
+      }
       const countriesForContinent = window.REGION_MAP[continent] || [];
       return countriesForContinent;
-    }, [continent]);
+    }, [continent, customCountries]);
 
     const [activeInfoModal, setActiveInfoModal] = useState(null);
     const detailsRef = useRef(null);
@@ -408,8 +418,12 @@ limitations under the License.
             }
             value={language}
             onChange={setLanguage}
-            options={[...LANGUAGES, ...customLanguages]}
+            options={[
+              ...LANGUAGES,
+              ...customLanguages.map(l => ({ ...l, isCustom: true })),
+            ]}
             onCustomOption={() => handleCustomOption('language')}
+            onDeleteOption={id => handleCustomOption('language_delete', id)}
           />
           <SelectField
             label="Continent"
@@ -439,8 +453,16 @@ limitations under the License.
             }
             value={country}
             onChange={setCountry}
-            options={filteredCountries}
+            options={
+              continent === 'Custom Locations'
+                ? customCountries.map(c => ({ ...c, isCustom: true }))
+                : [
+                    ...filteredCountries,
+                    ...customCountries.map(c => ({ ...c, isCustom: true })),
+                  ]
+            }
             onCustomOption={() => handleCustomOption('country')}
+            onDeleteOption={id => handleCustomOption('country_delete', id)}
           />
         </div>
 
@@ -568,9 +590,36 @@ limitations under the License.
             </div>
             {useGemini && (
               <div className="mt-4">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <label style={{ margin: 0 }}>Gemini Prompt</label>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '1rem',
+                        color: 'var(--text-secondary)',
+                        cursor: 'pointer',
+                      }}
+                      onClick={e => {
+                        e.preventDefault();
+                        setActiveInfoModal('gemini');
+                      }}
+                    >
+                      info
+                    </span>
+                  </div>
+                  {geminiPrompt !== window.DEFAULT_TRENDS_PROMPT && (
+                    <button
+                      onClick={() => setGeminiPrompt(window.DEFAULT_TRENDS_PROMPT)}
+                      className="btn btn-ghost btn-sm"
+                      style={{ padding: '2px 8px', fontSize: '0.8rem', fontWeight: 'normal' }}
+                    >
+                      ⟳ Reset to default
+                    </button>
+                  )}
+                </div>
                 <InputField
                   type="textarea"
-                  label="Gemini Prompt"
                   value={geminiPrompt}
                   onChange={setGeminiPrompt}
                   rows={6}
@@ -616,9 +665,36 @@ limitations under the License.
             </div>
             {useClustering && (
               <div className="mt-4">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <label style={{ margin: 0 }}>Clustering Prompt</label>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '1rem',
+                        color: 'var(--text-secondary)',
+                        cursor: 'pointer',
+                      }}
+                      onClick={e => {
+                        e.preventDefault();
+                        setActiveInfoModal('clustering_info');
+                      }}
+                    >
+                      info
+                    </span>
+                  </div>
+                  {promptTemplate !== window.DEFAULT_PROMPT && (
+                    <button
+                      onClick={() => setPromptTemplate(window.DEFAULT_PROMPT)}
+                      className="btn btn-ghost btn-sm"
+                      style={{ padding: '2px 8px', fontSize: '0.8rem', fontWeight: 'normal' }}
+                    >
+                      ⟳ Reset to default
+                    </button>
+                  )}
+                </div>
                 <InputField
                   type="textarea"
-                  label="Clustering Prompt"
                   value={promptTemplate}
                   onChange={setPromptTemplate}
                   rows={6}
@@ -1159,122 +1235,110 @@ limitations under the License.
           <Modal
             isOpen={!!activeInfoModal}
             onClose={() => setActiveInfoModal(null)}
-            title={
-              activeInfoModal === 'keyword_planner'
-                ? 'Keyword Idea Service'
-                : activeInfoModal === 'gemini'
-                  ? 'Gemini'
-                  : activeInfoModal === 'seed_keywords'
-                    ? 'Seed Keywords'
-                    : activeInfoModal === 'location_info'
-                      ? 'Location Settings'
-                      : activeInfoModal === 'clustering_info'
-                        ? 'Clustering Info'
-                        : 'Language Settings'
-            }
+            title={{
+              keyword_planner: 'Keyword Idea Service',
+              gemini: 'Gemini',
+              seed_keywords: 'Seed Keywords',
+              location_info: 'Location Settings',
+              clustering_info: 'Clustering Info',
+            }[activeInfoModal] || 'Language Settings'}
           >
-            {activeInfoModal === 'keyword_planner' ? (
-              <div>
-                <p>
-                  The{' '}
-                  <a
-                    href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'var(--primary)' }}
-                  >
-                    Keyword Idea Service
-                  </a>{' '}
-                  uses the Google Ads API to generate keyword ideas based on
-                  your seed keywords, location, and language settings.
-                </p>
-              </div>
-            ) : activeInfoModal === 'gemini' ? (
-              <div>
-                <p>
-                  Gemini is used to creatively source new keyword ideas based on
-                  your prompt.
-                </p>
-                <p>
-                  It uses{' '}
-                  <a
-                    href="https://ai.google.dev/gemini-api/docs/google-search"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'var(--primary)' }}
-                  >
-                    grounding with Google Search
-                  </a>{' '}
-                  to get the latest information for a topic.
-                </p>
-                <p>
-                  Once keywords are generated, the{' '}
-                  <a
-                    href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'var(--primary)' }}
-                  >
-                    Keyword Planner
-                  </a>{' '}
-                  from the Google Ads API is used to retrieve their historical
-                  search volume and metrics.
-                </p>
-              </div>
-            ) : activeInfoModal === 'seed_keywords' ? (
-              <div>
-                <p>
-                  Enter one or more starting keywords here. These serve as the
-                  foundation for generating new keyword ideas and clusters.
-                </p>
-                <p>
-                  Type keywords and press <strong>Enter</strong> or <strong>Tab</strong> to add them. Press <strong>Enter</strong> again to start.
-                </p>
-                <p>
-                  The tool will use these seeds to find related search terms and
-                  historical data to help expand your keyword research.
-                </p>
-                <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
-                  <p style={{ marginBottom: '4px' }}>
-                    * Gemini may display inaccurate info, so double-check its responses.
-                  </p>
-                  <p>
-                    * Keyword Planner may not return results for keywords that violate <a href="https://support.google.com/adspolicy/answer/6008942" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Google Ads Policies</a>.
-                  </p>
-                </div>
-              </div>
-            ) : activeInfoModal === 'location_info' ? (
-              <div>
-                <p>Select the geographic location for your keyword research.</p>
-                <p>
-                  The tool will only retrieve search volume and historical
-                  metrics specific to this location.
-                </p>
-              </div>
-            ) : activeInfoModal === 'clustering_info' ? (
-              <div>
-                <p>
-                  Gemini is used to perform a semantic clustering based on the
-                  prompt.
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p>
-                  Select the language for the <strong>Keyword Ideas</strong> you want to generate.
-                </p>
-                <p>
-                  <strong>Important:</strong> Ensure this matches the language of your{' '}
-                  <strong>Seed Keywords</strong>.
-                </p>
-                <p>
-                  The Keyword Idea Service uses this setting to find relevant
-                  keywords in the specified language. Mismatched languages
-                  (e.g., English keywords with &quot;German&quot; selected) will likely
-                  yield poor or no results.
-                </p>
-              </div>
-            )}
+            {(() => {
+              switch (activeInfoModal) {
+                case 'keyword_planner':
+                  return (
+                    <div>
+                      <p>
+                        The{' '}
+                        <a
+                          href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: 'var(--primary)' }}
+                        >
+                          Keyword Idea Service
+                        </a>{' '}
+                        uses the Google Ads API to generate keyword ideas based on
+                        your seed keywords, location, and language settings.
+                      </p>
+                    </div>
+                  );
+                case 'gemini':
+                  return (
+                    <div>
+                      {promptCustomizationNote('Gemini Prompt')}
+                    </div>
+                  );
+                case 'seed_keywords':
+                  return (
+                    <div>
+                      <p>
+                        Enter one or more starting keywords here. These serve as the
+                        foundation for generating new keyword ideas and clusters.
+                      </p>
+                      <p>
+                        Type keywords and press <strong>Enter</strong> or <strong>Tab</strong> to add them. Press <strong>Enter</strong> again to start.
+                      </p>
+                      <p>
+                        The tool will use these seeds to find related search terms and
+                        historical data to help expand your keyword research.
+                      </p>
+                      <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
+                        <p style={{ marginBottom: '4px' }}>
+                          * Gemini may display inaccurate info, so double-check its responses.
+                        </p>
+                        <p>
+                          * Keyword Planner may not return results for keywords that violate <a href="https://support.google.com/adspolicy/answer/6008942" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Google Ads Policies</a>.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                case 'location_info':
+                  return (
+                    <div>
+                      <p>Select the geographic location for your keyword research.</p>
+                      <p>
+                        The tool will only retrieve search volume and historical
+                        metrics specific to this location.
+                      </p>
+                    </div>
+                  );
+                case 'clustering_info':
+                  return (
+                    <div>
+                      <p>
+                        Clustering groups keywords into related categories based on
+                        semantic similarity. This helps you organize your target keywords
+                        into efficient ad groups or content themes.
+                      </p>
+                      <p>
+                        Gemini is used to perform a semantic clustering based on the
+                        prompt. You can guide the clustering by telling Gemini what to focus on,
+                        such as <strong>colors</strong>, <strong>materials</strong>, <strong>brands</strong>, or <strong>user intent</strong>.
+                      </p>
+                      {promptCustomizationNote('Clustering Prompt')}
+                    </div>
+                  );
+                default:
+                  return (
+                    <div>
+                      <p>
+                        Select the language for the <strong>Keyword Ideas</strong> you want to generate.
+                      </p>
+                      <p>
+                        <strong>Important:</strong> Ensure this matches the language of your{' '}
+                        <strong>Seed Keywords</strong>.
+                      </p>
+                      <p>
+                        The Keyword Idea Service uses this setting to find relevant
+                        keywords in the specified language. Mismatched languages
+                        (e.g., English keywords with &quot;German&quot; selected) will likely
+                        yield poor or no results.
+                      </p>
+                    </div>
+                  );
+              }
+            })()}
           </Modal>
         )}
       </div>
