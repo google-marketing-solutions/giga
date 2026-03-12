@@ -36,7 +36,7 @@ export const getNewSearchTermsClusters = (
 
   const clusters = gemini(config)(`
   Given a list of google ads search terms defined below in SEARCH_TERMS.
-  Return a list of maximum 20 different broad match keywords that represent those search terms as best as possible.
+  Return a list of maximum 20 different keywords that represent those search terms as best as possible.
 
   Please use ${language} for the output.
   Output format should be an array of strings.
