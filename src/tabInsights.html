@@ -26,6 +26,12 @@ limitations under the License.
     insightsStatus,
     language,
     setLanguage,
+    insightsChatHistory,
+    sendInsightsChatMessage,
+    isSendingChatMessage,
+    setInsightsChatHistory,
+    followUpSuggestions,
+    setFollowUpSuggestions,
   }) => {
     const languageInputRef = React.useRef(null);
 
@@ -46,6 +52,8 @@ limitations under the License.
               setInsights('');
               setInsightsStatus('');
               setLanguage('English');
+              setInsightsChatHistory([]);
+              setFollowUpSuggestions([]);
             }}
             title="Reset Insights"
           >
@@ -80,43 +88,22 @@ limitations under the License.
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             placeholder="e.g. English, Spanish, German"
+            style={{ width: 'auto', minWidth: '200px' }}
           />
         </div>
 
-        <div
-          className="mb-4"
-          dangerouslySetInnerHTML={{ __html: insights }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: '16px',
-          }}
-        >
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              generateInsights(language);
+
+        {insights && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              marginTop: '16px',
+              marginBottom: '16px',
             }}
-            disabled={isGeneratingInsights}
           >
-            {isGeneratingInsights ? (
-              <>
-                <div className="spinner"></div> Generating Insights...
-              </>
-            ) : (
-              <>
-                <span className="material-symbols-outlined">
-                  lightbulb
-                </span>{' '}
-                Generate Insights
-              </>
-            )}
-          </button>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {insights && (
+            <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 className="btn btn-secondary"
                 onClick={handleDownloadInsights}
@@ -130,8 +117,6 @@ limitations under the License.
                   download
                 </span>
               </button>
-            )}
-            {insights && (
               <button
                 className="btn btn-secondary"
                 onClick={handleExportInsightsToSheet}
@@ -156,9 +141,188 @@ limitations under the License.
                   </span>
                 )}
               </button>
+            </div>
+          </div>
+        )}
+        <div className="chat-section" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div className="chat-history" style={{ flex: 1, overflowY: 'auto', marginBottom: '16px', padding: '12px', background: 'var(--bg-color)', borderRadius: '8px' }}>
+            {(insightsChatHistory || []).filter((msg, index) => index > 0).map((msg, index) => {
+              const text = msg.parts && msg.parts[0] ? msg.parts[0].text : '';
+              const isHtml = text.trim().startsWith('<') || /<[a-z][\s\S]*>/i.test(text);
+              const isReport = msg.isReport;
+
+              return (
+                <div key={index} className={`chat-message ${msg.role}`} style={{
+                  marginBottom: '12px',
+                  textAlign: msg.role === 'user' ? 'right' : 'left',
+                  width: isReport ? '100%' : 'auto'
+                }}>
+                  <div style={{
+                    display: isReport ? 'block' : 'inline-block',
+                    padding: isReport ? '0' : '8px 12px',
+                    borderRadius: isReport ? '0' : '12px',
+                    background: isReport ? 'transparent' : (msg.role === 'user' ? 'var(--primary)' : 'var(--chat-bubble-bg)'),
+                    color: msg.role === 'user' ? 'white' : 'var(--text-main)',
+                    boxShadow: isReport ? 'none' : '0 1px 2px rgba(0,0,0,0.1)',
+                    maxWidth: isReport ? '100%' : '80%',
+                    textAlign: 'left'
+                  }}>
+                    {isHtml ? (
+                      <div dangerouslySetInnerHTML={{ __html: text }} />
+                    ) : (
+                      text
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {isSendingChatMessage && (
+              <div className="spinner-container" style={{ textAlign: 'left', marginBottom: '12px' }}>
+                <div className="spinner" style={{ marginRight: '8px' }}></div> Thinking...
+              </div>
+            )}
+            {isGeneratingInsights && (
+              <div className="spinner-container" style={{ textAlign: 'left', marginBottom: '12px' }}>
+                <div className="spinner" style={{ marginRight: '8px' }}></div> Generating Report...
+              </div>
             )}
           </div>
+
+          {followUpSuggestions && followUpSuggestions.length > 0 && (
+            <div className="suggestion-chips" style={{ marginBottom: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {followUpSuggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className="chip"
+                  onClick={() => {
+                    sendInsightsChatMessage(suggestion);
+                    setFollowUpSuggestions([]);
+                  }}
+                  style={{
+                    background: 'white',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '16px',
+                    padding: '6px 12px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-secondary)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = 'white';
+                  }}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!insights && (!followUpSuggestions || followUpSuggestions.length === 0) && (
+            <div className="suggestion-chips" style={{ marginBottom: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="chip"
+                onClick={() => generateInsights(language)}
+                disabled={isGeneratingInsights}
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '16px',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>lightbulb</span>
+                Generate Insights Report
+              </button>
+
+              <button
+                type="button"
+                className="chip"
+                onClick={() => generateInsights(language, 'Add news headlines to top trending keywords')}
+                disabled={isGeneratingInsights}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '16px',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = 'var(--bg-secondary)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                Add news to top keywords
+              </button>
+
+              <button
+                type="button"
+                className="chip"
+                onClick={() => generateInsights(language, 'Give more details on the top trending topic')}
+                disabled={isGeneratingInsights}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '16px',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = 'var(--bg-secondary)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                Give more details on the top trending topic
+              </button>
+            </div>
+          )}
+
+          <div className="chat-input-group" style={{ display: 'flex', gap: '8px' }}>
+            <input
+              type="text"
+              placeholder="Ask a follow-up question..."
+              style={{ flex: 1 }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendInsightsChatMessage(e.target.value);
+                  e.target.value = '';
+                }
+              }}
+              disabled={isSendingChatMessage}
+            />
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={(e) => {
+                const input = e.target.previousSibling;
+                sendInsightsChatMessage(input.value);
+                input.value = '';
+              }}
+              disabled={isSendingChatMessage}
+              style={{ padding: '0 16px' }}
+            >
+              <span className="material-symbols-outlined">send</span>
+            </button>
+          </div>
         </div>
+
         {insightsStatus && (
           <div className="status-msg">{insightsStatus}</div>
         )}

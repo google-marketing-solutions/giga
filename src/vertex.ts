@@ -70,6 +70,15 @@ export interface GeminiConfig {
 }
 
 /**
+ * Message for chat history.
+ */
+export interface Message {
+  role: 'user' | 'model' | 'system';
+  parts: { text: string }[];
+  isReport?: boolean;
+}
+
+/**
  * Configuration for the response schema.
  * @param {string} type - The type of the response.
  * @param {string} format - The format of the response.
@@ -113,9 +122,21 @@ export const gemini =
       const schemaString = config.responseSchema
         ? JSON.stringify(config.responseSchema, null, 2)
         : '';
-      effectivePrompt += `\n\nImportant:
+      const instruction = `\n\nImportant:
        - Output only the raw JSON string. Do not include markdown formatting (e.g. \`\`\`json) or any other text.
       ${schemaString ? `\n - Adhere to the following OpenAPI Schema Object definition: ${schemaString}` : ''}`;
+
+      if (Array.isArray(effectivePrompt)) {
+        effectivePrompt = [
+          ...effectivePrompt,
+          {
+            role: 'user',
+            parts: [{ text: instruction }],
+          },
+        ];
+      } else {
+        effectivePrompt += instruction;
+      }
     }
 
     const [url, options] = getGeminiRequest(
@@ -170,7 +191,7 @@ export const gemini =
 
 /**
  * @param {GeminiConfig} config
- * @param {string} prompt
+ * @param {string|Message[]} prompt
  * @param {boolean} enableGoogleSearch
  * @param {string} payloadKey
  */
@@ -203,12 +224,14 @@ const getGeminiRequest = (
   ];
 
   const request = {
-    contents: [
-      {
-        role: 'user',
-        parts: { text: prompt },
-      },
-    ],
+    contents: Array.isArray(prompt)
+      ? prompt
+      : [
+          {
+            role: 'user',
+            parts: [{ text: prompt }],
+          },
+        ],
     // see https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#generationconfig
     generation_config: {
       temperature: config.temperature,

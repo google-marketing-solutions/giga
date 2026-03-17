@@ -58,6 +58,7 @@ limitations under the License.
         0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
       --shadow-lg:
         0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --chat-bubble-bg: #f1f5f9;
     }
 
     [data-theme='dark'] {
@@ -74,6 +75,7 @@ limitations under the License.
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
       --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
       --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+      --chat-bubble-bg: #334155;
     }
 
     body {
@@ -1040,6 +1042,17 @@ limitations under the License.
       );
       const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
       const [insightsStatus, setInsightsStatus] = useState('');
+      const [followUpSuggestions, setFollowUpSuggestions] = useStickyState(
+        [],
+        'giga_followUpSuggestions',
+        isDemoMode
+      );
+      const [insightsChatHistory, setInsightsChatHistory] = useStickyState(
+        [],
+        'giga_insightsChatHistory',
+        isDemoMode
+      );
+      const [isSendingChatMessage, setIsSendingChatMessage] = useState(false);
 
       // Campaigns State
       const [adsAccountId, setAdsAccountId] = useStickyState(
@@ -2039,12 +2052,108 @@ limitations under the License.
         }
       };
 
-      const generateInsights = async (language = 'English') => {
+      const initInsightsChat = () => {
+        if (!relevantIdeas || Object.keys(relevantIdeas).length === 0) {
+          setInsightsChatHistory([]);
+          return;
+        }
+
+        const seedKeywords = (keywords || '')
+          .split(',')
+          .map(k => k.trim())
+          .filter(Boolean);
+
+        const dataPrompt = `You are a marketing analyst. You are provided with trend data for keywords.
+        Context:
+        Seed Keywords: ${seedKeywords.join(', ')}
+        Growth Metric: ${growthMetric}
+        Language: ${insightsLanguage}
+
+        Data:
+        ${JSON.stringify(relevantIdeas, null, 2)}
+
+        Please acknowledge receipt of this data. Use basic HTML tags (e.g., <p>, <strong>, <ul>, <li>) for simple markdown-style rich text formatting in your responses but DO NOT use RAW Markdown. Also keep the response concise and suitable for a chat message.`;
+
+        setInsightsChatHistory([
+          { role: 'user', parts: [{ text: dataPrompt }] },
+          { role: 'model', parts: [{ text: "Hello! I am your marketing assistant. I have analyzed your data. How can I help you today? You can also click the chip below to generate a full report." }] }
+        ]);
+      };
+
+      const hasMountedRef = useRef(false);
+      const prevRelevantIdeasRef = useRef();
+      const prevInsightsLanguageRef = useRef();
+
+      useEffect(() => {
+        if (!hasMountedRef.current) {
+          hasMountedRef.current = true;
+          if (!insightsChatHistory || insightsChatHistory.length === 0) {
+            initInsightsChat();
+          }
+        } else {
+          if (
+            prevRelevantIdeasRef.current !== relevantIdeas ||
+            prevInsightsLanguageRef.current !== insightsLanguage ||
+            (!insightsChatHistory || insightsChatHistory.length === 0)
+          ) {
+            initInsightsChat();
+            setInsights('');
+          }
+        }
+        prevRelevantIdeasRef.current = relevantIdeas;
+        prevInsightsLanguageRef.current = insightsLanguage;
+      }, [relevantIdeas, insightsLanguage, insightsChatHistory]);
+
+      const sendInsightsChatMessage = async (message) => {
+        if (!message.trim()) return;
+        setIsSendingChatMessage(true);
+        setFollowUpSuggestions([]);
+        const updatedHistory = [
+          ...insightsChatHistory,
+          { role: 'user', parts: [{ text: message }] }
+        ];
+        setInsightsChatHistory(updatedHistory);
+
+        try {
+          const response = await googleScriptRun.getInsightsChatResponse(updatedHistory, { ...geminiConfig, enableGoogleSearch: true });
+          
+          let parsedResponse;
+          try {
+            parsedResponse = JSON.parse(response);
+          } catch (e) {
+            console.error('Failed to parse chat response JSON:', response);
+            // Fallback to treat raw response as text and clear suggestions
+            parsedResponse = { response: response, suggestions: [] };
+          }
+
+          setInsightsChatHistory([
+            ...updatedHistory,
+            { role: 'model', parts: [{ text: parsedResponse.response }] }
+          ]);
+          setFollowUpSuggestions(parsedResponse.suggestions);
+        } catch (e) {
+          showError('Chat Error', e);
+        } finally {
+          setIsSendingChatMessage(false);
+        }
+      };
+
+      const generateInsights = async (language = 'English', initialPrompt) => {
         if (Object.keys(relevantIdeas).length === 0) {
           showAlert('Please generate keywords in Explore tab first.');
           return;
         }
         setIsGeneratingInsights(true);
+        setFollowUpSuggestions([]);
+        setInsights('');
+        setInsightsStatus('Generating report...');
+
+        const userMessage = initialPrompt || "Generate Insights Report";
+        const updatedHistory = [
+          ...insightsChatHistory,
+          { role: 'user', parts: [{ text: userMessage }] }
+        ];
+        setInsightsChatHistory(updatedHistory);
 
         if (isDemoMode) {
           const key = isRandomized ? 'giga_insights_random' : 'giga_insights';
@@ -2069,10 +2178,36 @@ limitations under the License.
             relevantIdeas,
             seedKeywords,
             growthMetric,
-            geminiConfig,
-            language
+            { ...geminiConfig, enableGoogleSearch: true },
+            language,
+            initialPrompt
           );
-          setInsights(result);
+          if (initialPrompt) {
+            // Direct Question mode
+            setInsightsStatus('');
+            setFollowUpSuggestions(result.suggestions || []);
+            setInsightsChatHistory([
+              ...updatedHistory,
+              { role: 'model', parts: [{ text: result.report }] }
+            ]);
+          } else {
+            // Full Report mode
+            setInsights(result.report);
+            
+            const hardcodedSuggestions = [
+              'Show top 5 trending keywords',
+              'Give more details on the top trending topic'
+            ];
+            setFollowUpSuggestions([
+              ...hardcodedSuggestions,
+              ...(result.suggestions || [])
+            ]);
+
+            setInsightsChatHistory([
+              ...updatedHistory,
+              { role: 'model', parts: [{ text: result.report }], isReport: true }
+            ]);
+          }
 
           if (isDemoMode) {
             const key = isRandomized
@@ -2838,6 +2973,12 @@ limitations under the License.
               insightsStatus={insightsStatus}
               language={insightsLanguage}
               setLanguage={setInsightsLanguage}
+              insightsChatHistory={insightsChatHistory}
+              sendInsightsChatMessage={sendInsightsChatMessage}
+              isSendingChatMessage={isSendingChatMessage}
+              setInsightsChatHistory={setInsightsChatHistory}
+              followUpSuggestions={followUpSuggestions}
+              setFollowUpSuggestions={setFollowUpSuggestions}
             />
           )}
 

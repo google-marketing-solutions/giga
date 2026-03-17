@@ -15,7 +15,12 @@
  */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { getClusters, main, getCampaigns } from './main';
+import {
+  getClusters,
+  main,
+  getCampaigns,
+  getInsightsChatResponse,
+} from './main';
 import { getHistoricalMetrics } from './ideas';
 import { DEFAULT_STYLE_GUIDE } from './prompt';
 import {
@@ -37,6 +42,7 @@ import {
 main;
 getClusters;
 getCampaigns;
+getInsightsChatResponse;
 getHistoricalMetrics;
 generateTrendsKeywords;
 getTopPerformingAdsPrompt;

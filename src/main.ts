@@ -16,7 +16,7 @@
 
 import { getLocationId } from './geo';
 import { generateKeywordIdeas } from './ideas';
-import { getInsightsPrompt } from './prompt';
+import { getInsightsPrompt, INSIGHTS_CHAT_PROMPT } from './prompt';
 import {
   columnWiseSum,
   getScriptProperties,
@@ -29,6 +29,7 @@ import {
   gemini,
   GeminiConfig,
   getGcpProjectId,
+  Message,
   ResponseSchema,
 } from './vertex';
 
@@ -158,16 +159,19 @@ export const calculateKeywordGrowth = (
  * @returns The cleaned string.
  */
 export const removeHTMLTicks = (html: string) => {
-  const prefix = '```html';
+  const htmlPrefix = '```html';
+  const jsonPrefix = '```json';
   const suffix = '```';
-  let cleanedHtml = html;
-  if (cleanedHtml.startsWith(prefix)) {
-    cleanedHtml = cleanedHtml.substring(prefix.length);
+  let cleanedHtml = html.trim();
+  if (cleanedHtml.startsWith(htmlPrefix)) {
+    cleanedHtml = cleanedHtml.substring(htmlPrefix.length);
+  } else if (cleanedHtml.startsWith(jsonPrefix)) {
+    cleanedHtml = cleanedHtml.substring(jsonPrefix.length);
   }
   if (cleanedHtml.endsWith(suffix)) {
     cleanedHtml = cleanedHtml.substring(0, cleanedHtml.length - suffix.length);
   }
-  return cleanedHtml;
+  return cleanedHtml.trim();
 };
 
 /**
@@ -180,13 +184,14 @@ export const removeHTMLTicks = (html: string) => {
  * @param language - The language to use for the insights (default: 'English').
  * @returns The insights for the keyword ideas.
  */
-export const getInsights = (
+export const getInsights = async (
   ideas,
   seedKeywords,
   growthMetric = 'three_months_vs_avg',
-  geminiConfig: Partial<GeminiConfig>,
-  language = 'English'
-) => {
+  geminiConfig: Partial<GeminiConfig> = {},
+  language = 'English',
+  specificQuestion?: string
+): Promise<{ report: string; suggestions: string[] }> => {
   const relevantIdeas = calculateKeywordGrowth(ideas, growthMetric);
   const metricNames = {
     yoy: 'YoY',
@@ -201,11 +206,22 @@ export const getInsights = (
     relevantIdeas,
     seedKeywords,
     metricName,
-    language
+    language,
+    specificQuestion
   );
-  const responseType = 'text/plain';
-  const config = createGeminiConfig(geminiConfig, responseType);
-  return removeHTMLTicks(gemini(config)(insightsPrompt));
+  const config = createGeminiConfig(geminiConfig, 'application/json');
+
+  try {
+    // gemini(config) returns a function, then we call it with prompt.
+    const result = await gemini(config)(insightsPrompt);
+    return result;
+  } catch (e) {
+    console.error('Failed to generate or parse insights:', e);
+    return {
+      report: `Error: Failed to generate insights. ${e.message}`,
+      suggestions: ['Try again', 'Check keywords', 'Contact support'],
+    };
+  }
 };
 
 /**
@@ -251,6 +267,7 @@ export const createGeminiConfig = (
     topP: config.topP,
     responseType,
     responseSchema,
+    enableGoogleSearch: config.enableGoogleSearch,
   };
 };
 
@@ -427,6 +444,83 @@ export const getCampaigns = (
     createGeminiConfig(geminiConfig, 'application/json', responseSchema)
   )(prompt);
   return result;
+};
+
+/**
+ * Retrieves the chat response for the insights tab.
+ * @param {Message[]} history - The chat history.
+ * @param {Partial<GeminiConfig>} geminiConfig - The Gemini configuration overrides.
+ * @returns {Promise<string>} The chat response as a JSON string containing response and suggestions.
+ */
+export const getInsightsChatResponse = async (
+  history: Message[],
+  geminiConfig: Partial<GeminiConfig>
+): Promise<string> => {
+  const responseSchema = {
+    type: 'object',
+    properties: {
+      response: {
+        type: 'string',
+        description: 'The chat response text (HTML formatted if appropriate)',
+      },
+      suggestions: {
+        type: 'array',
+        items: { type: 'string' },
+        description: '3 short follow-up questions',
+      },
+    },
+    required: ['response', 'suggestions'],
+  };
+
+  const config = createGeminiConfig(
+    geminiConfig,
+    'application/json',
+    responseSchema
+  );
+
+  const cleanHistory = (history || []).map(msg => {
+    // Ensure parts is an array
+    if (msg.parts && !Array.isArray(msg.parts)) {
+      msg.parts = [{ text: (msg.parts as { text: string }).text }];
+    }
+
+    return msg;
+  });
+
+  if (cleanHistory.length > 0) {
+    const lastMsg = cleanHistory[cleanHistory.length - 1];
+    if (
+      lastMsg.role === 'user' &&
+      Array.isArray(lastMsg.parts) &&
+      lastMsg.parts.length > 0
+    ) {
+      lastMsg.parts[0].text += INSIGHTS_CHAT_PROMPT;
+    } else {
+      cleanHistory.push({
+        role: 'user',
+        parts: [{ text: INSIGHTS_CHAT_PROMPT }],
+      });
+    }
+  } else {
+    cleanHistory.push({
+      role: 'user',
+      parts: [{ text: INSIGHTS_CHAT_PROMPT }],
+    });
+  }
+
+  const result = gemini(config)(cleanHistory) as {
+    response?: string;
+    suggestions?: string[];
+  };
+
+  if (typeof result === 'object' && result !== null) {
+    if (result.response) {
+      result.response = removeHTMLTicks(result.response);
+    }
+    return JSON.stringify(result);
+  }
+
+  return removeHTMLTicks(result as unknown as string);
 };
 /**
  * Checks if the current active user is the effective user.
