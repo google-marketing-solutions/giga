@@ -1531,9 +1531,8 @@ limitations under the License.
       const [geminiConfig, setGeminiConfig] = useStickyState(
         {
           projectId: '',
-          modelId: 'gemini-2.5-pro',
-          temperature: 0.7,
-          topP: 0.9,
+          modelId: 'gemini-3.1-pro-preview',
+          location: 'global',
         },
         'giga_geminiConfig'
       );
@@ -2143,7 +2142,7 @@ limitations under the License.
 
         try {
           const response = await googleScriptRun.getInsightsChatResponse(updatedHistory, { ...geminiConfig, enableGoogleSearch: true });
-          
+
           let parsedResponse;
           try {
             parsedResponse = JSON.parse(response);
@@ -2220,7 +2219,7 @@ limitations under the License.
           } else {
             // Full Report mode
             setInsights(result.report);
-            
+
             const hardcodedSuggestions = [
               'Show top 5 trending keywords',
               'Give more details on the top trending topic'

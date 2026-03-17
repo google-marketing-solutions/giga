@@ -262,9 +262,7 @@ export const createGeminiConfig = (
   return {
     modelId: config.modelId,
     projectId: getGcpProjectId(),
-    location: 'us-central1',
-    temperature: config.temperature,
-    topP: config.topP,
+    location: config.location || 'global',
     responseType,
     responseSchema,
     enableGoogleSearch: config.enableGoogleSearch,
@@ -480,11 +478,15 @@ export const getInsightsChatResponse = async (
 
   const cleanHistory = (history || []).map(msg => {
     // Ensure parts is an array
-    if (msg.parts && !Array.isArray(msg.parts)) {
-      msg.parts = [{ text: (msg.parts as { text: string }).text }];
-    }
+    const parts =
+      msg.parts && !Array.isArray(msg.parts)
+        ? [{ text: (msg.parts as { text: string }).text }]
+        : msg.parts;
 
-    return msg;
+    return {
+      role: msg.role,
+      parts,
+    };
   });
 
   if (cleanHistory.length > 0) {

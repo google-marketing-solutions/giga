@@ -49,8 +49,6 @@ const addAuth = (params, payloadKey = 'payload') =>
  * Configuration for the Gemini API.
  * @param {string} projectId - The GCP project ID.
  * @param {string} modelId - The Gemini model ID.
- * @param {number} temperature - The temperature for the model.
- * @param {number} topP - The top P value for the model.
  * @param {string} location - The location for the model.
  * @param {number} maxOutputTokens - The maximum number of output tokens.
  * @param {string} responseType - The response type.
@@ -60,8 +58,6 @@ const addAuth = (params, payloadKey = 'payload') =>
 export interface GeminiConfig {
   projectId: string;
   modelId: string;
-  temperature: number;
-  topP: number;
   location?: string;
   maxOutputTokens?: number;
   responseType?: string;
@@ -202,7 +198,7 @@ const getGeminiRequest = (
   payloadKey = 'payload'
 ) => {
   const location = config.location || 'us-central1';
-  const baseUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${location}/publishers/google/models/${config.modelId}`;
+  const baseUrl = `https://aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${location}/publishers/google/models/${config.modelId}`;
 
   const safetySettings = [
     {
@@ -234,8 +230,6 @@ const getGeminiRequest = (
         ],
     // see https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#generationconfig
     generation_config: {
-      temperature: config.temperature,
-      top_p: config.topP,
       max_output_tokens: config.maxOutputTokens,
       response_mime_type: config.responseType,
       response_schema: config.responseSchema,

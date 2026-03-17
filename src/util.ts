@@ -94,7 +94,7 @@ export const fetchJson = (url, params) => {
   try {
     res = JSON.parse(text);
   } catch (e) {
-    console.log(`Response is not valid JSON:\n${text}`);
+    throw new Error(`Response is not valid JSON:\n${text}`);
   }
   if (res?.error) {
     const msg = res.error.message || JSON.stringify(res?.error, null, 2);
