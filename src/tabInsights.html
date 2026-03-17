@@ -176,14 +176,13 @@ limitations under the License.
                 </div>
               );
             })}
-            {isSendingChatMessage && (
-              <div className="spinner-container" style={{ textAlign: 'left', marginBottom: '12px' }}>
-                <div className="spinner" style={{ marginRight: '8px' }}></div> Thinking...
-              </div>
-            )}
-            {isGeneratingInsights && (
-              <div className="spinner-container" style={{ textAlign: 'left', marginBottom: '12px' }}>
-                <div className="spinner" style={{ marginRight: '8px' }}></div> Generating Report...
+            {(isSendingChatMessage || isGeneratingInsights) && (
+              <div className="chat-message model" style={{ marginBottom: '12px', textAlign: 'left' }}>
+                <div className="typing-indicator">
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
+                </div>
               </div>
             )}
           </div>
@@ -221,7 +220,7 @@ limitations under the License.
             </div>
           )}
 
-          {!insights && (!followUpSuggestions || followUpSuggestions.length === 0) && (
+          {!insights && (!followUpSuggestions || followUpSuggestions.length === 0) && (!insightsChatHistory || insightsChatHistory.length <= 2) && !isSendingChatMessage && !isGeneratingInsights && (
             <div className="suggestion-chips" style={{ marginBottom: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button
                 type="button"
@@ -302,6 +301,7 @@ limitations under the License.
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   sendInsightsChatMessage(e.target.value);
+                  setFollowUpSuggestions([]);
                   e.target.value = '';
                 }
               }}
@@ -313,6 +313,7 @@ limitations under the License.
               onClick={(e) => {
                 const input = e.target.previousSibling;
                 sendInsightsChatMessage(input.value);
+                setFollowUpSuggestions([]);
                 input.value = '';
               }}
               disabled={isSendingChatMessage}

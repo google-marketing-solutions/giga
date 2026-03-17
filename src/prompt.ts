@@ -20,8 +20,7 @@
 export const INSIGHTS_CHAT_PROMPT = `\n\nIMPORTANT: Respond to the user's message based on the history.
 Use standard HTML tags (e.g., <p>, <strong>, <ul>, <li>) for basic markdown-style rich text formatting
 in your response but DO NOT use RAW Markdown. Also provide 3 short follow-up questions for the user.
-Output MUST be RAW JSON matching the provided schema. Format the response to be suitable for a chat
-message (so no full page layouts such as title, conclusions)`;
+The response must be suitable for a chat message (no title, no conclusions). Aim for a short response.`;
 
 /**
  * Generates a prompt for insights based on a list of keywords and their search growth.
