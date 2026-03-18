@@ -18,9 +18,11 @@
  * The prompt template used for the insights follow-up chat.
  */
 export const INSIGHTS_CHAT_PROMPT = `\n\nIMPORTANT: Respond to the user's message based on the history.
-Use standard HTML tags (e.g., <p>, <strong>, <ul>, <li>) for basic markdown-style rich text formatting
-in your response but DO NOT use RAW Markdown. Also provide 3 short follow-up questions for the user.
-The response must be suitable for a chat message (no title, no conclusions). Aim for a short response.`;
+When the user is requesting an image, use the generateImage function to generate an image and do *not*
+output any other text. Use standard HTML tags (e.g., <p>, <strong>, <ul>, <li>) for basic markdown-style
+rich text formatting in your response but DO NOT use RAW Markdown. Also provide 3 short follow-up questions
+for the user. The response must be suitable for a chat message (no title, no conclusions).
+Aim for a short response.`;
 
 /**
  * Generates a prompt for insights based on a list of keywords and their search growth.
@@ -42,7 +44,8 @@ export const getInsightsPrompt = (
     return `${row[0]}, ${(row[1] * 100).toFixed(1)}%`;
   });
 
-  let instruction = `You are a marketing and strategy analyst and you want to find interesting insights based on the topic(s) [${keywords.join(
+  let instruction = `You are a marketing and strategy analyst and you want to find interesting
+  insights based on the topic(s) [${keywords.join(
     ', '
   )}] related list provided in the <DATA> section. Cluster this comma-separated list of search terms and ${metricName} search growth and identify overall trends. Also, consider the list is sorted descending by growth rate.`;
 
@@ -67,7 +70,7 @@ export const getInsightsPrompt = (
 
   Output in ${language}.
 
-  Do NOT include any markdown code block formatting (like \`\`\`json) in your response. Only output the raw JSON string.
+  Do NOT include any markdown code block formatting (like \`\`\`json) in your response.
 
 <EXAMPLE>
 INPUT:
@@ -82,7 +85,7 @@ OUTPUT:
   "suggestions": [
     "How to monetize this?",
     "What competitors are there?",
-    "Next steps?"
+    "Show related news."
   ]
 }
 </EXAMPLE>

@@ -28,6 +28,7 @@ import {
 import {
   gemini,
   GeminiConfig,
+  generateImage,
   getGcpProjectId,
   Message,
   ResponseSchema,
@@ -261,6 +262,7 @@ export const createGeminiConfig = (
 ): GeminiConfig => {
   return {
     modelId: config.modelId,
+    imageModelId: config.imageModelId,
     projectId: getGcpProjectId(),
     location: config.location || 'global',
     responseType,
@@ -476,6 +478,28 @@ export const getInsightsChatResponse = async (
     responseSchema
   );
 
+  config.tools = [
+    ...(config.enableGoogleSearch ? [{ googleSearch: {} }] : []),
+    {
+      functionDeclarations: [
+        {
+          name: 'generateImage',
+          description: 'Generate an image that the user has requested.',
+          parameters: {
+            type: 'OBJECT',
+            properties: {
+              prompt: {
+                type: 'STRING',
+                description: 'The detailed prompt to generate the image.',
+              },
+            },
+            required: ['prompt'],
+          },
+        },
+      ],
+    },
+  ];
+
   const cleanHistory = (history || []).map(msg => {
     // Ensure parts is an array
     const parts =
@@ -513,7 +537,31 @@ export const getInsightsChatResponse = async (
   const result = gemini(config)(cleanHistory) as {
     response?: string;
     suggestions?: string[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    functionCall?: { name: string; args: any };
   };
+
+  if (
+    result &&
+    result.functionCall &&
+    result.functionCall.name === 'generateImage'
+  ) {
+    const prompt = result.functionCall.args.prompt;
+    try {
+      const base64Image = generateImage(prompt, config);
+      return JSON.stringify({
+        response: `Here is the image you requested based on the prompt: "${prompt}"`,
+        suggestions: [],
+        images: [`data:image/png;base64,${base64Image}`],
+      });
+    } catch (e) {
+      console.error('Image Generation Error:', e);
+      return JSON.stringify({
+        response: `Sorry, I encountered an error while trying to generate the image: ${e.message}`,
+        suggestions: [],
+      });
+    }
+  }
 
   if (typeof result === 'object' && result !== null) {
     if (result.response) {

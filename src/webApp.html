@@ -430,6 +430,10 @@ limitations under the License.
       overflow-y: auto;
     }
 
+    .modal-content.large-modal {
+      max-width: 1000px;
+    }
+
     @keyframes fadeIn {
       from {
         opacity: 0;
@@ -2152,9 +2156,15 @@ limitations under the License.
             parsedResponse = { response: response, suggestions: [] };
           }
 
+          const modelMessage = { role: 'model', parts: [{ text: parsedResponse.response }] };
+          if (parsedResponse.images && Array.isArray(parsedResponse.images)) {
+            // Include images returned by the generator
+            modelMessage.images = parsedResponse.images;
+          }
+
           setInsightsChatHistory([
             ...updatedHistory,
-            { role: 'model', parts: [{ text: parsedResponse.response }] }
+            modelMessage
           ]);
           setFollowUpSuggestions(parsedResponse.suggestions);
         } catch (e) {

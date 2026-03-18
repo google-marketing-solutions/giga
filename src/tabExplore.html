@@ -371,6 +371,7 @@ limitations under the License.
                 }}
                 onClick={e => {
                   e.preventDefault();
+                  e.stopPropagation();
                   setActiveInfoModal('seed_keywords');
                 }}
               >
@@ -409,6 +410,7 @@ limitations under the License.
                   }}
                   onClick={e => {
                     e.preventDefault();
+                    e.stopPropagation();
                     setActiveInfoModal('language_info');
                   }}
                 >
@@ -444,6 +446,7 @@ limitations under the License.
                   }}
                   onClick={e => {
                     e.preventDefault();
+                    e.stopPropagation();
                     setActiveInfoModal('location_info');
                   }}
                 >

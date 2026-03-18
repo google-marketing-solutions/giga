@@ -146,6 +146,14 @@ limitations under the License.
     className = '',
     showCloseButton = true,
   }) => {
+    useEffect(() => {
+      const handleEsc = event => {
+        if (event.key === 'Escape') onClose();
+      };
+      if (isOpen) window.addEventListener('keydown', handleEsc);
+      return () => window.removeEventListener('keydown', handleEsc);
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
     return (
       <div className="modal-overlay" onClick={onClose}>
@@ -358,6 +366,7 @@ limitations under the License.
     const [localDevToken, setLocalDevToken] = useState('');
     const [localSpreadsheetUrl, setLocalSpreadsheetUrl] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [infoModalOpen, setInfoModalOpen] = useState(false);
     const adsInputRef = useRef(null);
 
     // Sync with props when modal opens
@@ -424,6 +433,7 @@ limitations under the License.
     };
 
     return (
+      <React.Fragment>
       <Modal
         isOpen={isOpen}
         onClose={onClose}
@@ -447,7 +457,7 @@ limitations under the License.
             </div>
           )}
           <div className="input-group">
-            <label>Gemini Model</label>
+            <label>Text Model</label>
             <div className="select-wrapper">
               <select
                 value={localGeminiConfig.modelId}
@@ -460,6 +470,23 @@ limitations under the License.
               >
                 <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
                 <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
+              </select>
+            </div>
+          </div>
+          <div className="input-group">
+            <label>Image Model</label>
+            <div className="select-wrapper">
+              <select
+                value={localGeminiConfig.imageModelId || 'gemini-3.1-flash-image-preview'}
+                onChange={e =>
+                  setLocalGeminiConfig({
+                    ...localGeminiConfig,
+                    imageModelId: e.target.value,
+                  })
+                }
+              >
+                <option value="gemini-3.1-flash-image-preview">Gemini 3.1 Flash Image</option>
+                <option value="gemini-3-pro-image-preview">Gemini 3 Pro Image</option>
               </select>
             </div>
           </div>
@@ -487,16 +514,23 @@ limitations under the License.
             }}
           />
           <div className="input-group">
-            <label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               Min Search Volume
-              <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: '1rem',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+                onClick={e => {
+                  e.preventDefault();
+                  setInfoModalOpen(true);
+                }}
                 title="Keywords below this search volume are skipped for clustering and analysis."
-                style={{ marginLeft: '4px', verticalAlign: 'middle', color: 'var(--text-secondary)', textDecoration: 'none' }}
               >
-                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>info</span>
-              </a>
+                info
+              </span>
             </label>
             <input
               type="number"
@@ -730,6 +764,21 @@ limitations under the License.
           </div>
         </div>
       </Modal>
+
+      {infoModalOpen && (
+        <Modal
+          isOpen={infoModalOpen}
+          onClose={() => setInfoModalOpen(false)}
+          title="Min Search Volume"
+        >
+          <div>
+            <p>
+              Keywords with an average monthly search volume below this threshold will be excluded from the analysis and clustering process. This helps focus the tool on higher-volume terms and reduces unnecessary API calls.
+            </p>
+          </div>
+        </Modal>
+      )}
+      </React.Fragment>
     );
   };
 

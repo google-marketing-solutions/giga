@@ -58,11 +58,14 @@ const addAuth = (params, payloadKey = 'payload') =>
 export interface GeminiConfig {
   projectId: string;
   modelId: string;
+  imageModelId?: string;
   location?: string;
   maxOutputTokens?: number;
   responseType?: string;
   responseSchema?: ResponseSchema;
   enableGoogleSearch?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tools?: any[];
 }
 
 /**
@@ -142,6 +145,12 @@ export const gemini =
     );
     console.log(effectivePrompt);
     const res = jsonFetcher(url, options);
+
+    const functionCall = res.candidates?.[0]?.content?.parts?.[0]?.functionCall;
+    if (functionCall) {
+      return { functionCall };
+    }
+
     const responseText = res.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (config.responseType === 'application/json') {
@@ -237,11 +246,56 @@ const getGeminiRequest = (
         thinkingBudget: 1024,
       },
     },
-    tools: enableGoogleSearch ? [{ googleSearch: {} }] : [],
+    tools: config.tools
+      ? config.tools
+      : enableGoogleSearch
+        ? [{ googleSearch: {} }]
+        : [],
   };
 
   return [
     `${baseUrl}:generateContent`,
     addAuth({ ...request, safetySettings }, payloadKey),
   ];
+};
+
+/**
+ * Call Vertex AI Gemini to generate an image.
+ */
+export const generateImage = (
+  prompt: string,
+  config: GeminiConfig,
+  jsonFetcher = fetchJson
+) => {
+  const location = config.location || 'global';
+  const imageModel = config.imageModelId || 'gemini-3.1-flash-image-preview';
+  const baseUrl = `https://aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${location}/publishers/google/models/${imageModel}:generateContent`;
+
+  const request = {
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: prompt }],
+      },
+    ],
+  };
+
+  const options = addAuth(request, 'payload');
+  const res = jsonFetcher(baseUrl, options);
+
+  // Find the first part that contains image data and is not a thought signature
+  const parts = res.candidates?.[0]?.content?.parts || [];
+  const imagePart =
+    parts.find(
+      part =>
+        part.inlineData &&
+        !part.thoughtSignature &&
+        !part.thought &&
+        part.inlineData.mimeType?.startsWith('image/')
+    ) ||
+    parts.find(
+      part => part.inlineData && part.inlineData.mimeType?.startsWith('image/')
+    );
+
+  return imagePart?.inlineData?.data;
 };

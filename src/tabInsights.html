@@ -34,6 +34,7 @@ limitations under the License.
     setFollowUpSuggestions,
   }) => {
     const languageInputRef = React.useRef(null);
+    const [selectedImage, setSelectedImage] = React.useState(null);
 
     return (
       <div className="card fade-in">
@@ -67,19 +68,19 @@ limitations under the License.
         </div>
 
         <div className="input-group">
-          <label htmlFor="insights-language">
+          <label htmlFor="insights-language" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             Language
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                // Optional: Add info modal if needed, or just keep simple
+            <span
+              className="material-symbols-outlined"
+              style={{
+                fontSize: '16px',
+                color: 'var(--text-secondary)',
+                cursor: 'help',
               }}
               title="Language for insights generation"
-              style={{ marginLeft: '4px', verticalAlign: 'middle', color: 'var(--text-secondary)', textDecoration: 'none' }}
             >
-               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>info</span>
-            </a>
+              info
+            </span>
           </label>
           <input
             ref={languageInputRef}
@@ -108,8 +109,9 @@ limitations under the License.
                 className="btn btn-secondary"
                 onClick={handleDownloadInsights}
                 style={{
-                  background: 'white',
+                  background: 'var(--surface-color)',
                   border: '1px solid var(--border-color)',
+                  color: 'var(--text-main)'
                 }}
                 title="Download Markdown"
               >
@@ -121,8 +123,9 @@ limitations under the License.
                 className="btn btn-secondary"
                 onClick={handleExportInsightsToSheet}
                 style={{
-                  background: 'white',
+                  background: 'var(--surface-color)',
                   border: '1px solid var(--border-color)',
+                  color: 'var(--text-main)'
                 }}
                 disabled={isExporting}
                 title="Export to Sheet"
@@ -145,7 +148,7 @@ limitations under the License.
           </div>
         )}
         <div className="chat-section" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <div className="chat-history" style={{ flex: 1, overflowY: 'auto', marginBottom: '16px', padding: '12px', background: 'var(--bg-color)', borderRadius: '8px' }}>
+          <div className="chat-history" style={{ flex: 1, overflowY: 'auto', marginBottom: '16px', padding: '12px', borderRadius: '8px' }}>
             {(insightsChatHistory || []).filter((msg, index) => index > 0).map((msg, index) => {
               const text = msg.parts && msg.parts[0] ? msg.parts[0].text : '';
               const isHtml = text.trim().startsWith('<') || /<[a-z][\s\S]*>/i.test(text);
@@ -172,6 +175,15 @@ limitations under the License.
                     ) : (
                       text
                     )}
+                    {msg.images && msg.images.map((imgSrc, imgIdx) => (
+                      <img 
+                        key={imgIdx} 
+                        src={imgSrc} 
+                        onClick={() => setSelectedImage(imgSrc)}
+                        style={{ maxWidth: '400px', borderRadius: '8px', marginTop: '8px', cursor: 'pointer', display: 'block' }} 
+                        alt="Generated content preview"
+                      />
+                    ))}
                   </div>
                 </div>
               );
@@ -199,8 +211,10 @@ limitations under the License.
                     setFollowUpSuggestions([]);
                   }}
                   style={{
-                    background: 'white',
-                    border: '1px solid var(--border-color)',
+                    background: 'none',
+                    backgroundColor: '#e0f2fe',
+                    border: '1px solid #bae6fd',
+                    color: '#0284c7',
                     borderRadius: '16px',
                     padding: '6px 12px',
                     cursor: 'pointer',
@@ -208,10 +222,10 @@ limitations under the License.
                     transition: 'all 0.2s',
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-secondary)';
+                    e.currentTarget.style.setProperty('background-color', '#bae6fd', 'important');
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.setProperty('background-color', '#e0f2fe', 'important');
                   }}
                 >
                   {suggestion}
@@ -228,8 +242,9 @@ limitations under the License.
                 onClick={() => generateInsights(language)}
                 disabled={isGeneratingInsights}
                 style={{
-                  background: 'var(--bg-secondary)',
+                  background: 'var(--bg-color)',
                   border: '1px solid var(--border-color)',
+                  color: 'var(--text-main)',
                   borderRadius: '16px',
                   padding: '6px 12px',
                   cursor: 'pointer',
@@ -248,8 +263,9 @@ limitations under the License.
                 onClick={() => generateInsights(language, 'Add news headlines to top trending keywords')}
                 disabled={isGeneratingInsights}
                 style={{
-                  background: 'white',
+                  background: 'var(--surface-color)',
                   border: '1px solid var(--border-color)',
+                  color: 'var(--text-main)',
                   borderRadius: '16px',
                   padding: '6px 12px',
                   cursor: 'pointer',
@@ -257,10 +273,10 @@ limitations under the License.
                   transition: 'all 0.2s',
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-secondary)';
+                  e.currentTarget.style.background = 'var(--bg-color)';
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.background = 'var(--surface-color)';
                 }}
               >
                 Add news to top keywords
@@ -272,8 +288,9 @@ limitations under the License.
                 onClick={() => generateInsights(language, 'Give more details on the top trending topic')}
                 disabled={isGeneratingInsights}
                 style={{
-                  background: 'white',
+                  background: 'var(--surface-color)',
                   border: '1px solid var(--border-color)',
+                  color: 'var(--text-main)',
                   borderRadius: '16px',
                   padding: '6px 12px',
                   cursor: 'pointer',
@@ -281,10 +298,10 @@ limitations under the License.
                   transition: 'all 0.2s',
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-secondary)';
+                  e.currentTarget.style.background = 'var(--bg-color)';
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.background = 'var(--surface-color)';
                 }}
               >
                 Give more details on the top trending topic
@@ -311,7 +328,7 @@ limitations under the License.
               type="button"
               className="btn btn-primary"
               onClick={(e) => {
-                const input = e.target.previousSibling;
+                const input = e.currentTarget.previousSibling;
                 sendInsightsChatMessage(input.value);
                 setFollowUpSuggestions([]);
                 input.value = '';
@@ -326,6 +343,23 @@ limitations under the License.
 
         {insightsStatus && (
           <div className="status-msg">{insightsStatus}</div>
+        )}
+
+        {selectedImage && (
+          <Modal
+            isOpen={!!selectedImage}
+            onClose={() => setSelectedImage(null)}
+            title="Image Preview"
+            className="large-modal"
+          >
+            <div style={{ textAlign: 'center', padding: '10px' }}>
+              <img 
+                src={selectedImage} 
+                style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }} 
+                alt="Fullscreen preview" 
+              />
+            </div>
+          </Modal>
         )}
       </div>
     );
