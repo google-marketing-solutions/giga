@@ -2134,15 +2134,17 @@ limitations under the License.
         prevInsightsLanguageRef.current = insightsLanguage;
       }, [relevantIdeas, insightsLanguage, insightsChatHistory]);
 
-      const sendInsightsChatMessage = async (message) => {
-        if (!message.trim()) return;
+      const sendInsightsChatMessage = async (message, retryHistory = null) => {
+        if (!message?.trim() && !retryHistory) return;
         setIsSendingChatMessage(true);
         setFollowUpSuggestions([]);
-        const updatedHistory = [
+        const updatedHistory = retryHistory || [
           ...insightsChatHistory,
           { role: 'user', parts: [{ text: message }] }
         ];
-        setInsightsChatHistory(updatedHistory);
+        if (!retryHistory) {
+          setInsightsChatHistory(updatedHistory);
+        }
 
         try {
           const response = await googleScriptRun.getInsightsChatResponse(updatedHistory, { ...geminiConfig, enableGoogleSearch: true });
@@ -2167,29 +2169,67 @@ limitations under the License.
             modelMessage
           ]);
           setFollowUpSuggestions(parsedResponse.suggestions);
+          setIsSendingChatMessage(false);
         } catch (e) {
+          if (e.message && e.message.toLowerCase().includes('resource exhausted')) {
+            let countdown = 10;
+            setInsightsChatHistory(prev => [
+              ...prev,
+              { role: 'model', isErrorMsg: true, parts: [{ text: `Resource exhausted. Retrying in ${countdown} seconds...` }] }
+            ]);
+
+            const countdownInterval = setInterval(() => {
+              countdown -= 1;
+              if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                setInsightsChatHistory(prev => {
+                  const newHist = [...prev];
+                  if (newHist.length > 0 && newHist[newHist.length - 1].isErrorMsg) {
+                    newHist.pop();
+                  }
+                  return newHist;
+                });
+                sendInsightsChatMessage(null, updatedHistory);
+              } else {
+                setInsightsChatHistory(prev => {
+                  const newHist = [...prev];
+                  const errorMsg = { role: 'model', isErrorMsg: true, parts: [{ text: `Resource exhausted. Retrying in ${countdown} seconds...` }] };
+                  if (newHist.length > 0 && newHist[newHist.length - 1].isErrorMsg) {
+                    newHist[newHist.length - 1] = errorMsg;
+                  } else {
+                    newHist.push(errorMsg);
+                  }
+                  return newHist;
+                });
+              }
+            }, 1000);
+            return;
+          }
           showError('Chat Error', e);
-        } finally {
           setIsSendingChatMessage(false);
         }
       };
 
-      const generateInsights = async (language = 'English', initialPrompt) => {
+      const generateInsights = async (language = 'English', initialPrompt, retryHistory = null) => {
         if (Object.keys(relevantIdeas).length === 0) {
           showAlert('Please generate keywords in Explore tab first.');
           return;
         }
         setIsGeneratingInsights(true);
         setFollowUpSuggestions([]);
-        setInsights('');
+        if (!retryHistory) {
+          setInsights('');
+        }
         setInsightsStatus('Generating report...');
 
         const userMessage = initialPrompt || "Generate Insights Report";
-        const updatedHistory = [
+        const updatedHistory = retryHistory || [
           ...insightsChatHistory,
           { role: 'user', parts: [{ text: userMessage }] }
         ];
-        setInsightsChatHistory(updatedHistory);
+        if (!retryHistory) {
+          setInsightsChatHistory(updatedHistory);
+        }
 
         if (isDemoMode) {
           const key = isRandomized ? 'giga_insights_random' : 'giga_insights';
@@ -2253,10 +2293,49 @@ limitations under the License.
           }
 
           setInsightsStatus('');
+          setIsGeneratingInsights(false);
         } catch (e) {
+          if (e.message && e.message.toLowerCase().includes('resource exhausted')) {
+            let countdown = 10;
+            const errorText = `Resource exhausted. Retrying in ${countdown} seconds...`;
+            setInsightsStatus(errorText);
+            setInsightsChatHistory(prev => [
+              ...prev,
+              { role: 'model', isErrorMsg: true, parts: [{ text: errorText }] }
+            ]);
+
+            const countdownInterval = setInterval(() => {
+              countdown -= 1;
+              if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                setInsightsChatHistory(prev => {
+                  const newHist = [...prev];
+                  if (newHist.length > 0 && newHist[newHist.length - 1].isErrorMsg) {
+                    newHist.pop();
+                  }
+                  return newHist;
+                });
+                generateInsights(language, initialPrompt, updatedHistory);
+              } else {
+                const newErrorText = `Resource exhausted. Retrying in ${countdown} seconds...`;
+                setInsightsStatus(newErrorText);
+                setInsightsChatHistory(prev => {
+                  const newHist = [...prev];
+                  const errorMsg = { role: 'model', isErrorMsg: true, parts: [{ text: newErrorText }] };
+                  if (newHist.length > 0 && newHist[newHist.length - 1].isErrorMsg) {
+                    newHist[newHist.length - 1] = errorMsg;
+                  } else {
+                    newHist.push(errorMsg);
+                  }
+                  return newHist;
+                });
+              }
+            }, 1000);
+            return;
+          }
+
           setInsightsStatus(`Error: ${e.message}`);
           showError('Error', e);
-        } finally {
           setIsGeneratingInsights(false);
         }
       };

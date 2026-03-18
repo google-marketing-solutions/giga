@@ -35,6 +35,7 @@ limitations under the License.
   }) => {
     const languageInputRef = React.useRef(null);
     const [selectedImage, setSelectedImage] = React.useState(null);
+    const [activeInfoModal, setActiveInfoModal] = React.useState(null);
 
     return (
       <div className="card fade-in">
@@ -73,11 +74,14 @@ limitations under the License.
             <span
               className="material-symbols-outlined"
               style={{
-                fontSize: '16px',
+                fontSize: '1rem',
                 color: 'var(--text-secondary)',
-                cursor: 'help',
+                cursor: 'pointer',
               }}
-              title="Language for insights generation"
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveInfoModal('language_info');
+              }}
             >
               info
             </span>
@@ -317,12 +321,12 @@ limitations under the License.
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
+                  if (isSendingChatMessage || isGeneratingInsights) return;
                   sendInsightsChatMessage(e.target.value);
                   setFollowUpSuggestions([]);
                   e.target.value = '';
                 }
               }}
-              disabled={isSendingChatMessage}
             />
             <button
               type="button"
@@ -333,7 +337,7 @@ limitations under the License.
                 setFollowUpSuggestions([]);
                 input.value = '';
               }}
-              disabled={isSendingChatMessage}
+              disabled={isSendingChatMessage || isGeneratingInsights}
               style={{ padding: '0 16px' }}
             >
               <span className="material-symbols-outlined">send</span>
@@ -358,6 +362,22 @@ limitations under the License.
                 style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }} 
                 alt="Fullscreen preview" 
               />
+            </div>
+          </Modal>
+        )}
+        {activeInfoModal && (
+          <Modal
+            isOpen={!!activeInfoModal}
+            onClose={() => setActiveInfoModal(null)}
+            title="Language Settings"
+          >
+            <div>
+              <p>
+                Specify the language you want the Insights report and chat responses to use.
+              </p>
+              <p>
+                <strong>Note:</strong> This language will be provided as an instruction to Gemini for generating insights and answering your questions.
+              </p>
             </div>
           </Modal>
         )}
