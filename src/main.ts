@@ -484,7 +484,8 @@ export const getInsightsChatResponse = async (
       functionDeclarations: [
         {
           name: 'generateImage',
-          description: 'Generate an image that the user has requested.',
+          description:
+            'Generate an image that the user has requested. If the user only requested an image and no other analysis, leave the "response" property empty.',
           parameters: {
             type: 'OBJECT',
             properties: {
@@ -550,8 +551,8 @@ export const getInsightsChatResponse = async (
     try {
       const base64Image = generateImage(prompt, config);
       return JSON.stringify({
-        response: `Here is the image you requested based on the prompt: "${prompt}"`,
-        suggestions: [],
+        response: result.response || '',
+        suggestions: result.suggestions || [],
         images: [`data:image/png;base64,${base64Image}`],
       });
     } catch (e) {
