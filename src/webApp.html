@@ -2270,14 +2270,7 @@ limitations under the License.
             // Full Report mode
             setInsights(result.report);
 
-            const hardcodedSuggestions = [
-              'Show top 5 trending keywords',
-              'Give more details on the top trending topic'
-            ];
-            setFollowUpSuggestions([
-              ...hardcodedSuggestions,
-              ...(result.suggestions || [])
-            ]);
+            setFollowUpSuggestions(result.suggestions || []);
 
             setInsightsChatHistory([
               ...updatedHistory,

@@ -246,15 +246,24 @@ limitations under the License.
                 onClick={() => generateInsights(language)}
                 disabled={isGeneratingInsights}
                 style={{
-                  background: 'var(--bg-color)',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-main)',
+                  background: 'none',
+                  backgroundColor: '#e0f2fe',
+                  border: '1px solid #bae6fd',
+                  color: '#0284c7',
                   borderRadius: '16px',
                   padding: '6px 12px',
                   cursor: 'pointer',
+                  fontSize: '0.9rem',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px'
+                  gap: '4px',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.setProperty('background-color', '#bae6fd', 'important');
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.setProperty('background-color', '#e0f2fe', 'important');
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>lightbulb</span>
@@ -267,9 +276,10 @@ limitations under the License.
                 onClick={() => generateInsights(language, 'Add news headlines to top trending keywords')}
                 disabled={isGeneratingInsights}
                 style={{
-                  background: 'var(--surface-color)',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-main)',
+                  background: 'none',
+                  backgroundColor: '#e0f2fe',
+                  border: '1px solid #bae6fd',
+                  color: '#0284c7',
                   borderRadius: '16px',
                   padding: '6px 12px',
                   cursor: 'pointer',
@@ -277,10 +287,10 @@ limitations under the License.
                   transition: 'all 0.2s',
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-color)';
+                  e.currentTarget.style.setProperty('background-color', '#bae6fd', 'important');
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'var(--surface-color)';
+                  e.currentTarget.style.setProperty('background-color', '#e0f2fe', 'important');
                 }}
               >
                 Add news to top keywords
@@ -292,9 +302,10 @@ limitations under the License.
                 onClick={() => generateInsights(language, 'Give more details on the top trending topic')}
                 disabled={isGeneratingInsights}
                 style={{
-                  background: 'var(--surface-color)',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-main)',
+                  background: 'none',
+                  backgroundColor: '#e0f2fe',
+                  border: '1px solid #bae6fd',
+                  color: '#0284c7',
                   borderRadius: '16px',
                   padding: '6px 12px',
                   cursor: 'pointer',
@@ -302,10 +313,10 @@ limitations under the License.
                   transition: 'all 0.2s',
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-color)';
+                  e.currentTarget.style.setProperty('background-color', '#bae6fd', 'important');
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'var(--surface-color)';
+                  e.currentTarget.style.setProperty('background-color', '#e0f2fe', 'important');
                 }}
               >
                 Give more details on the top trending topic

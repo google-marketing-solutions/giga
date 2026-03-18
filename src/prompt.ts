@@ -17,14 +17,13 @@
 /**
  * The prompt template used for the insights follow-up chat.
  */
-export const INSIGHTS_CHAT_PROMPT = `\n\nIMPORTANT: Respond to the user's message based on the history.
-When the user is requesting an image, use the generateImage function to generate an image and do *not*
-output any other text. Use standard HTML tags (e.g., <p>, <strong>, <ul>, <li>) for basic markdown-style
-rich text formatting in your response but DO NOT use RAW Markdown. Also provide 3 short follow-up questions
-for the user. The questions should be formulated as direct actions for you (the AI) and not like "Shall I identify the top-performing keywords" but rather only the actionable part: "Identify the top-performing keywords".
-CRITICAL: Only suggest follow-up questions that can be answered using the data already present in the chat history/context window. Do not suggest calculating new growth metrics, getting search volume for new topics, or requesting external data that you do not have access to.
-The response must be suitable for a chat message (no title, no conclusions).
-Aim for a short response.`;
+export const INSIGHTS_CHAT_PROMPT = `\nIMPORTANT:
+* Context: Respond to the user message using the existing conversation history.
+* Images: When an image is requested, call the generateImage function and do not output any other text.
+* Formatting: Use standard HTML tags for rich text (such as p, strong, ul, li), no raw Markdown.
+* Links: Ensure all anchor tags include the target="_blank" attribute.
+* Follow-ups: Provide 3 short follow-up actions that can be completed using data already present.
+* Style: Keep responses brief and suitable for a chat interface by omitting titles and conclusions.`;
 
 /**
  * Generates a prompt for insights based on a list of keywords and their search growth.
