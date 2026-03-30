@@ -537,7 +537,6 @@ export const getInsightsChatResponse = async (
   const result = gemini(config)(cleanHistory) as {
     response?: string;
     suggestions?: string[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     functionCall?: { name: string; args: unknown };
   };
 

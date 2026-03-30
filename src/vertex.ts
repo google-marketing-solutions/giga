@@ -64,7 +64,6 @@ export interface GeminiConfig {
   responseType?: string;
   responseSchema?: ResponseSchema;
   enableGoogleSearch?: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tools?: unknown[];
 }
 
