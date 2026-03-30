@@ -65,7 +65,7 @@ export interface GeminiConfig {
   responseSchema?: ResponseSchema;
   enableGoogleSearch?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tools?: any[];
+  tools?: unknown[];
 }
 
 /**
@@ -283,7 +283,8 @@ export const generateImage = (
   const options = addAuth(request, 'payload');
   const res = jsonFetcher(baseUrl, options);
 
-  // Find the first part that contains image data and is not a thought signature
+  // The response may contain multiple parts,
+  // we look for the first one that contains image data
   const parts = res.candidates?.[0]?.content?.parts || [];
   const imagePart =
     parts.find(

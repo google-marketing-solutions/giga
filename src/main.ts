@@ -159,7 +159,7 @@ export const calculateKeywordGrowth = (
  * @param html - The string containing potential markdown code blocks.
  * @returns The cleaned string.
  */
-export const removeHTMLTicks = (html: string) => {
+export const removeHtmlTicks = (html: string) => {
   const htmlPrefix = '```html';
   const jsonPrefix = '```json';
   const suffix = '```';
@@ -220,7 +220,7 @@ export const getInsights = async (
     console.error('Failed to generate or parse insights:', e);
     return {
       report: `Error: Failed to generate insights. ${e.message}`,
-      suggestions: ['Try again', 'Check keywords', 'Contact support'],
+      suggestions: ['Try again', 'Check keywords'],
     };
   }
 };
@@ -479,7 +479,6 @@ export const getInsightsChatResponse = async (
   );
 
   config.tools = [
-    ...(config.enableGoogleSearch ? [{ googleSearch: {} }] : []),
     {
       functionDeclarations: [
         {
@@ -539,7 +538,7 @@ export const getInsightsChatResponse = async (
     response?: string;
     suggestions?: string[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    functionCall?: { name: string; args: any };
+    functionCall?: { name: string; args: unknown };
   };
 
   if (
@@ -547,7 +546,7 @@ export const getInsightsChatResponse = async (
     result.functionCall &&
     result.functionCall.name === 'generateImage'
   ) {
-    const prompt = result.functionCall.args.prompt;
+    const prompt = (result.functionCall.args as { prompt: string }).prompt;
     try {
       const base64Image = generateImage(prompt, config);
       return JSON.stringify({
@@ -566,12 +565,12 @@ export const getInsightsChatResponse = async (
 
   if (typeof result === 'object' && result !== null) {
     if (result.response) {
-      result.response = removeHTMLTicks(result.response);
+      result.response = removeHtmlTicks(result.response);
     }
     return JSON.stringify(result);
   }
 
-  return removeHTMLTicks(result as unknown as string);
+  return removeHtmlTicks(result as unknown as string);
 };
 /**
  * Checks if the current active user is the effective user.
