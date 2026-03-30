@@ -58,6 +58,7 @@ limitations under the License.
         0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
       --shadow-lg:
         0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --chat-bubble-bg: #f1f5f9;
     }
 
     [data-theme='dark'] {
@@ -74,6 +75,7 @@ limitations under the License.
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
       --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
       --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+      --chat-bubble-bg: #334155;
     }
 
     body {
@@ -428,6 +430,10 @@ limitations under the License.
       overflow-y: auto;
     }
 
+    .modal-content.large-modal {
+      max-width: 1000px;
+    }
+
     @keyframes fadeIn {
       from {
         opacity: 0;
@@ -488,6 +494,33 @@ limitations under the License.
 
     [data-theme='dark'] .spinner {
       border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 14px;
+      background: var(--chat-bubble-bg);
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background-color: var(--text-secondary);
+      border-radius: 50%;
+      animation: typing 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typing {
+      0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
     }
 
     /* Custom Select Dropdown */
@@ -1040,6 +1073,17 @@ limitations under the License.
       );
       const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
       const [insightsStatus, setInsightsStatus] = useState('');
+      const [followUpSuggestions, setFollowUpSuggestions] = useStickyState(
+        [],
+        'giga_followUpSuggestions',
+        isDemoMode
+      );
+      const [insightsChatHistory, setInsightsChatHistory] = useStickyState(
+        [],
+        'giga_insightsChatHistory',
+        isDemoMode
+      );
+      const [isSendingChatMessage, setIsSendingChatMessage] = useState(false);
 
       // Campaigns State
       const [adsAccountId, setAdsAccountId] = useStickyState(
@@ -1491,9 +1535,8 @@ limitations under the License.
       const [geminiConfig, setGeminiConfig] = useStickyState(
         {
           projectId: '',
-          modelId: 'gemini-2.5-pro',
-          temperature: 0.7,
-          topP: 0.9,
+          modelId: 'gemini-3.1-pro-preview',
+          location: 'global',
         },
         'giga_geminiConfig'
       );
@@ -2039,12 +2082,154 @@ limitations under the License.
         }
       };
 
-      const generateInsights = async (language = 'English') => {
+      const initInsightsChat = () => {
+        if (!relevantIdeas || Object.keys(relevantIdeas).length === 0) {
+          setInsightsChatHistory([]);
+          return;
+        }
+
+        const seedKeywords = (keywords || '')
+          .split(',')
+          .map(k => k.trim())
+          .filter(Boolean);
+
+        const dataPrompt = `You are a marketing analyst. You are provided with trend data for keywords.
+        Context:
+        Seed Keywords: ${seedKeywords.join(', ')}
+        Growth Metric: ${growthMetric}
+        Language: ${insightsLanguage}
+
+        Data:
+        ${JSON.stringify(relevantIdeas, null, 2)}
+
+        Please acknowledge receipt of this data. Use basic HTML tags (e.g., <p>, <strong>, <ul>, <li>) for simple markdown-style rich text formatting in your responses but DO NOT use RAW Markdown. Also keep the response concise and suitable for a chat message.`;
+
+        setInsightsChatHistory([
+          { role: 'user', parts: [{ text: dataPrompt }] },
+          { role: 'model', parts: [{ text: "Hi! I've analyzed your data from the Explore tab. How can I help? You can also generate a report or images." }] }
+        ]);
+      };
+
+      const hasMountedRef = useRef(false);
+      const prevRelevantIdeasRef = useRef();
+      const prevInsightsLanguageRef = useRef();
+
+      useEffect(() => {
+        if (!hasMountedRef.current) {
+          hasMountedRef.current = true;
+          if (!insightsChatHistory || insightsChatHistory.length === 0) {
+            initInsightsChat();
+          }
+        } else {
+          if (
+            prevRelevantIdeasRef.current !== relevantIdeas ||
+            prevInsightsLanguageRef.current !== insightsLanguage ||
+            (!insightsChatHistory || insightsChatHistory.length === 0)
+          ) {
+            initInsightsChat();
+            setInsights('');
+          }
+        }
+        prevRelevantIdeasRef.current = relevantIdeas;
+        prevInsightsLanguageRef.current = insightsLanguage;
+      }, [relevantIdeas, insightsLanguage, insightsChatHistory]);
+
+      const sendInsightsChatMessage = async (message, retryHistory = null) => {
+        if (!message?.trim() && !retryHistory) return;
+        setIsSendingChatMessage(true);
+        setFollowUpSuggestions([]);
+        const updatedHistory = retryHistory || [
+          ...insightsChatHistory,
+          { role: 'user', parts: [{ text: message }] }
+        ];
+        if (!retryHistory) {
+          setInsightsChatHistory(updatedHistory);
+        }
+
+        try {
+          const response = await googleScriptRun.getInsightsChatResponse(updatedHistory, { ...geminiConfig, enableGoogleSearch: true });
+
+          let parsedResponse;
+          try {
+            parsedResponse = JSON.parse(response);
+          } catch (e) {
+            console.error('Failed to parse chat response JSON:', response);
+            // Fallback to treat raw response as text and clear suggestions
+            parsedResponse = { response: response, suggestions: [] };
+          }
+
+          const modelMessage = { role: 'model', parts: [{ text: parsedResponse.response }] };
+          if (parsedResponse.images && Array.isArray(parsedResponse.images)) {
+            // Include images returned by the generator
+            modelMessage.images = parsedResponse.images;
+          }
+
+          setInsightsChatHistory([
+            ...updatedHistory,
+            modelMessage
+          ]);
+          setFollowUpSuggestions(parsedResponse.suggestions);
+          setIsSendingChatMessage(false);
+        } catch (e) {
+          if (e.message && e.message.toLowerCase().includes('resource exhausted')) {
+            let countdown = 10;
+            setInsightsChatHistory(prev => [
+              ...prev,
+              { role: 'model', isErrorMsg: true, parts: [{ text: `Resource exhausted. Retrying in ${countdown} seconds...` }] }
+            ]);
+
+            const countdownInterval = setInterval(() => {
+              countdown -= 1;
+              if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                setInsightsChatHistory(prev => {
+                  const newHist = [...prev];
+                  if (newHist.length > 0 && newHist[newHist.length - 1].isErrorMsg) {
+                    newHist.pop();
+                  }
+                  return newHist;
+                });
+                sendInsightsChatMessage(null, updatedHistory);
+              } else {
+                setInsightsChatHistory(prev => {
+                  const newHist = [...prev];
+                  const errorMsg = { role: 'model', isErrorMsg: true, parts: [{ text: `Resource exhausted. Retrying in ${countdown} seconds...` }] };
+                  if (newHist.length > 0 && newHist[newHist.length - 1].isErrorMsg) {
+                    newHist[newHist.length - 1] = errorMsg;
+                  } else {
+                    newHist.push(errorMsg);
+                  }
+                  return newHist;
+                });
+              }
+            }, 1000);
+            return;
+          }
+          showError('Chat Error', e);
+          setIsSendingChatMessage(false);
+        }
+      };
+
+      const generateInsights = async (language = 'English', initialPrompt, retryHistory = null) => {
         if (Object.keys(relevantIdeas).length === 0) {
           showAlert('Please generate keywords in Explore tab first.');
           return;
         }
         setIsGeneratingInsights(true);
+        setFollowUpSuggestions([]);
+        if (!retryHistory) {
+          setInsights('');
+        }
+        setInsightsStatus('Generating report...');
+
+        const userMessage = initialPrompt || "Generate Insights Report";
+        const updatedHistory = retryHistory || [
+          ...insightsChatHistory,
+          { role: 'user', parts: [{ text: userMessage }] }
+        ];
+        if (!retryHistory) {
+          setInsightsChatHistory(updatedHistory);
+        }
 
         if (isDemoMode) {
           const key = isRandomized ? 'giga_insights_random' : 'giga_insights';
@@ -2069,10 +2254,29 @@ limitations under the License.
             relevantIdeas,
             seedKeywords,
             growthMetric,
-            geminiConfig,
-            language
+            { ...geminiConfig, enableGoogleSearch: true },
+            language,
+            initialPrompt
           );
-          setInsights(result);
+          if (initialPrompt) {
+            // Direct Question mode
+            setInsightsStatus('');
+            setFollowUpSuggestions(result.suggestions || []);
+            setInsightsChatHistory([
+              ...updatedHistory,
+              { role: 'model', parts: [{ text: result.report }] }
+            ]);
+          } else {
+            // Full Report mode
+            setInsights(result.report);
+
+            setFollowUpSuggestions(result.suggestions || []);
+
+            setInsightsChatHistory([
+              ...updatedHistory,
+              { role: 'model', parts: [{ text: result.report }], isReport: true }
+            ]);
+          }
 
           if (isDemoMode) {
             const key = isRandomized
@@ -2082,10 +2286,49 @@ limitations under the License.
           }
 
           setInsightsStatus('');
+          setIsGeneratingInsights(false);
         } catch (e) {
+          if (e.message && e.message.toLowerCase().includes('resource exhausted')) {
+            let countdown = 10;
+            const errorText = `Resource exhausted. Retrying in ${countdown} seconds...`;
+            setInsightsStatus(errorText);
+            setInsightsChatHistory(prev => [
+              ...prev,
+              { role: 'model', isErrorMsg: true, parts: [{ text: errorText }] }
+            ]);
+
+            const countdownInterval = setInterval(() => {
+              countdown -= 1;
+              if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                setInsightsChatHistory(prev => {
+                  const newHist = [...prev];
+                  if (newHist.length > 0 && newHist[newHist.length - 1].isErrorMsg) {
+                    newHist.pop();
+                  }
+                  return newHist;
+                });
+                generateInsights(language, initialPrompt, updatedHistory);
+              } else {
+                const newErrorText = `Resource exhausted. Retrying in ${countdown} seconds...`;
+                setInsightsStatus(newErrorText);
+                setInsightsChatHistory(prev => {
+                  const newHist = [...prev];
+                  const errorMsg = { role: 'model', isErrorMsg: true, parts: [{ text: newErrorText }] };
+                  if (newHist.length > 0 && newHist[newHist.length - 1].isErrorMsg) {
+                    newHist[newHist.length - 1] = errorMsg;
+                  } else {
+                    newHist.push(errorMsg);
+                  }
+                  return newHist;
+                });
+              }
+            }, 1000);
+            return;
+          }
+
           setInsightsStatus(`Error: ${e.message}`);
           showError('Error', e);
-        } finally {
           setIsGeneratingInsights(false);
         }
       };
@@ -2838,6 +3081,12 @@ limitations under the License.
               insightsStatus={insightsStatus}
               language={insightsLanguage}
               setLanguage={setInsightsLanguage}
+              insightsChatHistory={insightsChatHistory}
+              sendInsightsChatMessage={sendInsightsChatMessage}
+              isSendingChatMessage={isSendingChatMessage}
+              setInsightsChatHistory={setInsightsChatHistory}
+              followUpSuggestions={followUpSuggestions}
+              setFollowUpSuggestions={setFollowUpSuggestions}
             />
           )}
 

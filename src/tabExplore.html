@@ -371,6 +371,7 @@ limitations under the License.
                 }}
                 onClick={e => {
                   e.preventDefault();
+                  e.stopPropagation();
                   setActiveInfoModal('seed_keywords');
                 }}
               >
@@ -409,6 +410,7 @@ limitations under the License.
                   }}
                   onClick={e => {
                     e.preventDefault();
+                    e.stopPropagation();
                     setActiveInfoModal('language_info');
                   }}
                 >
@@ -444,6 +446,7 @@ limitations under the License.
                   }}
                   onClick={e => {
                     e.preventDefault();
+                    e.stopPropagation();
                     setActiveInfoModal('location_info');
                   }}
                 >
@@ -553,7 +556,7 @@ limitations under the License.
                       }}
                       onClick={e => {
                         e.preventDefault();
-                        setActiveInfoModal('gemini');
+                        setActiveInfoModal('gemini_source');
                       }}
                     >
                       info
@@ -1237,7 +1240,8 @@ limitations under the License.
             onClose={() => setActiveInfoModal(null)}
             title={{
               keyword_planner: 'Keyword Idea Service',
-              gemini: 'Gemini',
+              gemini_source: 'Gemini',
+              gemini: 'Gemini Prompt',
               seed_keywords: 'Seed Keywords',
               location_info: 'Location Settings',
               clustering_info: 'Clustering Info',
@@ -1260,6 +1264,31 @@ limitations under the License.
                         </a>{' '}
                         uses the Google Ads API to generate keyword ideas based on
                         your seed keywords, location, and language settings.
+                      </p>
+                    </div>
+                  );
+                case 'gemini_source':
+                  return (
+                    <div>
+                      <p>
+                        Gemini is used to generate trending keywords based on your
+                        seed keywords.
+                      </p>
+                      <p>
+                        The Google Ads{' '}
+                        <a
+                          href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: 'var(--primary)' }}
+                        >
+                          Historical Metrics
+                        </a>{' '}
+                        service is then used to retrieve their historical search volume.
+                      </p>
+                      <p>
+                        Google Search is used for grounding to get the latest
+                        trends.
                       </p>
                     </div>
                   );

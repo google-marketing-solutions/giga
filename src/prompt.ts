@@ -15,6 +15,17 @@
  */
 
 /**
+ * The prompt template used for the insights follow-up chat.
+ */
+export const INSIGHTS_CHAT_PROMPT = `\nIMPORTANT:
+* Context: Respond to the user message using the existing conversation history.
+* Images: When an image is requested, call the generateImage function and do not output any other text.
+* Formatting: Use standard HTML tags for rich text (such as p, strong, ul, li), no raw Markdown.
+* Links: Ensure all anchor tags include the target="_blank" attribute.
+* Follow-ups: Provide 3 short follow-up actions that can be completed using data already present.
+* Style: Keep responses brief and suitable for a chat interface by omitting titles and conclusions.`;
+
+/**
  * Generates a prompt for insights based on a list of keywords and their search growth.
  *
  * @param ideaRows - An array of arrays containing keyword and search growth data.
@@ -26,21 +37,32 @@
 export const getInsightsPrompt = (
   ideaRows,
   keywords,
-  metricName = 'YoY',
-  language = 'English'
+  metricName,
+  language = 'English',
+  specificQuestion
 ) => {
   const data = ideaRows.map(row => {
     return `${row[0]}, ${(row[1] * 100).toFixed(1)}%`;
   });
 
-  return `You are a marketing and strategy analyst and you want to find interesting insights based on the topic(s) [${keywords.join(
+  let instruction = `You are a marketing and strategy analyst and you want to find interesting insights based on the topic(s) [${keywords.join(
     ', '
-  )}] related list provided in the <DATA> section. Cluster this comma-separated list of search terms and ${metricName} search growth and identify overall trends. Also, consider the list is sorted descending by growth rate.
+  )}] related list provided in the <DATA> section. Cluster this comma-separated list of search terms and ${metricName} search growth and identify overall trends. Also, consider the list is sorted descending by growth rate.`;
+
+  let formatInstruction = `
+  Format your response as a JSON object with the following structure:
+  {
+    "report": "HTML string containing the insights report, using standard HTML elements like <h1>, <h2>, <p>, and <ul>",
+    "suggestions": [
+      "Short follow-up question 1",
+      "Short follow-up question 2",
+      "Short follow-up question 3"
+    ]
+  }
 
   Output in ${language}.
 
-  Output as HTML with standard HTML elements like <h1> and <ul> for captions or lists.
-  DO NOT add any introduction like "Of course! Here is the HTML" and instead only output the HTML code.
+  Do NOT include any markdown code block formatting (like \`\`\`json) in your response.
 
 <EXAMPLE>
 INPUT:
@@ -106,8 +128,32 @@ OUTPUT:
 <h2>Conclusion:</h2>
 
 <p>The provided data, while limited, clearly indicates a growing interest in pet-related products and services, particularly in the areas of enrichment, entertainment, and health. By expanding research and strategically leveraging these initial insights, businesses can effectively target pet owners and capitalize on this thriving market.</p>
-</EXAMPLE>
+</EXAMPLE>`;
 
+  if (specificQuestion) {
+    instruction = `You are a marketing and strategy analyst.
+    Answer EXACTLY this question using the data provided in the <DATA> section: "${specificQuestion}".
+    Do not generate the full insights report. Just provide the answer.
+    Output using standard HTML elements for formatting (like <p>, <strong>, <ul>, <li>).`;
+
+    formatInstruction = `
+  Format your response as a JSON object with the following structure:
+  {
+    "report": "HTML string containing the answer",
+    "suggestions": [
+      "Short follow-up question 1",
+      "Short follow-up question 2",
+      "Short follow-up question 3"
+    ]
+  }
+
+  Output in ${language}.
+
+  Do NOT include any markdown code block formatting (like \`\`\`json) in your response.`;
+  }
+
+  return `${instruction}
+${formatInstruction}
 
 <DATA>
 ${JSON.stringify(data, null, 2)}

@@ -49,8 +49,6 @@ const addAuth = (params, payloadKey = 'payload') =>
  * Configuration for the Gemini API.
  * @param {string} projectId - The GCP project ID.
  * @param {string} modelId - The Gemini model ID.
- * @param {number} temperature - The temperature for the model.
- * @param {number} topP - The top P value for the model.
  * @param {string} location - The location for the model.
  * @param {number} maxOutputTokens - The maximum number of output tokens.
  * @param {string} responseType - The response type.
@@ -60,13 +58,22 @@ const addAuth = (params, payloadKey = 'payload') =>
 export interface GeminiConfig {
   projectId: string;
   modelId: string;
-  temperature: number;
-  topP: number;
+  imageModelId?: string;
   location?: string;
   maxOutputTokens?: number;
   responseType?: string;
   responseSchema?: ResponseSchema;
   enableGoogleSearch?: boolean;
+  tools?: unknown[];
+}
+
+/**
+ * Message for chat history.
+ */
+export interface Message {
+  role: 'user' | 'model' | 'system';
+  parts: { text: string }[];
+  isReport?: boolean;
 }
 
 /**
@@ -113,9 +120,21 @@ export const gemini =
       const schemaString = config.responseSchema
         ? JSON.stringify(config.responseSchema, null, 2)
         : '';
-      effectivePrompt += `\n\nImportant:
+      const instruction = `\n\nImportant:
        - Output only the raw JSON string. Do not include markdown formatting (e.g. \`\`\`json) or any other text.
       ${schemaString ? `\n - Adhere to the following OpenAPI Schema Object definition: ${schemaString}` : ''}`;
+
+      if (Array.isArray(effectivePrompt)) {
+        effectivePrompt = [
+          ...effectivePrompt,
+          {
+            role: 'user',
+            parts: [{ text: instruction }],
+          },
+        ];
+      } else {
+        effectivePrompt += instruction;
+      }
     }
 
     const [url, options] = getGeminiRequest(
@@ -125,6 +144,12 @@ export const gemini =
     );
     console.log(effectivePrompt);
     const res = jsonFetcher(url, options);
+
+    const functionCall = res.candidates?.[0]?.content?.parts?.[0]?.functionCall;
+    if (functionCall) {
+      return { functionCall };
+    }
+
     const responseText = res.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (config.responseType === 'application/json') {
@@ -170,7 +195,7 @@ export const gemini =
 
 /**
  * @param {GeminiConfig} config
- * @param {string} prompt
+ * @param {string|Message[]} prompt
  * @param {boolean} enableGoogleSearch
  * @param {string} payloadKey
  */
@@ -181,7 +206,7 @@ const getGeminiRequest = (
   payloadKey = 'payload'
 ) => {
   const location = config.location || 'us-central1';
-  const baseUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${location}/publishers/google/models/${config.modelId}`;
+  const baseUrl = `https://aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${location}/publishers/google/models/${config.modelId}`;
 
   const safetySettings = [
     {
@@ -203,16 +228,16 @@ const getGeminiRequest = (
   ];
 
   const request = {
-    contents: [
-      {
-        role: 'user',
-        parts: { text: prompt },
-      },
-    ],
+    contents: Array.isArray(prompt)
+      ? prompt
+      : [
+          {
+            role: 'user',
+            parts: [{ text: prompt }],
+          },
+        ],
     // see https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#generationconfig
     generation_config: {
-      temperature: config.temperature,
-      top_p: config.topP,
       max_output_tokens: config.maxOutputTokens,
       response_mime_type: config.responseType,
       response_schema: config.responseSchema,
@@ -220,11 +245,57 @@ const getGeminiRequest = (
         thinkingBudget: 1024,
       },
     },
-    tools: enableGoogleSearch ? [{ googleSearch: {} }] : [],
+    tools: config.tools
+      ? config.tools
+      : enableGoogleSearch
+        ? [{ googleSearch: {} }]
+        : [],
   };
 
   return [
     `${baseUrl}:generateContent`,
     addAuth({ ...request, safetySettings }, payloadKey),
   ];
+};
+
+/**
+ * Call Vertex AI Gemini to generate an image.
+ */
+export const generateImage = (
+  prompt: string,
+  config: GeminiConfig,
+  jsonFetcher = fetchJson
+) => {
+  const location = config.location || 'global';
+  const imageModel = config.imageModelId || 'gemini-3.1-flash-image-preview';
+  const baseUrl = `https://aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${location}/publishers/google/models/${imageModel}:generateContent`;
+
+  const request = {
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: prompt }],
+      },
+    ],
+  };
+
+  const options = addAuth(request, 'payload');
+  const res = jsonFetcher(baseUrl, options);
+
+  // The response may contain multiple parts,
+  // we look for the first one that contains image data
+  const parts = res.candidates?.[0]?.content?.parts || [];
+  const imagePart =
+    parts.find(
+      part =>
+        part.inlineData &&
+        !part.thoughtSignature &&
+        !part.thought &&
+        part.inlineData.mimeType?.startsWith('image/')
+    ) ||
+    parts.find(
+      part => part.inlineData && part.inlineData.mimeType?.startsWith('image/')
+    );
+
+  return imagePart?.inlineData?.data;
 };
