@@ -49,5 +49,9 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "google-ads-api": "^21.0.1"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "tmp": "^0.2.5"
   }
 }
