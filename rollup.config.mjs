@@ -23,7 +23,7 @@ import typescript from 'rollup-plugin-typescript2';
 import { fileURLToPath } from 'url';
 
 export default {
-  input: 'src/index.ts',
+  input: 'build/src/index.js',
   output: {
     dir: 'dist',
     format: 'esm',
@@ -35,7 +35,7 @@ export default {
     }),
     commonjs(),
     json(),
-    cleanup({ comments: 'none', extensions: ['.ts'] }),
+    cleanup({ comments: 'none', extensions: ['.js'] }),
     license({
       banner: {
         content: {
