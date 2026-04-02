@@ -66,280 +66,289 @@ limitations under the License.
     highlightKeywordSources,
     setHighlightKeywordSources,
     theme,
+    geminiConfig,
+    onOpenSettings
   }) => {
-    const palette = theme === 'dark' ? DARK_MODE_PALETTE : COLOR_PALETTE;
-    const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
-    const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
+              const palette = theme === 'dark' ? DARK_MODE_PALETTE : COLOR_PALETTE;
+              const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+              const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
 
-    const searchVolumeDisclaimer = (
-      <div style={{ padding: '0 1rem 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'center' }}>
-        * Search Volume is from the previous full month only and is limited by the <a href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Historical Metrics</a> endpoint from the Google Ads API.
-      </div>
-    );
+              const searchVolumeDisclaimer = (
+                <div style={{ padding: '0 1rem 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'center' }}>
+                  * Search Volume is from the previous full month only and is limited by the <a href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Historical Metrics</a> endpoint from the Google Ads API.
+                </div>
+              );
 
-    const promptCustomizationNote = (promptName) => (
-      <p>
-        The {promptName} can be customized to your needs. Any changes you make are stored locally in your
-        browser and will only affect your current session, not other users of the application.
-      </p>
-    );
+              const promptCustomizationNote = (promptName) => (
+                <p>
+                  The {promptName} can be customized to your needs. Any changes you make are stored locally in your
+                  browser and will only affect your current session, not other users of the application.
+                </p>
+              );
 
-    const filteredCountries = useMemo(() => {
-      if (continent === 'Custom Locations') {
-        return customCountries;
-      }
-      const countriesForContinent = window.REGION_MAP[continent] || [];
-      return countriesForContinent;
-    }, [continent, customCountries]);
+              const filteredCountries = useMemo(() => {
+                if (continent === 'Custom Locations') {
+                  return customCountries;
+                }
+                const countriesForContinent = window.REGION_MAP[continent] || [];
+                return countriesForContinent;
+              }, [continent, customCountries]);
 
-    const [activeInfoModal, setActiveInfoModal] = useState(null);
-    const detailsRef = useRef(null);
+              const [activeInfoModal, setActiveInfoModal] = useState(null);
+              const detailsRef = useRef(null);
 
-    useEffect(() => {
-      if (highlightKeywordSources && detailsRef.current) {
-        detailsRef.current.open = true;
-      }
-    }, [highlightKeywordSources]);
+              useEffect(() => {
+                if (highlightKeywordSources && detailsRef.current) {
+                  detailsRef.current.open = true;
+                }
+              }, [highlightKeywordSources]);
 
-    // Keyword Table State
-    const [sortConfig, setSortConfig] = useState({
-      key: 'growth',
-      direction: 'descending',
-    });
-    const [filters, setFilters] = useState({ keyword: '', minVolume: '' });
-    const [expandedIdea, setExpandedIdea] = useState(null);
+              // Keyword Table State
+              const [sortConfig, setSortConfig] = useState({
+                key: 'growth',
+                direction: 'descending',
+              });
+              const [filters, setFilters] = useState({ keyword: '', minVolume: '' });
+              const [expandedIdea, setExpandedIdea] = useState(null);
 
-    const requestSort = key => {
-      let direction = 'descending';
-      if (sortConfig.key === key && sortConfig.direction === 'descending') {
-        direction = 'ascending';
-      }
-      setSortConfig({ key, direction });
-    };
+              const requestSort = key => {
+                let direction = 'descending';
+                if (sortConfig.key === key && sortConfig.direction === 'descending') {
+                  direction = 'ascending';
+                }
+                setSortConfig({ key, direction });
+              };
 
-    const getSortIndicator = key => {
-      if (sortConfig.key !== key) return null;
-      return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
-    };
+              const getSortIndicator = key => {
+                if (sortConfig.key !== key) return null;
+                return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
+              };
 
-    const processedIdeas = useMemo(() => {
-      if (!ideasData) return [];
-      return ideasData;
-    }, [ideasData]);
+              const processedIdeas = useMemo(() => {
+                if (!ideasData) return [];
+                return ideasData;
+              }, [ideasData]);
 
-    const filteredIdeas = useMemo(() => {
-      return processedIdeas.filter(item => {
-        if (
-          filters.keyword &&
-          !item.text.toLowerCase().includes(filters.keyword.toLowerCase())
-        ) {
-          return false;
-        }
-        if (
-          filters.minVolume !== '' &&
-          (item.latestSearchVolume || 0) < Number(filters.minVolume)
-        ) {
-          return false;
-        }
-        return true;
-      });
-    }, [processedIdeas, filters]);
+              const filteredIdeas = useMemo(() => {
+                return processedIdeas.filter(item => {
+                  if (
+                    filters.keyword &&
+                    !item.text.toLowerCase().includes(filters.keyword.toLowerCase())
+                  ) {
+                    return false;
+                  }
+                  if (
+                    filters.minVolume !== '' &&
+                    (item.latestSearchVolume || 0) < Number(filters.minVolume)
+                  ) {
+                    return false;
+                  }
+                  return true;
+                });
+              }, [processedIdeas, filters]);
 
-    const sortedIdeas = useMemo(() => {
-      let sortableItems = [...filteredIdeas];
-      if (sortConfig.key) {
-        sortableItems.sort((a, b) => {
-          let aValue, bValue;
-          if (sortConfig.key === 'competition') {
-            aValue =
-              a.competition_index != null ? Number(a.competition_index) : null;
-            bValue =
-              b.competition_index != null ? Number(b.competition_index) : null;
-          } else if (
-            [
-              'low_top_of_page_bid_micros',
-              'high_top_of_page_bid_micros',
-              'average_cpc_micros',
-            ].includes(sortConfig.key)
-          ) {
-            aValue =
-              a[sortConfig.key] != null ? Number(a[sortConfig.key]) : null;
-            bValue =
-              b[sortConfig.key] != null ? Number(b[sortConfig.key]) : null;
-          } else if (sortConfig.key === 'growth') {
-            if (growthMetric === 'yoy') {
-              aValue = a.growthYoY;
-              bValue = b.growthYoY;
-            } else if (growthMetric === 'mom') {
-              aValue = a.growthMoM;
-              bValue = b.growthMoM;
-            } else if (growthMetric === 'latest_vs_avg') {
-              aValue = a.growthLatestVsAvg;
-              bValue = b.growthLatestVsAvg;
-            } else if (growthMetric === 'latest_vs_max') {
-              aValue = a.growthLatestVsMax;
-              bValue = b.growthLatestVsMax;
-            } else if (growthMetric === 'three_months_vs_avg') {
-              aValue = a.growthThreeMonthsVsAvg;
-              bValue = b.growthThreeMonthsVsAvg;
-            }
-          } else {
-            aValue = a[sortConfig.key];
-            bValue = b[sortConfig.key];
-          }
+              const sortedIdeas = useMemo(() => {
+                let sortableItems = [...filteredIdeas];
+                if (sortConfig.key) {
+                  sortableItems.sort((a, b) => {
+                    let aValue, bValue;
+                    if (sortConfig.key === 'competition') {
+                      aValue =
+                        a.competition_index != null ? Number(a.competition_index) : null;
+                      bValue =
+                        b.competition_index != null ? Number(b.competition_index) : null;
+                    } else if (
+                      [
+                        'low_top_of_page_bid_micros',
+                        'high_top_of_page_bid_micros',
+                        'average_cpc_micros',
+                      ].includes(sortConfig.key)
+                    ) {
+                      aValue =
+                        a[sortConfig.key] != null ? Number(a[sortConfig.key]) : null;
+                      bValue =
+                        b[sortConfig.key] != null ? Number(b[sortConfig.key]) : null;
+                    } else if (sortConfig.key === 'growth') {
+                      if (growthMetric === 'yoy') {
+                        aValue = a.growthYoY;
+                        bValue = b.growthYoY;
+                      } else if (growthMetric === 'mom') {
+                        aValue = a.growthMoM;
+                        bValue = b.growthMoM;
+                      } else if (growthMetric === 'latest_vs_avg') {
+                        aValue = a.growthLatestVsAvg;
+                        bValue = b.growthLatestVsAvg;
+                      } else if (growthMetric === 'latest_vs_max') {
+                        aValue = a.growthLatestVsMax;
+                        bValue = b.growthLatestVsMax;
+                      } else if (growthMetric === 'three_months_vs_avg') {
+                        aValue = a.growthThreeMonthsVsAvg;
+                        bValue = b.growthThreeMonthsVsAvg;
+                      }
+                    } else {
+                      aValue = a[sortConfig.key];
+                      bValue = b[sortConfig.key];
+                    }
 
-          if (aValue == null) return 1;
-          if (bValue == null) return -1;
+                    if (aValue == null) return 1;
+                    if (bValue == null) return -1;
 
-          if (aValue < bValue)
-            return sortConfig.direction === 'ascending' ? -1 : 1;
-          if (aValue > bValue)
-            return sortConfig.direction === 'ascending' ? 1 : -1;
-          return 0;
-        });
-      }
-      return sortableItems;
-    }, [filteredIdeas, sortConfig, growthMetric]);
+                    if (aValue < bValue)
+                      return sortConfig.direction === 'ascending' ? -1 : 1;
+                    if (aValue > bValue)
+                      return sortConfig.direction === 'ascending' ? 1 : -1;
+                    return 0;
+                  });
+                }
+                return sortableItems;
+              }, [filteredIdeas, sortConfig, growthMetric]);
 
-    // Memoize chart options to prevent re-renders/animations
-    const seedChartOptions = useMemo(
-      () => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { boxWidth: 10, padding: 10 },
-          },
-          tooltip: { mode: 'index', intersect: false },
-        },
-        interaction: {
-          mode: 'nearest',
-          axis: 'x',
-          intersect: false,
-        },
-        scales: {
-          x: {
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-        },
-      }),
-      [theme]
-    );
+              // Memoize chart options to prevent re-renders/animations
+              const seedChartOptions = useMemo(
+                () => ({
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: 10, padding: 10 },
+                    },
+                    tooltip: { mode: 'index', intersect: false },
+                  },
+                  interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false,
+                  },
+                  scales: {
+                    x: {
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                    y: {
+                      beginAtZero: true,
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                  },
+                }),
+                [theme]
+              );
 
 
 
-    const clusterVolumeChartOptions = useMemo(
-      () => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-        },
-        scales: {
-          x: {
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-          y: {
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-        },
-      }),
-      [theme, textColor, gridColor]
-    );
+              const clusterVolumeChartOptions = useMemo(
+                () => ({
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                  },
+                  scales: {
+                    x: {
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                    y: {
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                  },
+                }),
+                [theme, textColor, gridColor]
+              );
 
-    const keywordVolumeChartOptions = useMemo(
-      () => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { boxWidth: 10, padding: 10 },
-          },
-          tooltip: { mode: 'index', intersect: false },
-        },
-        interaction: {
-          mode: 'nearest',
-          axis: 'x',
-          intersect: false,
-        },
-        scales: {
-          x: {
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-        },
-      }),
-      [theme]
-    );
+              const keywordVolumeChartOptions = useMemo(
+                () => ({
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: 10, padding: 10 },
+                    },
+                    tooltip: { mode: 'index', intersect: false },
+                  },
+                  interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false,
+                  },
+                  scales: {
+                    x: {
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                    y: {
+                      beginAtZero: true,
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                  },
+                }),
+                [theme]
+              );
 
-    const keywordVolumeChartData = useMemo(() => {
-      if (!selectedCluster || !chartLabels) return null;
-      return {
-        labels: chartLabels,
-        datasets: selectedCluster.keywords.map((k, i) => {
-          const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
-          const color = palette[i % palette.length];
-          return {
-            label: k,
-            data: volHistory.slice(),
-            borderColor: color,
-            backgroundColor: color,
-            fill: false,
-            tension: 0.3,
-            pointRadius: 2,
-            pointHoverRadius: 5,
-          };
-        }),
-      };
-    }, [selectedCluster, chartLabels, relevantIdeas, palette]);
+              const keywordVolumeChartData = useMemo(() => {
+                if (!selectedCluster || !chartLabels) return null;
+                return {
+                  labels: chartLabels,
+                  datasets: selectedCluster.keywords.map((k, i) => {
+                    const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
+                    const color = palette[i % palette.length];
+                    return {
+                      label: k,
+                      data: volHistory.slice(),
+                      borderColor: color,
+                      backgroundColor: color,
+                      fill: false,
+                      tension: 0.3,
+                      pointRadius: 2,
+                      pointHoverRadius: 5,
+                    };
+                  }),
+                };
+              }, [selectedCluster, chartLabels, relevantIdeas, palette]);
 
-    const expandedIdeaChartData = useMemo(() => {
-      if (!expandedIdea || !chartLabels) return null;
-      // Verify lengths match or slice
-      // In ideasData, searchVolume matches months. chartLabels should match.
-      return {
-        labels: chartLabels,
-        datasets: [
-          {
-            label: expandedIdea.text,
-            data: expandedIdea.searchVolume,
-            borderColor: palette[0],
-            backgroundColor: palette[0],
-            fill: false,
-            tension: 0.3,
-            pointRadius: 3,
-            pointHoverRadius: 6,
-          },
-        ],
-      };
-    }, [expandedIdea, chartLabels, palette]);
+              const expandedIdeaChartData = useMemo(() => {
+                if (!expandedIdea || !chartLabels) return null;
+                // Verify lengths match or slice
+                // In ideasData, searchVolume matches months. chartLabels should match.
+                return {
+                  labels: chartLabels,
+                  datasets: [
+                    {
+                      label: expandedIdea.text,
+                      data: expandedIdea.searchVolume,
+                      borderColor: palette[0],
+                      backgroundColor: palette[0],
+                      fill: false,
+                      tension: 0.3,
+                      pointRadius: 3,
+                      pointHoverRadius: 6,
+                    },
+                  ],
+                };
+              }, [expandedIdea, chartLabels, palette]);
 
-    return (
-      <div className="card fade-in">
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1rem',
-          }}
-        >
-          <h2 style={{ marginBottom: 0 }}>Explore trending topics</h2>
+              const exploreModelName = geminiConfig?.modelId || 'gemini-3.1-pro-preview';
+
+              return (
+                <div className="card fade-in">
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '1rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <h2 style={{ marginBottom: 0 }}>Explore trending topics</h2>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        Model: {exploreModelName} (<a href="#" onClick={(e) => { e.preventDefault(); onOpenSettings('EXPLORE_MODEL'); }} style={{ color: 'var(--primary)', textDecoration: 'none' }}>change</a>)
+                      </div>
+                    </div>
           <button
             className="btn-icon"
             onClick={() => {
@@ -572,6 +581,7 @@ limitations under the License.
                       color: '#dc2626',
                       fontSize: '48px',
                       fontWeight: 'bold',
+                      zIndex: 9999,
                       animation: 'bounceHorizontal 1s infinite ease-in-out',
                     }}
                   >
@@ -1330,6 +1340,14 @@ limitations under the License.
                         The tool will only retrieve search volume and historical
                         metrics specific to this location.
                       </p>
+                      <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
+                        <p style={{ marginBottom: '4px' }}>
+                          * When adding a custom location, use city level or higher (e.g., City, State, Country).
+                        </p>
+                        <p>
+                          * Locations lower than city level (e.g., postal codes, specific neighborhoods) often result in sparse or no data being returned. <a href="https://developers.google.com/google-ads/api/reference/data/geotargets" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Learn more about geo targets</a>.
+                        </p>
+                      </div>
                     </div>
                   );
                 case 'clustering_info':

@@ -32,10 +32,14 @@ limitations under the License.
     setInsightsChatHistory,
     followUpSuggestions,
     setFollowUpSuggestions,
+    geminiConfig,
+    onOpenSettings,
   }) => {
     const languageInputRef = React.useRef(null);
     const [selectedImage, setSelectedImage] = React.useState(null);
     const [activeInfoModal, setActiveInfoModal] = React.useState(null);
+
+    const insightsModelName = geminiConfig?.insightsModelId || geminiConfig?.modelId || 'gemini-3.1-pro-preview';
 
     return (
       <div className="card fade-in">
@@ -47,7 +51,12 @@ limitations under the License.
             marginBottom: '1rem',
           }}
         >
-          <h2 style={{ marginBottom: 0 }}>Insights</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <h2 style={{ marginBottom: 0 }}>Insights</h2>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              Model: {insightsModelName} (<a href="#" onClick={(e) => { e.preventDefault(); onOpenSettings('INSIGHTS_MODEL'); }} style={{ color: 'var(--primary)', textDecoration: 'none' }}>change</a>)
+            </div>
+          </div>
           <button
             className="header-action-btn"
             onClick={() => {

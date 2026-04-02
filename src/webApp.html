@@ -411,12 +411,14 @@ limitations under the License.
       backdrop-filter: blur(5px);
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       z-index: 1000;
       animation: fadeIn 0.2s ease-out;
+      overflow-y: auto;
     }
 
     .modal-content {
+      margin: 4rem auto;
       background: var(--surface-color);
       color: var(--text-main);
       padding: 2rem;
@@ -426,8 +428,7 @@ limitations under the License.
       width: 90%;
       max-width: 500px;
       animation: slideUp 0.2s ease-out;
-      max-height: 90vh;
-      overflow-y: auto;
+      overflow: visible;
     }
 
     .modal-content.large-modal {
@@ -2905,12 +2906,13 @@ limitations under the License.
           <div className="modal-body">
             <p className="text-sm text-muted mb-4">
               Enter a Google Ads Criterion ID for a location (e.g. 2250 for
-              France) or use the search to find it by name.
+              France) or use the search to find it by name. Target at the city level or higher (e.g. City, State, Country) to ensure sufficient data.
               <a
                 href={LOCATION_INFO_URL}
                 target="_blank"
                 rel="noreferrer noopener"
                 style={{ marginLeft: '4px', verticalAlign: 'middle' }}
+                title="Locations lower than city level may return sparse or no data"
               >
                 <span
                   className="material-symbols-outlined"
@@ -3136,6 +3138,8 @@ limitations under the License.
               highlightKeywordSources={highlightKeywordSources}
               setHighlightKeywordSources={setHighlightKeywordSources}
               theme={theme}
+              geminiConfig={geminiConfig}
+              onOpenSettings={(highlight) => setModalConfig({ ...modalConfig, isOpen: true, type: 'settings', highlight: highlight || null })}
             />
           )}
 
@@ -3158,6 +3162,8 @@ limitations under the License.
               setInsightsChatHistory={setInsightsChatHistory}
               followUpSuggestions={followUpSuggestions}
               setFollowUpSuggestions={setFollowUpSuggestions}
+              geminiConfig={geminiConfig}
+              onOpenSettings={(highlight) => setModalConfig({ ...modalConfig, isOpen: true, type: 'settings', highlight: highlight || null })}
             />
           )}
 

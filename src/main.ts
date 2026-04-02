@@ -210,7 +210,12 @@ export const getInsights = async (
     language,
     specificQuestion
   );
-  const config = createGeminiConfig(geminiConfig, 'application/json');
+
+  const effectiveConfig = {
+    ...geminiConfig,
+    modelId: geminiConfig.insightsModelId || geminiConfig.modelId,
+  };
+  const config = createGeminiConfig(effectiveConfig, 'application/json');
 
   try {
     // gemini(config) returns a function, then we call it with prompt.
@@ -472,8 +477,12 @@ export const getInsightsChatResponse = async (
     required: ['response', 'suggestions'],
   };
 
+  const effectiveConfig = {
+    ...geminiConfig,
+    modelId: geminiConfig.insightsModelId || geminiConfig.modelId,
+  };
   const config = createGeminiConfig(
-    geminiConfig,
+    effectiveConfig,
     'application/json',
     responseSchema
   );

@@ -59,6 +59,7 @@ export interface GeminiConfig {
   projectId: string;
   modelId: string;
   imageModelId?: string;
+  insightsModelId?: string;
   location?: string;
   maxOutputTokens?: number;
   responseType?: string;
