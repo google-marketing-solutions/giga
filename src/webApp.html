@@ -1103,6 +1103,14 @@ limitations under the License.
 
       // Demo Mode Randomization
       const [isRandomized, setIsRandomized] = useState(true);
+      const [demoRandomizationPercent, setDemoRandomizationPercent] = useStickyState(
+        100,
+        'giga_demoRandomizationPercent'
+      );
+      
+      useEffect(() => {
+        window.setDemoRandomizationPercent = setDemoRandomizationPercent;
+      }, [setDemoRandomizationPercent]);
 
       // --- Sheet Export Helper ---
       const [isExporting, setIsExporting] = useState(false);
@@ -1292,17 +1300,27 @@ limitations under the License.
               : {};
 
             if (randomize) {
+              const p = demoRandomizationPercent / 100;
               const generateSmoothSeries = originalSeries => {
                 const length = Array.isArray(originalSeries)
                   ? originalSeries.length
                   : 12;
+
+                let magnitude = 10;
+                if (Array.isArray(originalSeries) && originalSeries.length > 0) {
+                  const maxVal = Math.max(...originalSeries);
+                  if (maxVal > 0) {
+                    magnitude = Math.pow(10, Math.floor(Math.log10(maxVal)));
+                  }
+                }
+
                 const series = [];
-                // Start between 10 and 100
-                let current = Math.floor(Math.random() * 90) + 10;
+                // Start between 1 and 9 * magnitude
+                let current = Math.floor(Math.random() * 9 * magnitude) + magnitude;
                 series.push(current);
 
                 for (let i = 1; i < length; i++) {
-                  const volatility = Math.max(5, Math.round(current * 0.2));
+                  const volatility = Math.max(Math.ceil(magnitude * 0.1), Math.round(current * 0.2));
                   const change =
                     Math.floor(Math.random() * (volatility * 2 + 1)) -
                     volatility;
@@ -1316,18 +1334,70 @@ limitations under the License.
                     series[lastIdx] * (2 + Math.random() * 3)
                   );
                 }
+                
+                if (Array.isArray(originalSeries) && originalSeries.length === series.length) {
+                  return originalSeries.map((orig, i) => Math.round(orig + (series[i] - orig) * p));
+                }
                 return series;
               };
 
-              const randomizeGrowth = val =>
-                typeof val === 'number' ? val + (Math.random() - 0.5) : val;
+              const randomizeMetric = val => {
+                if (val == null || val === '') return val;
+                const numVal = Number(val);
+                if (isNaN(numVal) || numVal === 0) return val;
+                
+                const magnitude = Math.pow(10, Math.floor(Math.log10(Math.abs(numVal))));
+                const sign = Math.sign(numVal);
+                const randomVal = Math.random() * 9 * magnitude + magnitude;
+                const interpolated = numVal + (sign * randomVal - numVal) * p;
+                
+                // keep integer if original was integer
+                return Number.isInteger(numVal) ? Math.floor(interpolated) : interpolated;
+              };
 
-              parsedIdeas = parsedIdeas.map(idea => ({
-                ...idea,
-                searchVolume: Array.isArray(idea.searchVolume)
+              const randomizeGrowth = val => {
+                if (typeof val !== 'number') return val;
+                const randomGrowth = val + (Math.random() - 0.5);
+                return val + (randomGrowth - val) * p;
+              };
+
+              parsedIdeas = parsedIdeas.map(idea => {
+                const newSearchVolume = Array.isArray(idea.searchVolume)
                   ? generateSmoothSeries(idea.searchVolume)
-                  : idea.searchVolume,
-              }));
+                  : idea.searchVolume;
+                
+                const newLatestVolume = Array.isArray(newSearchVolume) && newSearchVolume.length > 0 
+                  ? newSearchVolume[newSearchVolume.length - 1] 
+                  : idea.latestSearchVolume;
+
+                const compLevels = ['LOW', 'MEDIUM', 'HIGH'];
+                let newComp = idea.competition;
+                if (p > 0 && compLevels.includes(idea.competition) && Math.random() < p) {
+                  newComp = compLevels[Math.floor(Math.random() * compLevels.length)];
+                }
+
+                let newCompIndex = idea.competition_index;
+                if (typeof newCompIndex === 'number' && p > 0) {
+                  const randomIdx = Math.floor(Math.random() * 100);
+                  newCompIndex = Math.min(100, Math.max(0, Math.floor(newCompIndex + (randomIdx - newCompIndex) * p)));
+                }
+
+                return {
+                  ...idea,
+                  searchVolume: newSearchVolume,
+                  latestSearchVolume: newLatestVolume,
+                  growthYoY: randomizeGrowth(idea.growthYoY),
+                  growthMoM: randomizeGrowth(idea.growthMoM),
+                  growthLatestVsAvg: randomizeGrowth(idea.growthLatestVsAvg),
+                  growthLatestVsMax: randomizeGrowth(idea.growthLatestVsMax),
+                  growthThreeMonthsVsAvg: randomizeGrowth(idea.growthThreeMonthsVsAvg),
+                  competition: newComp,
+                  competition_index: newCompIndex,
+                  low_top_of_page_bid_micros: randomizeMetric(idea.low_top_of_page_bid_micros),
+                  high_top_of_page_bid_micros: randomizeMetric(idea.high_top_of_page_bid_micros),
+                  average_cpc_micros: randomizeMetric(idea.average_cpc_micros),
+                };
+              });
 
               parsedClusters = parsedClusters.map(c => {
                 const newHistory = Array.isArray(c.searchVolumeHistory)
@@ -1350,6 +1420,7 @@ limitations under the License.
                   growthMoM: randomizeGrowth(c.growthMoM),
                   growthLatestVsAvg: randomizeGrowth(c.growthLatestVsAvg),
                   growthLatestVsMax: randomizeGrowth(c.growthLatestVsMax),
+                  growthThreeMonthsVsAvg: randomizeGrowth(c.growthThreeMonthsVsAvg),
                 };
               });
 
@@ -1417,7 +1488,7 @@ limitations under the License.
           }
         };
         updateData();
-      }, [isRandomized]);
+      }, [isRandomized, demoRandomizationPercent]);
 
       useEffect(() => {
         const handleKeyDown = e => {
