@@ -39,7 +39,8 @@ limitations under the License.
     const [selectedImage, setSelectedImage] = React.useState(null);
     const [activeInfoModal, setActiveInfoModal] = React.useState(null);
 
-    const insightsModelName = geminiConfig?.insightsModelId || geminiConfig?.modelId || 'gemini-3.1-pro-preview';
+    const insightsModelId = geminiConfig?.insightsModelId || geminiConfig?.modelId || 'gemini-3.1-pro-preview';
+    const insightsModelName = window.MODEL_NAMES?.[insightsModelId] || insightsModelId;
 
     return (
       <div className="card fade-in">

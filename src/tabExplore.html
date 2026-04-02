@@ -15,7 +15,7 @@ limitations under the License.
 -->
 <script type="text/babel">
   const { useState, useMemo, useEffect, useRef } = React;
-  const { GROWTH_METRICS, LANGUAGES, COUNTRIES, COLOR_PALETTE, DARK_MODE_PALETTE } = window;
+  const { GROWTH_METRICS, LANGUAGES, COUNTRIES, COLOR_PALETTE, DARK_MODE_PALETTE, MODEL_NAMES } = window;
   const { InputField, SelectField, ChartComponent, Modal, ChipsInput } = window;
 
   window.ExploreTab = ({
@@ -106,13 +106,13 @@ limitations under the License.
 
               // Keyword Table State
               const [sortConfig, setSortConfig] = useState({
-                key: 'growth',
+                key: 'latest_vs_max',
                 direction: 'descending',
               });
               const [filters, setFilters] = useState({ keyword: '', minVolume: '' });
               const [expandedIdea, setExpandedIdea] = useState(null);
               const [activeMetrics, setActiveMetrics] = window.useStickyState(
-                ['yoy', 'mom', 'latest_vs_max'],
+                ['latest_vs_max', 'yoy', 'mom'],
                 'giga_activeMetrics'
               );
               const [isMetricsDropdownOpen, setIsMetricsDropdownOpen] = useState(false);
@@ -365,7 +365,8 @@ limitations under the License.
                 };
               }, [expandedIdea, chartLabels, palette]);
 
-              const exploreModelName = geminiConfig?.modelId || 'gemini-3.1-pro-preview';
+              const exploreModelId = geminiConfig?.modelId || 'gemini-3.1-pro-preview';
+              const exploreModelName = MODEL_NAMES?.[exploreModelId] || exploreModelId;
 
               return (
                 <div className="card fade-in">
@@ -807,10 +808,18 @@ limitations under the License.
             className="mt-4"
             style={{
               display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
             }}
           >
+            <div style={{ maxWidth: '300px' }}>
+              <SelectField
+                label="Growth Metric"
+                value={growthMetric}
+                onChange={setGrowthMetric}
+                options={GROWTH_METRICS}
+              />
+            </div>
             <div>
               {useClustering && clusters && (
                 <>
@@ -895,31 +904,34 @@ limitations under the License.
                 {selectedCluster.searchVolume.toLocaleString()}
               </div>
               <div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {activeMetrics.map(metricId => {
-                    let val = 0;
-                    if (metricId === 'yoy') val = selectedCluster.growthYoY || selectedCluster.yearOverYearGrowth || 0;
-                    else if (metricId === 'mom') val = selectedCluster.growthMoM || 0;
-                    else if (metricId === 'latest_vs_avg') val = selectedCluster.growthLatestVsAvg || 0;
-                    else if (metricId === 'latest_vs_max') val = selectedCluster.growthLatestVsMax || 0;
-                    else if (metricId === 'three_months_vs_avg') val = selectedCluster.growthThreeMonthsVsAvg || 0;
-                    
-                    const metricName = GROWTH_METRICS.find(m => m.id === metricId)?.name || 'Growth';
-                    
-                    return (
-                      <div key={metricId}>
-                        <strong>{metricName}:</strong>{' '}
-                        {val != null ? (
-                          <span style={{ 
-                            color: val > 0 ? 'var(--success)' : val < 0 ? 'var(--error)' : 'inherit' 
-                          }}>
-                            {val > 0 ? '+' : ''}{(val * 100).toFixed(1)}%
-                          </span>
-                        ) : '-'}
-                      </div>
-                    );
-                  })}
-                </div>
+                <strong>
+                  {GROWTH_METRICS.find(m => m.id === growthMetric)?.name ||
+                    'Growth'}
+                  :
+                </strong>{' '}
+                {(() => {
+                  let val = 0;
+                  if (growthMetric === 'yoy')
+                    val =
+                      selectedCluster.growthYoY ||
+                      selectedCluster.yearOverYearGrowth ||
+                      0;
+                  else if (growthMetric === 'mom')
+                    val = selectedCluster.growthMoM || 0;
+                  else if (growthMetric === 'latest_vs_avg')
+                    val = selectedCluster.growthLatestVsAvg || 0;
+                  else if (growthMetric === 'latest_vs_max')
+                    val = selectedCluster.growthLatestVsMax || 0;
+                  else if (growthMetric === 'three_months_vs_avg')
+                    val = selectedCluster.growthThreeMonthsVsAvg || 0;
+                  return (
+                    <span style={{ 
+                      color: val > 0 ? 'var(--success)' : val < 0 ? 'var(--error)' : 'inherit' 
+                    }}>
+                      {val > 0 ? '+' : ''}{(val * 100).toFixed(1)}%
+                    </span>
+                  );
+                })()}
               </div>
             </div>
             <div className="mt-4">

@@ -238,14 +238,20 @@ The Google Ads keyword ideas are:
    * This will be used to populate the growth metrics dropdown in the UI.
    */
   window.GROWTH_METRICS = [
+    { id: 'latest_vs_max', name: 'Last Month vs Max' },
     { id: 'yoy', name: 'Year over Year' },
     { id: 'mom', name: 'Month over Month' },
     { id: 'latest_vs_avg', name: 'Latest vs Average' },
-    { id: 'latest_vs_max', name: 'Last Month vs Max' },
     { id: 'three_months_vs_avg', name: 'Last 3 Months vs Prev Avg' },
   ];
 
-  window.APP_VERSION = 'v1.1.3';
+  window.MODEL_NAMES = {
+    'gemini-3.1-pro-preview': 'Gemini 3.1 Pro',
+    'gemini-3-flash-preview': 'Gemini 3 Flash',
+    'gemini-3.1-flash-lite-preview': 'Gemini 3.1 Flash Lite'
+  };
+
+  window.APP_VERSION = 'v1.2.0';
 
   window.compareVersions = (v1, v2) => {
     if (!v1 || !v2) return 'major';
