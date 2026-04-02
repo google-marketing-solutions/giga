@@ -22,6 +22,7 @@ limitations under the License.
     keywords,
     setKeywords,
     runExplore,
+    stopExplore,
     isExploring,
     exploreStatus,
     ideasData,
@@ -750,22 +751,38 @@ limitations under the License.
           </div>
         </details>
 
-        <button
-          className="btn btn-primary"
-          onClick={runExplore}
-          disabled={isExploring}
-        >
-          {isExploring ? (
-            <>
-              <div className="spinner"></div> {exploreStatus || 'Running...'}
-            </>
-          ) : (
-            <>
-              <span className="material-symbols-outlined">rocket_launch</span>{' '}
-              Start
-            </>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            className="btn btn-primary"
+            onClick={runExplore}
+            disabled={isExploring}
+          >
+            {isExploring ? (
+              <>
+                <div className="spinner"></div> {exploreStatus || 'Running...'}
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined">rocket_launch</span>{' '}
+                Start
+              </>
+            )}
+          </button>
+
+          {isExploring && (
+            <button
+              className="btn btn-secondary"
+              onClick={stopExplore}
+              style={{
+                color: 'var(--error)',
+                borderColor: 'var(--error)',
+                background: 'transparent'
+              }}
+            >
+              <span className="material-symbols-outlined">close</span> Cancel
+            </button>
           )}
-        </button>
+        </div>
 
         {seedChartData && (
           <div

@@ -1029,6 +1029,14 @@ limitations under the License.
       );
       const [exploreStatus, setExploreStatus] = useState('');
       const [isExploring, setIsExploring] = useState(false);
+      const isExploringRef = useRef(false);
+
+      const stopExplore = () => {
+        isExploringRef.current = false;
+        setIsExploring(false);
+        setExploreStatus('Cancelled by user.');
+      };
+
       const [ideasData, setIdeasData] = useStickyState(
         null,
         'giga_ideasData',
@@ -1853,6 +1861,7 @@ limitations under the License.
         }
 
         setIsExploring(true);
+        isExploringRef.current = true;
 
         if (isDemoMode) {
           setExploreStatus('Getting keyword ideas...');
@@ -1945,6 +1954,7 @@ limitations under the License.
                   .map(k => [k, idea])
               )
               .map(([k, res]) => {
+                if (!isExploringRef.current) return null;
                 const metrics = res.keywordIdeaMetrics;
                 const volumes = metrics.monthlySearchVolumes.map(item =>
                   Number(item.monthlySearches)
@@ -2003,9 +2013,12 @@ limitations under the License.
                   high_top_of_page_bid_micros: metrics.highTopOfPageBidMicros,
                   average_cpc_micros: metrics.averageCpcMicros,
                 };
-              });
+              })
+              .filter(Boolean);
             processedIdeas = processedIdeas.concat(plannerIdeas);
           }
+
+          if (!isExploringRef.current) return;
 
           if (useGemini) {
             setExploreStatus('Generating Gemini keywords...');
@@ -2030,6 +2043,8 @@ limitations under the License.
                 finalGeminiPrompt,
                 geminiConfig
               );
+              
+            if (!isExploringRef.current) return;
 
             if (geminiKeywords && geminiKeywords.length > 0) {
               setExploreStatus('Fetching metrics for Gemini keywords...');
@@ -2037,10 +2052,13 @@ limitations under the License.
                 geminiKeywords,
                 country || undefined
               );
+              
+              if (!isExploringRef.current) return;
 
               const geminiIdeas = metrics
                 .filter(m => m && m.text && m.keywordMetrics)
                 .map(metric => {
+                  if (!isExploringRef.current) return null;
                   const hist = metric.keywordMetrics;
                   const volumes = (hist.monthlySearchVolumes || []).map(m =>
                     Number(m.monthlySearches)
@@ -2099,10 +2117,13 @@ limitations under the License.
                     high_top_of_page_bid_micros: hist.highTopOfPageBidMicros,
                     average_cpc_micros: hist.averageCpcMicros,
                   };
-                });
+                })
+                .filter(Boolean);
               processedIdeas = processedIdeas.concat(geminiIdeas);
             }
           }
+
+          if (!isExploringRef.current) return;
 
           // Deduplicate by text
           const uniqueIdeas = [];
@@ -2130,6 +2151,8 @@ limitations under the License.
           });
           setRelevantIdeas(relevant);
 
+          if (!isExploringRef.current) return;
+
           if (useClustering) {
             setExploreStatus(`Clustering ${processedIdeas.length} ideas...`);
 
@@ -2138,6 +2161,9 @@ limitations under the License.
               promptTemplate,
               geminiConfig
             );
+            
+            if (!isExploringRef.current) return;
+
             setClusters(clusterResult);
             setExploreStatus(
               `Done. Clustered ${processedIdeas.length} keywords.`
@@ -3096,6 +3122,7 @@ limitations under the License.
               keywords={keywords}
               setKeywords={setKeywords}
               runExplore={runExplore}
+              stopExplore={stopExplore}
               isExploring={isExploring}
               exploreStatus={exploreStatus}
               ideasData={ideasData}
