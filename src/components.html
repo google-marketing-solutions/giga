@@ -147,17 +147,31 @@ limitations under the License.
     maxWidth = '',
     showCloseButton = true,
   }) => {
+    const overlayRef = useRef(null);
+    const onCloseRef = useRef(onClose);
+
     useEffect(() => {
+      onCloseRef.current = onClose;
+    }, [onClose]);
+
+    useEffect(() => {
+      if (!isOpen) return;
       const handleEsc = event => {
-        if (event.key === 'Escape') onClose();
+        if (event.key === 'Escape' && overlayRef.current) {
+          const overlays = Array.from(document.querySelectorAll('.modal-overlay'));
+          if (overlays.length > 0 && overlays[overlays.length - 1] === overlayRef.current) {
+            event.stopImmediatePropagation();
+            onCloseRef.current();
+          }
+        }
       };
-      if (isOpen) window.addEventListener('keydown', handleEsc);
-      return () => window.removeEventListener('keydown', handleEsc);
-    }, [isOpen, onClose]);
+      window.addEventListener('keydown', handleEsc, true);
+      return () => window.removeEventListener('keydown', handleEsc, true);
+    }, [isOpen]);
 
     if (!isOpen) return null;
     return (
-      <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-overlay" ref={overlayRef} onClick={onClose}>
         <div
           className={`modal-content ${className}`}
           onClick={e => e.stopPropagation()}
@@ -178,6 +192,28 @@ limitations under the License.
   };
 
   window.ErrorModal = ({ isOpen, onClose, error }) => {
+    const overlayRef = useRef(null);
+    const onCloseRef = useRef(onClose);
+
+    useEffect(() => {
+      onCloseRef.current = onClose;
+    }, [onClose]);
+
+    useEffect(() => {
+      if (!isOpen) return;
+      const handleEsc = event => {
+        if (event.key === 'Escape' && overlayRef.current) {
+          const overlays = Array.from(document.querySelectorAll('.modal-overlay'));
+          if (overlays.length > 0 && overlays[overlays.length - 1] === overlayRef.current) {
+            event.stopImmediatePropagation();
+            onCloseRef.current();
+          }
+        }
+      };
+      window.addEventListener('keydown', handleEsc, true);
+      return () => window.removeEventListener('keydown', handleEsc, true);
+    }, [isOpen]);
+
     if (!isOpen || !error) return null;
 
     const copyToClipboard = () => {
@@ -188,7 +224,7 @@ limitations under the License.
     };
 
     return (
-      <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-overlay" ref={overlayRef} onClick={onClose}>
         <div
           className="modal-content error-modal-content"
           onClick={e => e.stopPropagation()}
@@ -422,21 +458,6 @@ limitations under the License.
       }
     }, [isOpen, modalConfig.highlight]);
 
-    // Close on ESC
-    useEffect(() => {
-      const handleEsc = event => {
-        if (event.key === 'Escape') {
-          onClose();
-        }
-      };
-      if (isOpen) {
-        window.addEventListener('keydown', handleEsc);
-      }
-      return () => {
-        window.removeEventListener('keydown', handleEsc);
-      };
-    }, [isOpen, onClose]);
-
     const handleSave = async () => {
       setIsSaving(true);
       try {
@@ -458,10 +479,7 @@ limitations under the License.
       <React.Fragment>
       <Modal
         isOpen={isOpen}
-        onClose={() => {
-          if (infoModalOpen) return;
-          onClose();
-        }}
+        onClose={onClose}
         title="Settings"
         maxWidth="700px"
         showCloseButton={false}

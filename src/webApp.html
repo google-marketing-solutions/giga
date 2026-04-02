@@ -1965,7 +1965,8 @@ limitations under the License.
                 const growthLatestVsAvg =
                   avg !== 0 ? (latest - avg) / avg : 0;
 
-                const max = Math.max(...volumes);
+                const historyWithoutLatest = volumes.slice(0, -1);
+                const max = historyWithoutLatest.length > 0 ? Math.max(...historyWithoutLatest) : 0;
                 const growthLatestVsMax =
                   max !== 0 ? (latest - max) / max : 0;
 
@@ -2060,7 +2061,8 @@ limitations under the License.
                   const growthLatestVsAvg =
                     avg !== 0 ? (latest - avg) / avg : 0;
 
-                  const max = Math.max(...volumes);
+                  const historyWithoutLatest = volumes.slice(0, -1);
+                  const max = historyWithoutLatest.length > 0 ? Math.max(...historyWithoutLatest) : 0;
                   const growthLatestVsMax =
                     max !== 0 ? (latest - max) / max : 0;
 
