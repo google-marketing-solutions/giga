@@ -808,18 +808,10 @@ limitations under the License.
             className="mt-4"
             style={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-end',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
             }}
           >
-            <div style={{ maxWidth: '300px' }}>
-              <SelectField
-                label="Growth Metric"
-                value={growthMetric}
-                onChange={setGrowthMetric}
-                options={GROWTH_METRICS}
-              />
-            </div>
             <div>
               {useClustering && clusters && (
                 <>
@@ -861,6 +853,14 @@ limitations under the License.
         {useClustering && clustersChartData && (
           <div className="mt-4">
             <h3>Clusters</h3>
+            <div style={{ marginBottom: '8px', width: '250px' }}>
+              <SelectField
+                label="Growth metric for clustering"
+                value={growthMetric}
+                onChange={setGrowthMetric}
+                options={GROWTH_METRICS}
+              />
+            </div>
             <div className="text-sm text-muted mb-2">
               Click on a bubble to view details
             </div>
@@ -1296,36 +1296,6 @@ limitations under the License.
                             }}
                           >
                             <td colSpan={6 + activeMetrics.length} style={{ padding: '16px' }}>
-                              <div className="grid-2 mb-4">
-                                <div>
-                                  <strong>Total Volume:</strong>{' '}
-                                  {expandedIdea.latestSearchVolume?.toLocaleString() ??
-                                    '-'}
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                  {activeMetrics.map(metricId => {
-                                    let val = 0;
-                                    if (metricId === 'yoy') val = expandedIdea.growthYoY || 0;
-                                    else if (metricId === 'mom') val = expandedIdea.growthMoM || 0;
-                                    else if (metricId === 'latest_vs_avg') val = expandedIdea.growthLatestVsAvg || 0;
-                                    else if (metricId === 'latest_vs_max') val = expandedIdea.growthLatestVsMax || 0;
-                                    else if (metricId === 'three_months_vs_avg') val = expandedIdea.growthThreeMonthsVsAvg || 0;
-                                    
-                                    const metricName = GROWTH_METRICS.find(m => m.id === metricId)?.name || 'Growth';
-                                    
-                                    return (
-                                      <div key={metricId}>
-                                        <strong>{metricName}:</strong>{' '}
-                                        <span style={{ 
-                                          color: val > 0 ? 'var(--success)' : val < 0 ? 'var(--error)' : 'inherit' 
-                                        }}>
-                                          {val > 0 ? '+' : ''}{(val * 100).toFixed(1)}%
-                                        </span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
                               {expandedIdeaChartData ? (
                                 <div>
                                   <div style={{ height: '300px' }}>
