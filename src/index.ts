@@ -27,6 +27,8 @@ import {
   getTopPerformingAdsPrompt,
   createCampaignPrompt,
   createAdSuggestion,
+  checkManagerAccount,
+  getAccountKeywordStats,
 } from './reporting';
 import { generateTrendsKeywords } from './trends';
 import { exportToSheet, createSpreadsheet } from './util';
@@ -48,6 +50,8 @@ generateTrendsKeywords;
 getTopPerformingAdsPrompt;
 createCampaignPrompt;
 createAdSuggestion;
+checkManagerAccount;
+getAccountKeywordStats;
 DEFAULT_STYLE_GUIDE;
 exportToSheet;
 createSpreadsheet;

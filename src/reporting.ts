@@ -77,8 +77,9 @@ class AdsApp {
  * @returns The results of the query.
  */
 export const runQuery = (customerId, query) => {
+  const cleanCustomerId = String(customerId).replace(/-/g, '').trim();
   const request = {
-    customerId,
+    customerId: cleanCustomerId,
     query,
     pageToken: undefined,
   };
@@ -86,7 +87,7 @@ export const runQuery = (customerId, query) => {
   const results = [];
   do {
     // preparing payload
-    const config = { customerId, version: ADS_VERSION };
+    const config = { customerId: cleanCustomerId, version: ADS_VERSION };
     const payload = JSON.stringify(request);
     const response = JSON.parse(AdsApp.search(payload, config));
 
@@ -213,7 +214,7 @@ const getPromptKeywordsTemplate = keywords => `
 *User:*
 
 Please write 3 distinct ads, each with 15 headlines and 4 descriptions for the following keywords:
-[${keywords.join(', ')}]
+[${(keywords || []).join(', ')}]
 
 Make sure the ads are different from each other to cover different angles.
 Do not produce placeholders (e.g. {KeyWord: Vintage Jeans}) and instead produce readable text.
@@ -277,6 +278,70 @@ const getKeywords = (cid, adGroupIds, durationClause) => {
     item => item[1]
   );
   return mapping;
+};
+
+/**
+ * Checks if a Google Ads account is a manager account and returns child accounts if it is.
+ *
+ * @param cid - The ID of the Google Ads customer.
+ * @returns An object containing `isManager` and an array of `children` if applicable.
+ */
+export const checkManagerAccount = cid => {
+  try {
+    const query = `SELECT customer.manager, customer.id FROM customer LIMIT 1`;
+    const res = runQuery(cid, query);
+
+    if (res && res.length > 0 && res[0].customer.manager) {
+      const childQuery = `
+        SELECT customer_client.client_customer, customer_client.descriptive_name
+        FROM customer_client
+        WHERE customer_client.manager = false
+          AND customer_client.status = 'ENABLED'
+      `;
+      const childRes = runQuery(cid, childQuery);
+      const children = childRes.map(item => ({
+        id: item.customerClient.clientCustomer.replace('customers/', ''),
+        name: item.customerClient.descriptiveName,
+      }));
+
+      return { isManager: true, children };
+    }
+  } catch (e) {
+    console.error('Error checking manager account:', e);
+    return { isManager: false, children: [], error: e.message };
+  }
+  return { isManager: false, children: [] };
+};
+
+/**
+ * Retrieves the count of search campaigns with active keywords for a given account.
+ *
+ * @param cid - The ID of the Google Ads customer.
+ * @returns An object containing the count of search campaigns.
+ */
+export const getAccountKeywordStats = cid => {
+  try {
+    const query = `
+      SELECT campaign.id, ad_group_criterion.criterion_id
+      FROM ad_group_criterion
+      WHERE campaign.advertising_channel_type = 'SEARCH'
+        AND ad_group_criterion.type = 'KEYWORD'
+        AND ad_group_criterion.status = 'ENABLED'
+        AND campaign.status = 'ENABLED'
+    `;
+    const res = runQuery(cid, query);
+    const uniqueCampaigns = new Set(res.map(item => item.campaign.id));
+    const keywordCount = res.length;
+
+    const ads = getTopPerformingAdsAndKeywords(cid, 1);
+    const hasData =
+      ads && ads.length > 0 && ads[0].keywords && ads[0].keywords.length > 0;
+
+    return { count: uniqueCampaigns.size, keywordCount, hasData };
+  } catch (e) {
+    console.error('Error getting account keyword stats:', e);
+    return { error: e.message };
+  }
 };
 
 /**
