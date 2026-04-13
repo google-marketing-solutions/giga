@@ -2457,6 +2457,9 @@ limitations under the License.
               adsAccountId.replaceAll('-', '').trim(),
               10
             );
+            if (ads.length === 0) {
+              showAlert('No text ads found in the configured Google Ads account within the specified lookback window. The suggestions will be generated without taking historical performance into account.');
+            }
             adExamples = ads.map(ad => JSON.stringify(ad)).join('\n');
           }
 
@@ -2494,7 +2497,10 @@ limitations under the License.
             creationLookbackDays,
             creationMetric
           );
-          setCreationPromptTemplate(result);
+          if (!result.trim()) {
+            showAlert('No text ads found in the provided Google Ads account within the specified lookback window. The suggestions will be generated without taking historical performance into account.');
+          }
+          setCreationPromptTemplate(result.trim() ? result : '');
           setCreationResult('');
           return result;
         } catch (e) {

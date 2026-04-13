@@ -252,6 +252,9 @@ const getPromptTemplate = ads => `
  * @returns An array of keywords.
  */
 const getKeywords = (cid, adGroupIds, durationClause) => {
+  if (!adGroupIds || adGroupIds.length === 0) {
+    return {};
+  }
   // TODO might need chunking for large accounts
   const query = `
     SELECT ad_group_criterion.keyword.text,
