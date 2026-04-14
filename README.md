@@ -24,10 +24,11 @@ limitations under the License.
 
 ## Latest Updates
 
+- **April 2026:** Account ID selector for Google Ads Manager accounts and added multi-select growth metrics.
 - **March 2026:**
-  - Introduced Agentic Insights Follow-up to power dynamic, ongoing chat analysis functionality.
-  - Implemented geographic features including support for location and language criterion lookups using Gemini.
-  - Integrated [Copy Cat](https://github.com/google-marketing-solutions/copycat) format for campaign output generation.
+  - Agentic Insights Follow-up to power dynamic, ongoing chat analysis functionality.
+  - Geographic features including support for location and language criterion lookups using Gemini.
+  - [Copy Cat](https://github.com/google-marketing-solutions/copycat) format for campaign output generation.
 - **February 2026:** Introduced user-specific property management to allow individual overrides of the Ads Account ID and Developer Token.
 - **January 2026:** Added an option to specify the output language for generated insights.
 - **December 2025:** Added performance metrics for campaign creation and introduced Dark Mode.
