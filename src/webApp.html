@@ -1201,11 +1201,10 @@ limitations under the License.
 
         const columnFormats = [
           { colIndex: 2, numberFormat: '#,##0' },
-          { colIndex: 3, numberFormat: '0.00%' },
-          { colIndex: 4, numberFormat: '0.00%' },
+          { colIndex: 3, numberFormat: '0%' },
+          { colIndex: 4, numberFormat: '0%' },
           {
-            colIndex: 6,
-            numberFormat: '"$"#,##0.00',
+            colIndex: 6,            numberFormat: '"$"#,##0.00',
             scale: 0.000001,
             headerRename: 'Low Bid (USD)',
           },
@@ -2708,8 +2707,7 @@ limitations under the License.
             tooltip: {
               callbacks: {
                 label: ctx =>
-                  `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
-              },
+                  `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(0)}%`,              },
             },
           },
           onClick: (evt, elements) => {
@@ -2755,10 +2753,9 @@ limitations under the License.
               cluster.topic,
               kw,
               vol,
-              (cluster.growthYoY * 100).toFixed(1) + '%',
-              (cluster.growthMoM * 100).toFixed(1) + '%',
-              idea ? idea.competition : '',
-              idea
+              (cluster.growthYoY * 100).toFixed(0) + '%',
+              (cluster.growthMoM * 100).toFixed(0) + '%',
+              idea ? idea.competition : '',              idea
                 ? formatMicrosToCurrency(idea.low_top_of_page_bid_micros)
                 : '',
               idea

@@ -928,7 +928,7 @@ limitations under the License.
                     <span style={{ 
                       color: val > 0 ? 'var(--success)' : val < 0 ? 'var(--error)' : 'inherit' 
                     }}>
-                      {val > 0 ? '+' : ''}{(val * 100).toFixed(1)}%
+                      {val > 0 ? '+' : ''}{(val * 100).toFixed(0)}%
                     </span>
                   );
                 })()}
@@ -1257,7 +1257,7 @@ limitations under the License.
                                 }}
                               >
                                 {growth > 0 ? '+' : ''}
-                                {(growth * 100).toFixed(1)}%
+                                {(growth * 100).toFixed(0)}%
                               </td>
                             );
                           })}

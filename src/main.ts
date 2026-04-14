@@ -393,9 +393,8 @@ export const getCampaigns = (
 
   // Format relevantIdeas for the prompt
   const ideasString = relevantIdeas
-    .map(([idea, growth]) => `- ${idea}: ${(growth * 100).toFixed(1)}%`)
+    .map(([idea, growth]) => `- ${idea}: ${(growth * 100).toFixed(0)}%`)
     .join('\n');
-
   const prompt = ` I am a SEA manager working for ${brandName} and I want to create new Google Ads search campaigns based on the following input.
   Based on the provided keywords and their growth metrics, generate ready-to-use text ad campaigns. Group related keywords into campaigns and focus on high-growth keywords.
 
