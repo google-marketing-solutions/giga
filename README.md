@@ -30,14 +30,15 @@ limitations under the License.
   - Integrated [Copy Cat](https://github.com/google-marketing-solutions/copycat) format for campaign output generation.
 - **February 2026:** Introduced user-specific property management to allow individual overrides of the Ads Account ID and Developer Token.
 - **January 2026:** Added an option to specify the output language for generated insights.
-- **December 2025:** Added performance metrics for campaign creationa and introduced Dark Mode.
+- **December 2025:** Added performance metrics for campaign creation and introduced Dark Mode.
 - **November 2025:** Added a direct "Export to Sheet" functionality for generated insights and keyword trends. Allowed customization of growth metrics (YoY, MoM, Latest vs Average).
 
 ## Overview
 
-By applying Gemini's AI capabilities, GIGA can cluster and intelligently
-interpret keyword data. This provides clients with actionable, strategic
-insights for making marketing decisions.
+GIGA is an AI-powered keyword intelligence and campaign generation tool. It
+discovers trending search terms, clusters keywords semantically using Gemini,
+and generates actionable insights and campaign recommendations to help advertisers
+optimize their marketing strategies.
 
 <p align="center">
   <img src="assets/screencast_demo_data.gif" alt="Demo Screencast" width="600"/>
@@ -51,9 +52,9 @@ Clients want to stay ahead of current search/keyword trends and capitalize on th
 
 ## Outcome & Impact
 
-A clustering of all keyword ideas related to the input topic keywords. Also the solution provides an insights summary page and a recommendation for campaigns to be created to capture the current trending topics.
+GIGA provides a clustering of all keyword ideas related to the input topic keywords. The solution also provides an insights summary page and recommendations for campaigns to create in order to capture current trending topics.
 
-This provides clients with actionable, strategic insights for making marketing decisions and help them create campaigns based on the insights.
+This provides clients with actionable, strategic insights for making marketing decisions and helps them create campaigns based on these insights.
 
 Explore the search volume history of your seed keywords:
 
@@ -100,7 +101,7 @@ To get started with GIGA:
 
    <img src="assets/copy_button.png" alt="Copy Button" width="200"/>
 
-1. Link Apps Script to a Google Cloud Project. Therefore navigate to “Project Settings“ and add your project number (only numbers and not to be confused with the ID, full guide [here](https://developers.google.com/apps-script/guides/cloud-platform-projects)).
+1. Link Apps Script to a Google Cloud Project. To do this, navigate to "Project Settings" and add your project number (only numbers, and not to be confused with the Project ID; full guide [here](https://developers.google.com/apps-script/guides/cloud-platform-projects)).
 
    <img src="assets/gcp_setup.png" alt="GCP Setup" width="400"/>
 
@@ -120,37 +121,37 @@ To get started with GIGA:
 
 - A Google Cloud project can be associated with only one developer token (see [this](https://developers.google.com/google-ads/api/docs/get-started/common-errors) for details).
 
-## Contribution (Deploying solution locally)
+## Contribution (Deploying the solution locally)
 
-Since this is open source solution, it is also possible to make contribution by building additional features. To deploy the solution locally you can follow next steps:
+Since this is an open-source solution, it is also possible to make contributions by building additional features. To deploy the solution locally, you can follow these steps:
 
-1. Ideally, you should already have installed: `node.js`, `npm`, and `git`
-2. Install [clasp](https://github.com/google/clasp). `clasp` allows you to develop your Apps Script projects locally. You will need this because Giga is developed in Apps Script
-3. Clone this Github repository
-4. Open the cloned repo in your code editor (e.g. VS Code)
-5. In IDE, open Terminal and install [ASIDE](https://github.com/google/aside), by running this command: `npx @google/aside init`. During the installation, it will ask you couple of questions:
+1. Ideally, you should already have installed: `node.js`, `npm`, and `git`.
+2. Install [clasp](https://github.com/google/clasp). `clasp` allows you to develop your Apps Script projects locally. You will need this because GIGA is developed in Apps Script.
+3. Clone this GitHub repository.
+4. Open the cloned repo in your code editor (e.g., VS Code).
+5. In your IDE, open the terminal and install [ASIDE](https://github.com/google/aside) by running this command: `npx @google/aside init`. During the installation, it will ask you a couple of questions:
 
-- Project title - provide the name you want
-- Create Angular UI - select No
-- After that, it will ask 6-7 times to replace or overwrite certain file. On each question select No
-- Next, it will ask you for "Script ID (optional)" and "Script ID for production environment (optional)". On both question you don't have to provide anything, you can just press Enter and it will create the files automatically for you
-- After it finished the installation process, it should provide you the Google Sheets and AppsScript Link. Apps Script link is what you will need
+- Project title - provide the name you want.
+- Create Angular UI - select No.
+- After that, it will ask 6-7 times to replace or overwrite certain files. For each question, select No.
+- Next, it will ask you for "Script ID (optional)" and "Script ID for production environment (optional)". For both questions, you don't have to provide anything; you can just press Enter, and it will create the files automatically for you.
+- After it finishes the installation process, it should provide you with Google Sheets and Apps Script links. The Apps Script link is what you will need.
 
-6. Next, in your IDE in terminal, run `npm run deploy`. **NOTE:** In case if you get error "FAIL test/example-module.test.ts", just delete "test" folder from project directory and run `npm run deploy` command again
-7. After it finishes, go to the [Apps Script](https://script.google.com/) page and open the file with the project title you gave during the installation process
-8. Once you opened the file, in upper right corner click on blue button "Deploy" -> "New deployment".
-9. It will open popup. Click on gear icon next to the "Select type". Select "Web App". Add description if you want. And once you are ready, click on "Deploy" button.
-10. It will ask you authorize the access and give the permissions. Once you provide it, you should see the screen where it says "Deployment successfully updated.". On this screen you will find _Web app URL_. Copy the URL, open in the browser and you should see your Giga app!
+6. Next, in your IDE terminal, run `npm run deploy`. **NOTE:** If you get the error "FAIL test/example-module.test.ts", just delete the "test" folder from the project directory and run the `npm run deploy` command again.
+7. After it finishes, go to the [Apps Script](https://script.google.com/) page and open the project with the title you gave during the installation process.
+8. Once you open the project, in the upper right corner, click on the blue button "Deploy" -> "New deployment".
+9. It will open a popup. Click on the gear icon next to "Select type". Select "Web App". Add a description if you want. Once you are ready, click the "Deploy" button.
+10. It will ask you to authorize access and grant permissions. Once you provide them, you should see a screen that says "Deployment successfully updated." On this screen, you will find the _Web app URL_. Copy the URL, open it in your browser, and you should see your GIGA app!
 
-### Process of making changes and deploying it
+### Process of making changes and deploying
 
-In case if you make some changes in the code and you want to deploy and test them, follow these steps:
+If you make changes to the code and want to deploy and test them, follow these steps:
 
-1. After you make changes, open terminal in your IDE and run `npm run deploy`
-2. When process is finished, go to the [Apps Script](https://script.google.com/) page and open your project file. Click on button "Deploy" -> "New deployment" and then on "Deploy" button again
-3. After you get message that deplyoment is successfully updated, copy the link that you see in popup and open it in the browser.
+1. After making changes, open the terminal in your IDE and run `npm run deploy`.
+2. When the process is finished, go to the [Apps Script](https://script.google.com/) page and open your project. Click on the "Deploy" button -> "New deployment", and then click the "Deploy" button again.
+3. After you get the message that the deployment is successfully updated, copy the link shown in the popup and open it in your browser.
 
-**Keep in mind**: After each deployment, Apps Script gives you new URL, so to see the latest version of Giga app, you need to use URL from the latest deployment. If you are not sure what is the URL, you can find it by clicking on button "Deploy" -> "Manager deployment" and here you will find list of versions you deployed over time.
+**Keep in mind**: After each deployment, Apps Script gives you a new URL, so to see the latest version of the GIGA app, you need to use the URL from the latest deployment. If you are not sure what the URL is, you can find it by clicking on the "Deploy" button -> "Manage deployments", where you will find a list of versions you have deployed over time.
 To test your web app, you can also use Apps Script [test deployments](https://developers.google.com/apps-script/guides/web#test_a_web_app_deployment).
 
 ## Troubleshooting
