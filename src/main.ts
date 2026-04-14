@@ -197,7 +197,7 @@ export const getInsights = async (
   const metricNames = {
     yoy: 'YoY',
     mom: 'MoM',
-    latest_vs_avg: 'Latest vs Average',
+    latest_vs_avg: 'Last Month vs Average',
     latest_vs_max: 'Last Month vs Max',
     three_months_vs_avg: 'Last 3 Months vs Prev Avg',
   };

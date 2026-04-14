@@ -32,7 +32,7 @@ limitations under the License.
 - **February 2026:** Introduced user-specific property management to allow individual overrides of the Ads Account ID and Developer Token.
 - **January 2026:** Added an option to specify the output language for generated insights.
 - **December 2025:** Added performance metrics for campaign creation and introduced Dark Mode.
-- **November 2025:** Added a direct "Export to Sheet" functionality for generated insights and keyword trends. Allowed customization of growth metrics (YoY, MoM, Latest vs Average).
+- **November 2025:** Added a direct "Export to Sheet" functionality for generated insights and keyword trends. Allowed customization of growth metrics (YoY, MoM, Last Month vs Average).
 
 ## Overview
 
@@ -100,7 +100,7 @@ To get started with GIGA:
 1. Make a copy of the Google Apps Script project
    <a href="https://script.google.com/home/projects/1ISsbf-oDTHMzr-G6zIl3FmPz-ZkneTVQjfXehpG1mJLaFDTjyCvJprgA" target="_blank" rel="noopener noreferrer">template</a>
 
-   <img src="assets/copy_button.png" alt="Copy Button" width="200"/>
+   <a href="https://script.google.com/home/projects/1ISsbf-oDTHMzr-G6zIl3FmPz-ZkneTVQjfXehpG1mJLaFDTjyCvJprgA" target="_blank" rel="noopener noreferrer"><img src="assets/copy_button.png" alt="Copy Button" width="200"/></a>
 
 1. Link Apps Script to a Google Cloud Project. To do this, navigate to "Project Settings" and add your project number (only numbers, and not to be confused with the Project ID; full guide [here](https://developers.google.com/apps-script/guides/cloud-platform-projects)).
 
