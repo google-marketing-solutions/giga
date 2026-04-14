@@ -22,7 +22,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@google/clasp": "^3.0.6-alpha",
+    "@google/clasp": "^3.2.0",
     "@types/google-apps-script": "^1.0.99",
     "@types/jest": "^30.0.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
