@@ -411,12 +411,14 @@ limitations under the License.
       backdrop-filter: blur(5px);
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       z-index: 1000;
       animation: fadeIn 0.2s ease-out;
+      overflow-y: auto;
     }
 
     .modal-content {
+      margin: 4rem auto;
       background: var(--surface-color);
       color: var(--text-main);
       padding: 2rem;
@@ -426,8 +428,7 @@ limitations under the License.
       width: 90%;
       max-width: 500px;
       animation: slideUp 0.2s ease-out;
-      max-height: 90vh;
-      overflow-y: auto;
+      overflow: visible;
     }
 
     .modal-content.large-modal {
@@ -1028,6 +1029,14 @@ limitations under the License.
       );
       const [exploreStatus, setExploreStatus] = useState('');
       const [isExploring, setIsExploring] = useState(false);
+      const isExploringRef = useRef(false);
+
+      const stopExplore = () => {
+        isExploringRef.current = false;
+        setIsExploring(false);
+        setExploreStatus('Cancelled by user.');
+      };
+
       const [ideasData, setIdeasData] = useStickyState(
         null,
         'giga_ideasData',
@@ -1103,6 +1112,14 @@ limitations under the License.
 
       // Demo Mode Randomization
       const [isRandomized, setIsRandomized] = useState(true);
+      const [demoRandomizationPercent, setDemoRandomizationPercent] = useStickyState(
+        100,
+        'giga_demoRandomizationPercent'
+      );
+      
+      useEffect(() => {
+        window.setDemoRandomizationPercent = setDemoRandomizationPercent;
+      }, [setDemoRandomizationPercent]);
 
       // --- Sheet Export Helper ---
       const [isExporting, setIsExporting] = useState(false);
@@ -1150,7 +1167,7 @@ limitations under the License.
         const headers = [
           'Cluster Topic',
           'Keyword',
-          'Latest Search Volume',
+          'Last Month Search Volume',
           'Cluster Growth YoY',
           'Cluster Growth MoM',
           'Competition',
@@ -1184,11 +1201,10 @@ limitations under the License.
 
         const columnFormats = [
           { colIndex: 2, numberFormat: '#,##0' },
-          { colIndex: 3, numberFormat: '0.00%' },
-          { colIndex: 4, numberFormat: '0.00%' },
+          { colIndex: 3, numberFormat: '0%' },
+          { colIndex: 4, numberFormat: '0%' },
           {
-            colIndex: 6,
-            numberFormat: '"$"#,##0.00',
+            colIndex: 6,            numberFormat: '"$"#,##0.00',
             scale: 0.000001,
             headerRename: 'Low Bid (USD)',
           },
@@ -1292,17 +1308,27 @@ limitations under the License.
               : {};
 
             if (randomize) {
+              const p = demoRandomizationPercent / 100;
               const generateSmoothSeries = originalSeries => {
                 const length = Array.isArray(originalSeries)
                   ? originalSeries.length
                   : 12;
+
+                let magnitude = 10;
+                if (Array.isArray(originalSeries) && originalSeries.length > 0) {
+                  const maxVal = Math.max(...originalSeries);
+                  if (maxVal > 0) {
+                    magnitude = Math.pow(10, Math.floor(Math.log10(maxVal)));
+                  }
+                }
+
                 const series = [];
-                // Start between 10 and 100
-                let current = Math.floor(Math.random() * 90) + 10;
+                // Start between 1 and 9 * magnitude
+                let current = Math.floor(Math.random() * 9 * magnitude) + magnitude;
                 series.push(current);
 
                 for (let i = 1; i < length; i++) {
-                  const volatility = Math.max(5, Math.round(current * 0.2));
+                  const volatility = Math.max(Math.ceil(magnitude * 0.1), Math.round(current * 0.2));
                   const change =
                     Math.floor(Math.random() * (volatility * 2 + 1)) -
                     volatility;
@@ -1316,18 +1342,70 @@ limitations under the License.
                     series[lastIdx] * (2 + Math.random() * 3)
                   );
                 }
+                
+                if (Array.isArray(originalSeries) && originalSeries.length === series.length) {
+                  return originalSeries.map((orig, i) => Math.round(orig + (series[i] - orig) * p));
+                }
                 return series;
               };
 
-              const randomizeGrowth = val =>
-                typeof val === 'number' ? val + (Math.random() - 0.5) : val;
+              const randomizeMetric = val => {
+                if (val == null || val === '') return val;
+                const numVal = Number(val);
+                if (isNaN(numVal) || numVal === 0) return val;
+                
+                const magnitude = Math.pow(10, Math.floor(Math.log10(Math.abs(numVal))));
+                const sign = Math.sign(numVal);
+                const randomVal = Math.random() * 9 * magnitude + magnitude;
+                const interpolated = numVal + (sign * randomVal - numVal) * p;
+                
+                // keep integer if original was integer
+                return Number.isInteger(numVal) ? Math.floor(interpolated) : interpolated;
+              };
 
-              parsedIdeas = parsedIdeas.map(idea => ({
-                ...idea,
-                searchVolume: Array.isArray(idea.searchVolume)
+              const randomizeGrowth = val => {
+                if (typeof val !== 'number') return val;
+                const randomGrowth = val + (Math.random() - 0.5);
+                return val + (randomGrowth - val) * p;
+              };
+
+              parsedIdeas = parsedIdeas.map(idea => {
+                const newSearchVolume = Array.isArray(idea.searchVolume)
                   ? generateSmoothSeries(idea.searchVolume)
-                  : idea.searchVolume,
-              }));
+                  : idea.searchVolume;
+                
+                const newLatestVolume = Array.isArray(newSearchVolume) && newSearchVolume.length > 0 
+                  ? newSearchVolume[newSearchVolume.length - 1] 
+                  : idea.latestSearchVolume;
+
+                const compLevels = ['LOW', 'MEDIUM', 'HIGH'];
+                let newComp = idea.competition;
+                if (p > 0 && compLevels.includes(idea.competition) && Math.random() < p) {
+                  newComp = compLevels[Math.floor(Math.random() * compLevels.length)];
+                }
+
+                let newCompIndex = idea.competition_index;
+                if (typeof newCompIndex === 'number' && p > 0) {
+                  const randomIdx = Math.floor(Math.random() * 100);
+                  newCompIndex = Math.min(100, Math.max(0, Math.floor(newCompIndex + (randomIdx - newCompIndex) * p)));
+                }
+
+                return {
+                  ...idea,
+                  searchVolume: newSearchVolume,
+                  latestSearchVolume: newLatestVolume,
+                  growthYoY: randomizeGrowth(idea.growthYoY),
+                  growthMoM: randomizeGrowth(idea.growthMoM),
+                  growthLatestVsAvg: randomizeGrowth(idea.growthLatestVsAvg),
+                  growthLatestVsMax: randomizeGrowth(idea.growthLatestVsMax),
+                  growthThreeMonthsVsAvg: randomizeGrowth(idea.growthThreeMonthsVsAvg),
+                  competition: newComp,
+                  competition_index: newCompIndex,
+                  low_top_of_page_bid_micros: randomizeMetric(idea.low_top_of_page_bid_micros),
+                  high_top_of_page_bid_micros: randomizeMetric(idea.high_top_of_page_bid_micros),
+                  average_cpc_micros: randomizeMetric(idea.average_cpc_micros),
+                };
+              });
 
               parsedClusters = parsedClusters.map(c => {
                 const newHistory = Array.isArray(c.searchVolumeHistory)
@@ -1350,6 +1428,7 @@ limitations under the License.
                   growthMoM: randomizeGrowth(c.growthMoM),
                   growthLatestVsAvg: randomizeGrowth(c.growthLatestVsAvg),
                   growthLatestVsMax: randomizeGrowth(c.growthLatestVsMax),
+                  growthThreeMonthsVsAvg: randomizeGrowth(c.growthThreeMonthsVsAvg),
                 };
               });
 
@@ -1417,7 +1496,7 @@ limitations under the License.
           }
         };
         updateData();
-      }, [isRandomized]);
+      }, [isRandomized, demoRandomizationPercent]);
 
       useEffect(() => {
         const handleKeyDown = e => {
@@ -1487,6 +1566,16 @@ limitations under the License.
         adsAccountId: '',
         checked: false,
       });
+
+      const [mccSelectorConfig, setMccSelectorConfig] = useState({
+        isOpen: false,
+        children: [],
+        onSelect: null,
+      });
+      const [mccSearchQuery, setMccSearchQuery] = useState('');
+      const [mccAccountStats, setMccAccountStats] = useState({});
+      const [isCheckingAll, setIsCheckingAll] = useState(false);
+      const [mccCheckProgress, setMccCheckProgress] = useState({ current: 0, total: 0 });
 
       // Sorting State
       const [sortConfig, setSortConfig] = useState({
@@ -1781,6 +1870,7 @@ limitations under the License.
         }
 
         setIsExploring(true);
+        isExploringRef.current = true;
 
         if (isDemoMode) {
           setExploreStatus('Getting keyword ideas...');
@@ -1873,6 +1963,7 @@ limitations under the License.
                   .map(k => [k, idea])
               )
               .map(([k, res]) => {
+                if (!isExploringRef.current) return null;
                 const metrics = res.keywordIdeaMetrics;
                 const volumes = metrics.monthlySearchVolumes.map(item =>
                   Number(item.monthlySearches)
@@ -1893,7 +1984,8 @@ limitations under the License.
                 const growthLatestVsAvg =
                   avg !== 0 ? (latest - avg) / avg : 0;
 
-                const max = Math.max(...volumes);
+                const historyWithoutLatest = volumes.slice(0, -1);
+                const max = historyWithoutLatest.length > 0 ? Math.max(...historyWithoutLatest) : 0;
                 const growthLatestVsMax =
                   max !== 0 ? (latest - max) / max : 0;
 
@@ -1930,9 +2022,12 @@ limitations under the License.
                   high_top_of_page_bid_micros: metrics.highTopOfPageBidMicros,
                   average_cpc_micros: metrics.averageCpcMicros,
                 };
-              });
+              })
+              .filter(Boolean);
             processedIdeas = processedIdeas.concat(plannerIdeas);
           }
+
+          if (!isExploringRef.current) return;
 
           if (useGemini) {
             setExploreStatus('Generating Gemini keywords...');
@@ -1957,6 +2052,8 @@ limitations under the License.
                 finalGeminiPrompt,
                 geminiConfig
               );
+              
+            if (!isExploringRef.current) return;
 
             if (geminiKeywords && geminiKeywords.length > 0) {
               setExploreStatus('Fetching metrics for Gemini keywords...');
@@ -1964,10 +2061,13 @@ limitations under the License.
                 geminiKeywords,
                 country || undefined
               );
+              
+              if (!isExploringRef.current) return;
 
               const geminiIdeas = metrics
                 .filter(m => m && m.text && m.keywordMetrics)
                 .map(metric => {
+                  if (!isExploringRef.current) return null;
                   const hist = metric.keywordMetrics;
                   const volumes = (hist.monthlySearchVolumes || []).map(m =>
                     Number(m.monthlySearches)
@@ -1988,7 +2088,8 @@ limitations under the License.
                   const growthLatestVsAvg =
                     avg !== 0 ? (latest - avg) / avg : 0;
 
-                  const max = Math.max(...volumes);
+                  const historyWithoutLatest = volumes.slice(0, -1);
+                  const max = historyWithoutLatest.length > 0 ? Math.max(...historyWithoutLatest) : 0;
                   const growthLatestVsMax =
                     max !== 0 ? (latest - max) / max : 0;
 
@@ -2025,10 +2126,13 @@ limitations under the License.
                     high_top_of_page_bid_micros: hist.highTopOfPageBidMicros,
                     average_cpc_micros: hist.averageCpcMicros,
                   };
-                });
+                })
+                .filter(Boolean);
               processedIdeas = processedIdeas.concat(geminiIdeas);
             }
           }
+
+          if (!isExploringRef.current) return;
 
           // Deduplicate by text
           const uniqueIdeas = [];
@@ -2056,6 +2160,8 @@ limitations under the License.
           });
           setRelevantIdeas(relevant);
 
+          if (!isExploringRef.current) return;
+
           if (useClustering) {
             setExploreStatus(`Clustering ${processedIdeas.length} ideas...`);
 
@@ -2064,6 +2170,9 @@ limitations under the License.
               promptTemplate,
               geminiConfig
             );
+            
+            if (!isExploringRef.current) return;
+
             setClusters(clusterResult);
             setExploreStatus(
               `Done. Clustered ${processedIdeas.length} keywords.`
@@ -2339,24 +2448,42 @@ limitations under the License.
           return;
         }
         setIsGeneratingCampaigns(true);
+        setCampaignStatus('Verifying Account ID...');
+
+        let resolvedCreationId = '';
+        if (creationAccountId) {
+          resolvedCreationId = await resolveAccountId(creationAccountId);
+          if (resolvedCreationId === null) {
+            setIsGeneratingCampaigns(false);
+            setCampaignStatus('');
+            return;
+          }
+          if (resolvedCreationId !== creationAccountId) {
+            setCreationAccountId(resolvedCreationId);
+          }
+        }
+
         setCampaignStatus('Generating suggestions...');
         try {
           let adExamples = '';
           let template = creationPromptTemplate;
 
           // If prompt template is missing but account ID is present, try to generate it first
-          if (!template && creationAccountId.length >= 10) {
+          if (!template && resolvedCreationId.length >= 10) {
             setCampaignStatus('Generating Prompt Template...');
-            template = await generatePrompt();
+            template = await generatePrompt(resolvedCreationId);
           }
 
-          if (creationAccountId.length >= 10 && template) {
+          if (resolvedCreationId.length >= 10 && template) {
             adExamples = template;
           } else if (adsAccountId) {
             const ads = await googleScriptRun.getTopPerformingAdsAndKeywords(
               adsAccountId.replaceAll('-', '').trim(),
               10
             );
+            if (ads.length === 0) {
+              showAlert('No text ads found in the configured Google Ads account within the specified lookback window. The suggestions will be generated without taking historical performance into account.');
+            }
             adExamples = ads.map(ad => JSON.stringify(ad)).join('\n');
           }
 
@@ -2383,8 +2510,16 @@ limitations under the License.
         }
       };
 
-      const generatePrompt = async () => {
-        const id = creationAccountId.replaceAll('-', '').trim();
+      const generatePrompt = async (passedId) => {
+        let id = typeof passedId === 'string' ? passedId : null;
+        if (!id) {
+          id = await resolveAccountId(creationAccountId);
+          if (id === null) return null;
+          if (id !== creationAccountId) {
+            setCreationAccountId(id);
+          }
+        }
+        
         if (!id) return null;
 
         setIsGeneratingPrompt(true);
@@ -2394,7 +2529,10 @@ limitations under the License.
             creationLookbackDays,
             creationMetric
           );
-          setCreationPromptTemplate(result);
+          if (!result.trim()) {
+            showAlert('No text ads found in the provided Google Ads account within the specified lookback window. The suggestions will be generated without taking historical performance into account.');
+          }
+          setCreationPromptTemplate(result.trim() ? result : '');
           setCreationResult('');
           return result;
         } catch (e) {
@@ -2409,10 +2547,22 @@ limitations under the License.
       const generateNewCampaigns = async () => {
         setIsCreatingCampaign(true);
         try {
+          let resolvedCreationId = '';
+          if (creationAccountId) {
+            resolvedCreationId = await resolveAccountId(creationAccountId);
+            if (resolvedCreationId === null) {
+              setIsCreatingCampaign(false);
+              return;
+            }
+            if (resolvedCreationId !== creationAccountId) {
+              setCreationAccountId(resolvedCreationId);
+            }
+          }
+
           let template = creationPromptTemplate;
-          if (!template && creationAccountId.length >= 10) {
+          if (!template && resolvedCreationId.length >= 10) {
             setCreationResult('Generating Prompt Template...');
-            template = await generatePrompt();
+            template = await generatePrompt(resolvedCreationId);
           }
 
           setCreationResult('Generating Ad Suggestions...');
@@ -2557,8 +2707,7 @@ limitations under the License.
             tooltip: {
               callbacks: {
                 label: ctx =>
-                  `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(1)}%`,
-              },
+                  `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(0)}%`,              },
             },
           },
           onClick: (evt, elements) => {
@@ -2582,7 +2731,7 @@ limitations under the License.
         const headers = [
           'Cluster Topic',
           'Keyword',
-          'Latest Search Volume',
+          'Last Month Search Volume',
           'Cluster Growth YoY',
           'Cluster Growth MoM',
           'Competition',
@@ -2604,10 +2753,9 @@ limitations under the License.
               cluster.topic,
               kw,
               vol,
-              (cluster.growthYoY * 100).toFixed(1) + '%',
-              (cluster.growthMoM * 100).toFixed(1) + '%',
-              idea ? idea.competition : '',
-              idea
+              (cluster.growthYoY * 100).toFixed(0) + '%',
+              (cluster.growthMoM * 100).toFixed(0) + '%',
+              idea ? idea.competition : '',              idea
                 ? formatMicrosToCurrency(idea.low_top_of_page_bid_micros)
                 : '',
               idea
@@ -2630,15 +2778,57 @@ limitations under the License.
 
       // --- Render ---
 
+      const resolveAccountId = (accountId) => {
+        return new Promise(async (resolve) => {
+          const cleanId = accountId.replaceAll('-', '').trim();
+          const formattedId = cleanId.length === 10 ? cleanId.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') : accountId.trim();
+          if (!cleanId || cleanId.length < 10) return resolve(formattedId);
+
+          try {
+            const mccCheck = await googleScriptRun.checkManagerAccount(cleanId);
+            if (mccCheck.isManager) {
+              if (mccCheck.children.length === 0) {
+                showError('Manager Account', new Error('No active child accounts found in this Manager account.'));
+                resolve(null);
+              } else {
+                setMccAccountStats({});
+                setMccSelectorConfig({
+                  isOpen: true,
+                  children: mccCheck.children,
+                  onSelect: (selectedId) => {
+                    setMccSelectorConfig({ isOpen: false, children: [], onSelect: null });
+                    resolve(selectedId);
+                  }
+                });
+              }
+            } else if (mccCheck.error) {
+              showError('Invalid Account', new Error(mccCheck.error));
+              resolve(null);
+            } else {
+              resolve(formattedId);
+            }
+          } catch (e) {
+            showError('Verification Error', e);
+            resolve(null);
+          }
+        });
+      };
+
       const handleSettingsSave = async newSettings => {
         setGeminiConfig(newSettings.geminiConfig);
         setMinSearchVolume(newSettings.minSearchVolume);
         setSpreadsheetUrl(newSettings.spreadsheetUrl);
 
-        const promises = [];
+        let finalAdsId = newSettings.adsAccountId;
         if (newSettings.adsAccountId !== configStatus.adsAccountId) {
+          finalAdsId = await resolveAccountId(newSettings.adsAccountId);
+          if (finalAdsId === null) return; // Flow interrupted (MCC selection or error)
+        }
+
+        const promises = [];
+        if (finalAdsId !== configStatus.adsAccountId) {
           promises.push(
-            updateScriptProperty('ADS_ACCOUNT_ID', newSettings.adsAccountId)
+            updateScriptProperty('ADS_ACCOUNT_ID', finalAdsId)
           );
         }
         if (newSettings.devToken) {
@@ -2802,6 +2992,262 @@ limitations under the License.
         </Modal>
       );
 
+      const stopCheckAllRef = useRef(false);
+
+      const handleCheckAllVisible = async () => {
+        if (isCheckingAll) {
+          stopCheckAllRef.current = true;
+          // Immediately reset checking state and clear out remaining loading states
+          setIsCheckingAll(false);
+          setMccCheckProgress({ current: 0, total: 0 });
+          setMccAccountStats(prev => {
+             const next = { ...prev };
+             Object.keys(next).forEach(key => {
+               if (next[key] && next[key].loading && next[key].count === undefined) {
+                 delete next[key];
+               }
+             });
+             return next;
+           });
+          return;
+        }
+
+        stopCheckAllRef.current = false;
+        setIsCheckingAll(true);
+        const visibleChildren = mccSelectorConfig.children.filter(child => 
+          (child.name || '').toLowerCase().includes(mccSearchQuery.toLowerCase()) ||
+          child.id.includes(mccSearchQuery)
+        );
+        const accountsToCheck = visibleChildren.filter(child => {
+          const stats = mccAccountStats[child.id];
+          return !stats || (!stats.loading && stats.count === undefined && !stats.error);
+        });
+
+        const totalAccounts = accountsToCheck.length;
+        if (totalAccounts === 0) {
+          setIsCheckingAll(false);
+          return;
+        }
+
+        setMccCheckProgress({ current: 0, total: totalAccounts });
+
+        let currentChecked = 0;
+        for (let i = 0; i < totalAccounts; i += 10) {
+          if (stopCheckAllRef.current) break;
+
+          const batch = accountsToCheck.slice(i, i + 10);
+          
+          setMccAccountStats(prev => {
+            const next = { ...prev };
+            batch.forEach(c => {
+               if (!next[c.id]) next[c.id] = { loading: true };
+            });
+            return next;
+          });
+
+          await Promise.all(batch.map(async child => {
+            try {
+              const result = await googleScriptRun.getAccountKeywordStats(child.id);
+              if (!stopCheckAllRef.current) {
+                setMccAccountStats(prev => ({ ...prev, [child.id]: result }));
+              }
+            } catch (e) {
+              if (!stopCheckAllRef.current) {
+                setMccAccountStats(prev => ({ ...prev, [child.id]: { error: e.message } }));
+              }
+            } finally {
+              if (!stopCheckAllRef.current) {
+                currentChecked++;
+                setMccCheckProgress(prev => ({ ...prev, current: currentChecked }));
+              }
+            }
+          }));
+
+          if (i + 10 < totalAccounts && !stopCheckAllRef.current) {
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        }
+        
+        if (!stopCheckAllRef.current) {
+           setIsCheckingAll(false);
+           setTimeout(() => setMccCheckProgress({ current: 0, total: 0 }), 1000);
+        }
+      };
+
+      const mccModal = (
+        <Modal
+          isOpen={mccSelectorConfig.isOpen}
+          maxWidth="900px"
+          onClose={() => {
+             setMccSelectorConfig({ ...mccSelectorConfig, isOpen: false });
+             setMccSearchQuery('');
+             if (mccSelectorConfig.onSelect) {
+               mccSelectorConfig.onSelect(null); // Resolve with null to stop flow
+             }
+          }}
+          title="Select Child Account"
+        >
+          <div className="modal-body">
+            <p>The provided ID is a Manager Account. Please select a child account:</p>
+            <div style={{ marginTop: '12px', marginBottom: '12px', display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                placeholder="Search by name or ID..."
+                value={mccSearchQuery}
+                onChange={e => setMccSearchQuery(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-color)',
+                  fontFamily: 'inherit',
+                  fontSize: '0.95rem',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <button
+                className={`btn ${isCheckingAll ? 'btn-danger' : 'btn-secondary'}`}
+                onClick={handleCheckAllVisible}
+                title="Check all visible accounts for their total active search campaigns and keywords."
+                style={{ whiteSpace: 'nowrap', backgroundColor: isCheckingAll ? 'var(--error)' : '', color: isCheckingAll ? 'white' : '', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                {isCheckingAll ? (
+                  <>
+                    <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px', borderStyle: 'solid', borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'white' }}></div>
+                    Stop Check
+                  </>
+                ) : 'Check all'}
+              </button>
+            </div>
+            {mccCheckProgress.total > 0 && (
+              <div style={{ marginBottom: '12px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span>Checking accounts...</span>
+                  <span>{mccCheckProgress.current} / {mccCheckProgress.total}</span>
+                </div>
+                <div style={{ width: '100%', height: '4px', background: 'var(--bg-color-alt)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ width: `${(mccCheckProgress.current / mccCheckProgress.total) * 100}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.3s ease' }}></div>
+                </div>
+              </div>
+            )}
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <th style={{ textAlign: 'left', padding: '8px' }}>Account Name</th>
+                    <th style={{ textAlign: 'left', padding: '8px' }}>Account ID</th>
+                    <th style={{ textAlign: 'center', padding: '8px' }}>Search Campaigns</th>
+                    <th style={{ textAlign: 'center', padding: '8px' }}>Keywords</th>
+                    <th style={{ width: '150px', padding: '8px', textAlign: 'center' }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mccSelectorConfig.children
+                    .filter(child => 
+                      (child.name || '').toLowerCase().includes(mccSearchQuery.toLowerCase()) ||
+                      child.id.includes(mccSearchQuery)
+                    )
+                    .sort((a, b) => {
+                      const kwA = mccAccountStats[a.id]?.keywordCount ?? -1;
+                      const kwB = mccAccountStats[b.id]?.keywordCount ?? -1;
+                      return kwB - kwA;
+                    })
+                    .map(child => {
+                      const stats = mccAccountStats[child.id];
+                      return (
+                        <tr key={child.id} style={{ borderBottom: '1px solid var(--bg-color-alt)' }}>
+                          <td style={{ padding: '8px' }}>{child.name || 'Unnamed Account'}</td>
+                          <td style={{ padding: '8px' }}>{child.id}</td>
+                          <td style={{ padding: '8px', textAlign: 'center' }}>
+                            {stats?.loading ? (
+                              <div className="spinner" style={{ width: '16px', height: '16px', margin: '0 auto' }}></div>
+                            ) : stats?.error ? (
+                              <span title={stats.error} style={{ color: 'var(--error)' }}>Error</span>
+                            ) : stats?.count !== undefined ? (
+                              <span style={{ color: stats.count > 0 ? 'var(--success)' : 'inherit', fontWeight: stats.count > 0 ? 'bold' : 'normal' }}>
+                                {stats.count}
+                              </span>
+                            ) : (
+                              '-'
+                            )}
+                          </td>
+                          <td style={{ padding: '8px', textAlign: 'center' }}>
+                            {stats?.loading ? (
+                              <div className="spinner" style={{ width: '16px', height: '16px', margin: '0 auto' }}></div>
+                            ) : stats?.error ? (
+                              <span title={stats.error} style={{ color: 'var(--error)' }}>Error</span>
+                            ) : stats?.keywordCount !== undefined ? (
+                              <span style={{ color: stats.keywordCount > 0 ? 'var(--success)' : 'inherit', fontWeight: stats.keywordCount > 0 ? 'bold' : 'normal' }}>
+                                {stats.keywordCount}
+                              </span>
+                            ) : (
+                              '-'
+                            )}
+                          </td>
+                          <td style={{ padding: '8px', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                              {(!stats || (!stats.loading && stats.count === undefined && !stats.error)) && (
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={async () => {
+                                    setMccAccountStats(prev => ({ ...prev, [child.id]: { loading: true } }));
+                                    try {
+                                      const result = await googleScriptRun.getAccountKeywordStats(child.id);
+                                      setMccAccountStats(prev => ({ ...prev, [child.id]: result }));
+                                    } catch (e) {
+                                      setMccAccountStats(prev => ({ ...prev, [child.id]: { error: e.message } }));
+                                    }
+                                  }}
+                                >
+                                  Check
+                                </button>
+                              )}
+                              <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => {
+                                  setMccSearchQuery('');
+                                  const formattedId = child.id.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+                                  mccSelectorConfig.onSelect(formattedId);
+                                }}
+                              >                                Select
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                  })}
+                  {mccSelectorConfig.children.filter(child => 
+                      (child.name || '').toLowerCase().includes(mccSearchQuery.toLowerCase()) ||
+                      child.id.includes(mccSearchQuery)
+                  ).length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: '16px', color: 'var(--text-secondary)' }}>
+                        No matching accounts found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="modal-actions" style={{ marginTop: '16px' }}>
+              <button
+                className="btn"
+                onClick={() => {
+                   setMccSelectorConfig({ ...mccSelectorConfig, isOpen: false });
+                   setMccSearchQuery('');
+                   if (mccSelectorConfig.onSelect) {
+                     mccSelectorConfig.onSelect(null);
+                   }
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
+      );
+
       const updateScriptProperty = async (key, value) => {
         try {
           const status = await googleScriptRun.setScriptProperty(key, value);
@@ -2834,12 +3280,13 @@ limitations under the License.
           <div className="modal-body">
             <p className="text-sm text-muted mb-4">
               Enter a Google Ads Criterion ID for a location (e.g. 2250 for
-              France) or use the search to find it by name.
+              France) or use the search to find it by name. Target at the city level or higher (e.g. City, State, Country) to ensure sufficient data.
               <a
                 href={LOCATION_INFO_URL}
                 target="_blank"
                 rel="noreferrer noopener"
                 style={{ marginLeft: '4px', verticalAlign: 'middle' }}
+                title="Locations lower than city level may return sparse or no data"
               >
                 <span
                   className="material-symbols-outlined"
@@ -3021,6 +3468,7 @@ limitations under the License.
               keywords={keywords}
               setKeywords={setKeywords}
               runExplore={runExplore}
+              stopExplore={stopExplore}
               isExploring={isExploring}
               exploreStatus={exploreStatus}
               ideasData={ideasData}
@@ -3065,6 +3513,8 @@ limitations under the License.
               highlightKeywordSources={highlightKeywordSources}
               setHighlightKeywordSources={setHighlightKeywordSources}
               theme={theme}
+              geminiConfig={geminiConfig}
+              onOpenSettings={(highlight) => setModalConfig({ ...modalConfig, isOpen: true, type: 'settings', highlight: highlight || null })}
             />
           )}
 
@@ -3087,6 +3537,8 @@ limitations under the License.
               setInsightsChatHistory={setInsightsChatHistory}
               followUpSuggestions={followUpSuggestions}
               setFollowUpSuggestions={setFollowUpSuggestions}
+              geminiConfig={geminiConfig}
+              onOpenSettings={(highlight) => setModalConfig({ ...modalConfig, isOpen: true, type: 'settings', highlight: highlight || null })}
             />
           )}
 
@@ -3146,6 +3598,7 @@ limitations under the License.
             isEffectiveUser={IS_EFFECTIVE_USER}
           />
           {alertModal}
+          {mccModal}
 
           <Modal
             isOpen={showVersionModal}

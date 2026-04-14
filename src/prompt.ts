@@ -42,7 +42,7 @@ export const getInsightsPrompt = (
   specificQuestion
 ) => {
   const data = ideaRows.map(row => {
-    return `${row[0]}, ${(row[1] * 100).toFixed(1)}%`;
+    return `${row[0]}, ${(row[1] * 100).toFixed(0)}%`;
   });
 
   let instruction = `You are a marketing and strategy analyst and you want to find interesting insights based on the topic(s) [${keywords.join(
@@ -67,9 +67,9 @@ export const getInsightsPrompt = (
 <EXAMPLE>
 INPUT:
 [
-  "dog pool, 12242.3%",
-  "dog games, 3602.5%",
-  "pet health, 1014.9%"
+  "dog pool, 12242%",
+  "dog games, 3603%",
+  "pet health, 1015%"
 ]
 
 
@@ -81,7 +81,7 @@ OUTPUT:
 <h2>Overall Trends:</h2>
 
 <ul>
-    <li><b>Explosive Growth in Pet-Specific Products and Activities:</b> The massive growth observed across all provided keywords points to a significant increase in pet owners' focus on enhancing their pets' lives.  "Dog pool" (+12242.3%), "dog games" (+3602.5%), and "pet health" (+1014.9%) all show exceptional YoY increases, suggesting a surge in demand for products and services catering to these areas.</li>
+    <li><b>Explosive Growth in Pet-Specific Products and Activities:</b> The massive growth observed across all provided keywords points to a significant increase in pet owners' focus on enhancing their pets' lives.  "Dog pool" (+12242%), "dog games" (+3603%), and "pet health" (+1015%) all show exceptional YoY increases, suggesting a surge in demand for products and services catering to these areas.</li>
 </ul>
 
 <h2>Cluster Insights & Marketing Takeaways:</h2>

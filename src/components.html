@@ -144,22 +144,38 @@ limitations under the License.
     title,
     children,
     className = '',
+    maxWidth = '',
     showCloseButton = true,
   }) => {
+    const overlayRef = useRef(null);
+    const onCloseRef = useRef(onClose);
+
     useEffect(() => {
+      onCloseRef.current = onClose;
+    }, [onClose]);
+
+    useEffect(() => {
+      if (!isOpen) return;
       const handleEsc = event => {
-        if (event.key === 'Escape') onClose();
+        if (event.key === 'Escape' && overlayRef.current) {
+          const overlays = Array.from(document.querySelectorAll('.modal-overlay'));
+          if (overlays.length > 0 && overlays[overlays.length - 1] === overlayRef.current) {
+            event.stopImmediatePropagation();
+            onCloseRef.current();
+          }
+        }
       };
-      if (isOpen) window.addEventListener('keydown', handleEsc);
-      return () => window.removeEventListener('keydown', handleEsc);
-    }, [isOpen, onClose]);
+      window.addEventListener('keydown', handleEsc, true);
+      return () => window.removeEventListener('keydown', handleEsc, true);
+    }, [isOpen]);
 
     if (!isOpen) return null;
     return (
-      <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-overlay" ref={overlayRef} onClick={onClose}>
         <div
           className={`modal-content ${className}`}
           onClick={e => e.stopPropagation()}
+          style={maxWidth ? { maxWidth } : undefined}
         >
           <div className="modal-header">
             <h2>{title}</h2>
@@ -176,6 +192,28 @@ limitations under the License.
   };
 
   window.ErrorModal = ({ isOpen, onClose, error }) => {
+    const overlayRef = useRef(null);
+    const onCloseRef = useRef(onClose);
+
+    useEffect(() => {
+      onCloseRef.current = onClose;
+    }, [onClose]);
+
+    useEffect(() => {
+      if (!isOpen) return;
+      const handleEsc = event => {
+        if (event.key === 'Escape' && overlayRef.current) {
+          const overlays = Array.from(document.querySelectorAll('.modal-overlay'));
+          if (overlays.length > 0 && overlays[overlays.length - 1] === overlayRef.current) {
+            event.stopImmediatePropagation();
+            onCloseRef.current();
+          }
+        }
+      };
+      window.addEventListener('keydown', handleEsc, true);
+      return () => window.removeEventListener('keydown', handleEsc, true);
+    }, [isOpen]);
+
     if (!isOpen || !error) return null;
 
     const copyToClipboard = () => {
@@ -186,7 +224,7 @@ limitations under the License.
     };
 
     return (
-      <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-overlay" ref={overlayRef} onClick={onClose}>
         <div
           className="modal-content error-modal-content"
           onClick={e => e.stopPropagation()}
@@ -400,20 +438,25 @@ limitations under the License.
       }
     }, [isOpen, modalConfig.highlight]);
 
-    // Close on ESC
+    const insightsModelRef = useRef(null);
     useEffect(() => {
-      const handleEsc = event => {
-        if (event.key === 'Escape') {
-          onClose();
-        }
-      };
-      if (isOpen) {
-        window.addEventListener('keydown', handleEsc);
+      if (isOpen && modalConfig.highlight === 'INSIGHTS_MODEL' && insightsModelRef.current) {
+        setTimeout(() => {
+          insightsModelRef.current.focus();
+          insightsModelRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
       }
-      return () => {
-        window.removeEventListener('keydown', handleEsc);
-      };
-    }, [isOpen, onClose]);
+    }, [isOpen, modalConfig.highlight]);
+
+    const exploreModelRef = useRef(null);
+    useEffect(() => {
+      if (isOpen && modalConfig.highlight === 'EXPLORE_MODEL' && exploreModelRef.current) {
+        setTimeout(() => {
+          exploreModelRef.current.focus();
+          exploreModelRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    }, [isOpen, modalConfig.highlight]);
 
     const handleSave = async () => {
       setIsSaving(true);
@@ -438,6 +481,7 @@ limitations under the License.
         isOpen={isOpen}
         onClose={onClose}
         title="Settings"
+        maxWidth="700px"
         showCloseButton={false}
       >
         <div className="modal-body">
@@ -456,53 +500,205 @@ limitations under the License.
               {modalConfig.message}
             </div>
           )}
-          <div className="input-group">
-            <label>Text Model</label>
-            <div className="select-wrapper">
-              <select
-                value={localGeminiConfig.modelId}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Exploration Model
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: '1rem',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                  onClick={e => {
+                    e.preventDefault();
+                    setInfoModalOpen('exploration_model');
+                  }}
+                  title="Learn more about Gemini models used for exploratory analysis"
+                >
+                  info
+                </span>
+              </label>
+              <div
+                className="select-wrapper"
+                style={
+                  modalConfig.highlight === 'EXPLORE_MODEL'
+                    ? {
+                        border: '2px solid #dc2626',
+                        borderRadius: '8px',
+                        padding: '4px',
+                        position: 'relative',
+                      }
+                    : {}
+                }
+              >
+                <select
+                  ref={exploreModelRef}
+                  value={localGeminiConfig.modelId}
+                  onChange={e =>
+                    setLocalGeminiConfig({
+                      ...localGeminiConfig,
+                      modelId: e.target.value,
+                    })
+                  }
+                >
+                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                  <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
+                  <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite</option>
+                </select>
+                {modalConfig.highlight === 'EXPLORE_MODEL' && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: '-60px',
+                      top: '50%',
+                      color: '#dc2626',
+                      fontSize: '48px',
+                      fontWeight: 'bold',
+                      zIndex: 9999,
+                      animation:
+                        'bounceHorizontal 1s infinite ease-in-out',
+                    }}
+                  >
+                    ←
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Insights Model
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: '1rem',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                  onClick={e => {
+                    e.preventDefault();
+                    setInfoModalOpen('insights_model');
+                  }}
+                  title="Learn more about Gemini models used for generating insights"
+                >
+                  info
+                </span>
+              </label>
+              <div
+                className="select-wrapper"
+                style={
+                  modalConfig.highlight === 'INSIGHTS_MODEL'
+                    ? {
+                        border: '2px solid #dc2626',
+                        borderRadius: '8px',
+                        padding: '4px',
+                        position: 'relative',
+                      }
+                    : {}
+                }
+              >
+                <select
+                  ref={insightsModelRef}
+                  value={localGeminiConfig.insightsModelId || 'gemini-3-flash-preview'}
+                  onChange={e =>
+                    setLocalGeminiConfig({
+                      ...localGeminiConfig,
+                      insightsModelId: e.target.value,
+                    })
+                  }
+                >
+                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                  <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
+                  <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite</option>
+                </select>
+                {modalConfig.highlight === 'INSIGHTS_MODEL' && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: '-60px',
+                      top: '50%',
+                      color: '#dc2626',
+                      fontSize: '48px',
+                      fontWeight: 'bold',
+                      zIndex: 9999,
+                      animation:
+                        'bounceHorizontal 1s infinite ease-in-out',
+                    }}
+                  >
+                    ←
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Image Model
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: '1rem',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                  onClick={e => {
+                    e.preventDefault();
+                    setInfoModalOpen('image_model');
+                  }}
+                  title="Learn more about Gemini models used for generating images"
+                >
+                  info
+                </span>
+              </label>
+              <div className="select-wrapper">
+                <select
+                  value={localGeminiConfig.imageModelId || 'gemini-3.1-flash-image-preview'}
+                  onChange={e =>
+                    setLocalGeminiConfig({
+                      ...localGeminiConfig,
+                      imageModelId: e.target.value,
+                    })
+                  }
+                >
+                  <option value="gemini-3.1-flash-image-preview">Gemini 3.1 Flash Image</option>
+                  <option value="gemini-3-pro-image-preview">Gemini 3 Pro Image</option>
+                </select>
+              </div>
+            </div>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Location
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: '1rem',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                  onClick={e => {
+                    e.preventDefault();
+                    setInfoModalOpen('location');
+                  }}
+                  title="Learn more about Vertex AI region locations"
+                >
+                  info
+                </span>
+              </label>
+              <input
+                type="text"
+                value={localGeminiConfig.location || 'global'}
                 onChange={e =>
                   setLocalGeminiConfig({
                     ...localGeminiConfig,
-                    modelId: e.target.value,
+                    location: e.target.value,
                   })
                 }
-              >
-                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
-                <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
-              </select>
+                placeholder="e.g. global, us-central1, europe-west3"
+              />
             </div>
-          </div>
-          <div className="input-group">
-            <label>Image Model</label>
-            <div className="select-wrapper">
-              <select
-                value={localGeminiConfig.imageModelId || 'gemini-3.1-flash-image-preview'}
-                onChange={e =>
-                  setLocalGeminiConfig({
-                    ...localGeminiConfig,
-                    imageModelId: e.target.value,
-                  })
-                }
-              >
-                <option value="gemini-3.1-flash-image-preview">Gemini 3.1 Flash Image</option>
-                <option value="gemini-3-pro-image-preview">Gemini 3 Pro Image</option>
-              </select>
-            </div>
-          </div>
-          <div className="input-group">
-            <label>Location</label>
-            <input
-              type="text"
-              value={localGeminiConfig.location || 'global'}
-              onChange={e =>
-                setLocalGeminiConfig({
-                  ...localGeminiConfig,
-                  location: e.target.value,
-                })
-              }
-              placeholder="e.g. global, us-central1, europe-west3"
-            />
           </div>
 
 
@@ -513,53 +709,48 @@ limitations under the License.
               borderTop: '1px solid var(--border-color)',
             }}
           />
-          <div className="input-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Min Search Volume
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: '1rem',
-                  color: 'var(--text-secondary)',
-                  cursor: 'pointer',
-                }}
-                onClick={e => {
-                  e.preventDefault();
-                  setInfoModalOpen(true);
-                }}
-                title="Keywords below this search volume are skipped for clustering and analysis."
-              >
-                info
-              </span>
-            </label>
-            <input
-              type="number"
-              value={localMinSearchVolume}
-              onChange={e =>
-                setLocalMinSearchVolume(Number(e.target.value))
-              }
-              placeholder="100"
-            />
-          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Min Search Volume
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: '1rem',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                  onClick={e => {
+                    e.preventDefault();
+                    setInfoModalOpen('min_search_volume');
+                  }}
+                  title="Keywords below this search volume are skipped for clustering and analysis."
+                >
+                  info
+                </span>
+              </label>
+              <input
+                type="number"
+                value={localMinSearchVolume}
+                onChange={e =>
+                  setLocalMinSearchVolume(Number(e.target.value))
+                }
+                placeholder="100"
+              />
+            </div>
 
-          <hr
-            style={{
-              margin: '20px 0',
-              border: '0',
-              borderTop: '1px solid var(--border-color)',
-            }}
-          />
-          <div className="input-group">
-            <label>Export Spreadsheet URL</label>
-            <input
-              type="text"
-              value={localSpreadsheetUrl}
-              onChange={e => setLocalSpreadsheetUrl(e.target.value)}
-              placeholder="https://docs.google.com/spreadsheets/d/..."
-            />
-            <div className="text-sm text-muted mt-1">
-              Note: The spreadsheet must be shared with{' '}
-              <strong>{USER_EMAIL}</strong> with edit permissions.
+            <div className="input-group">
+              <label>Export Spreadsheet URL</label>
+              <input
+                type="text"
+                value={localSpreadsheetUrl}
+                onChange={e => setLocalSpreadsheetUrl(e.target.value)}
+                placeholder="https://docs.google.com/spreadsheets/d/..."
+              />
+              <div className="text-sm text-muted mt-1">
+                Note: The spreadsheet must be shared with{' '}
+                <strong>{USER_EMAIL}</strong> with edit permissions.
+              </div>
             </div>
           </div>
 
@@ -656,7 +847,24 @@ limitations under the License.
             </summary>
             <div className="mt-4">
               <div className="input-group">
-                <label>Ads Account ID</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  Ads Account ID
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: '1rem',
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                    }}
+                    onClick={e => {
+                      e.preventDefault();
+                      setInfoModalOpen('ads_account_id');
+                    }}
+                    title="Learn more about the Google Ads Account ID"
+                  >
+                    info
+                  </span>
+                </label>
                 <div
                   style={
                     modalConfig.highlight === 'ADS_ACCOUNT_ID' ||
@@ -688,6 +896,7 @@ limitations under the License.
                         color: '#dc2626',
                         fontSize: '48px',
                         fontWeight: 'bold',
+                        zIndex: 9999,
                         animation:
                           'bounceHorizontal 1s infinite ease-in-out',
                       }}
@@ -698,7 +907,24 @@ limitations under the License.
                 </div>
               </div>
               <div className="input-group">
-                <label>Developer Token</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  Developer Token
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: '1rem',
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                    }}
+                    onClick={e => {
+                      e.preventDefault();
+                      setInfoModalOpen('developer_token');
+                    }}
+                    title="Learn more about the Google Ads Developer Token"
+                  >
+                    info
+                  </span>
+                </label>
                 <div
                   style={
                     modalConfig.highlight === 'DEVELOPER_TOKEN' ||
@@ -733,6 +959,7 @@ limitations under the License.
                         color: '#dc2626',
                         fontSize: '48px',
                         fontWeight: 'bold',
+                        zIndex: 9999,
                         animation:
                           'bounceHorizontal 1s infinite ease-in-out',
                       }}
@@ -767,14 +994,70 @@ limitations under the License.
 
       {infoModalOpen && (
         <Modal
-          isOpen={infoModalOpen}
-          onClose={() => setInfoModalOpen(false)}
-          title="Min Search Volume"
+          isOpen={!!infoModalOpen}
+          onClose={() => setInfoModalOpen(null)}
+          title={
+            {
+              min_search_volume: 'Min Search Volume',
+              exploration_model: 'Exploration Model',
+              insights_model: 'Insights Model',
+              image_model: 'Image Model',
+              location: 'Location',
+              ads_account_id: 'Ads Account ID',
+              developer_token: 'Developer Token'
+            }[infoModalOpen] || 'Settings Info'
+          }
         >
           <div>
-            <p>
-              Keywords with an average monthly search volume below this threshold will be excluded from the analysis and clustering process. This helps focus the tool on higher-volume terms and reduces unnecessary API calls.
-            </p>
+            {infoModalOpen === 'min_search_volume' && (
+              <p>
+                Keywords with an average monthly search volume below this threshold will be excluded from the analysis and clustering process. This helps focus the tool on higher-volume terms and reduces unnecessary API calls.
+              </p>
+            )}
+            {infoModalOpen === 'exploration_model' && (
+              <p>
+                The Exploration Model is used in the "Explore" tab to suggest related keywords, find geographic criteria IDs, and perform intelligent clustering of keyword groups based on search data.
+                <br /><br />
+                <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models" target="_blank" rel="noopener noreferrer">Learn more about Gemini models in Vertex AI</a>.
+              </p>
+            )}
+            {infoModalOpen === 'insights_model' && (
+              <p>
+                The Insights Model is used in the "Insights" tab to generate the comprehensive marketing reports and powers the ongoing chat analysis functionality.
+                <br /><br />
+                <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models" target="_blank" rel="noopener noreferrer">Learn more about Gemini models in Vertex AI</a>.
+              </p>
+            )}
+            {infoModalOpen === 'image_model' && (
+              <p>
+                The Image Model is used to generate images for the agentic insights follow-up chat, creating visual assets directly based on data analysis requests.
+                <br /><br />
+                <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/image/overview" target="_blank" rel="noopener noreferrer">Learn more about Imagen models in Vertex AI</a>.
+              </p>
+            )}
+            {infoModalOpen === 'location' && (
+              <p>
+                This determines the Google Cloud region where the Gemini models are executed. It is needed to route requests to the correct Vertex AI endpoint.
+                <br /><br />
+                <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations" target="_blank" rel="noopener noreferrer">Learn more about Vertex AI geographic locations</a>.
+              </p>
+            )}
+            {infoModalOpen === 'ads_account_id' && (
+              <p>
+                The Google Ads Account ID is required by the Google Ads API to fetch keyword ideas and search volume history using the Keyword Planner. 
+                <br /><br />
+                <a href="https://support.google.com/google-ads/answer/1704344" target="_blank" rel="noopener noreferrer">Learn how to find your Google Ads Account ID</a>.
+                <br /><br />
+                <a href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas" target="_blank" rel="noopener noreferrer">Learn more about the Google Ads Keyword Planner API</a>.
+              </p>
+            )}
+            {infoModalOpen === 'developer_token' && (
+              <p>
+                The Developer Token provides programmatic access to the Google Ads API. It is strictly required to execute Keyword Planner volume queries.
+                <br /><br />
+                <a href="https://developers.google.com/google-ads/api/docs/get-started/dev-token" target="_blank" rel="noopener noreferrer">Learn how to obtain a Developer Token</a>.
+              </p>
+            )}
           </div>
         </Modal>
       )}

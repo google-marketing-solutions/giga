@@ -197,7 +197,7 @@ export const getInsights = async (
   const metricNames = {
     yoy: 'YoY',
     mom: 'MoM',
-    latest_vs_avg: 'Latest vs Average',
+    latest_vs_avg: 'Last Month vs Average',
     latest_vs_max: 'Last Month vs Max',
     three_months_vs_avg: 'Last 3 Months vs Prev Avg',
   };
@@ -210,7 +210,12 @@ export const getInsights = async (
     language,
     specificQuestion
   );
-  const config = createGeminiConfig(geminiConfig, 'application/json');
+
+  const effectiveConfig = {
+    ...geminiConfig,
+    modelId: geminiConfig.insightsModelId || geminiConfig.modelId,
+  };
+  const config = createGeminiConfig(effectiveConfig, 'application/json');
 
   try {
     // gemini(config) returns a function, then we call it with prompt.
@@ -388,9 +393,8 @@ export const getCampaigns = (
 
   // Format relevantIdeas for the prompt
   const ideasString = relevantIdeas
-    .map(([idea, growth]) => `- ${idea}: ${(growth * 100).toFixed(1)}%`)
+    .map(([idea, growth]) => `- ${idea}: ${(growth * 100).toFixed(0)}%`)
     .join('\n');
-
   const prompt = ` I am a SEA manager working for ${brandName} and I want to create new Google Ads search campaigns based on the following input.
   Based on the provided keywords and their growth metrics, generate ready-to-use text ad campaigns. Group related keywords into campaigns and focus on high-growth keywords.
 
@@ -472,8 +476,12 @@ export const getInsightsChatResponse = async (
     required: ['response', 'suggestions'],
   };
 
+  const effectiveConfig = {
+    ...geminiConfig,
+    modelId: geminiConfig.insightsModelId || geminiConfig.modelId,
+  };
   const config = createGeminiConfig(
-    geminiConfig,
+    effectiveConfig,
     'application/json',
     responseSchema
   );

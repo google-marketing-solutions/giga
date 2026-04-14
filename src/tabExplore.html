@@ -15,13 +15,14 @@ limitations under the License.
 -->
 <script type="text/babel">
   const { useState, useMemo, useEffect, useRef } = React;
-  const { GROWTH_METRICS, LANGUAGES, COUNTRIES, COLOR_PALETTE, DARK_MODE_PALETTE } = window;
+  const { GROWTH_METRICS, LANGUAGES, COUNTRIES, COLOR_PALETTE, DARK_MODE_PALETTE, MODEL_NAMES } = window;
   const { InputField, SelectField, ChartComponent, Modal, ChipsInput } = window;
 
   window.ExploreTab = ({
     keywords,
     setKeywords,
     runExplore,
+    stopExplore,
     isExploring,
     exploreStatus,
     ideasData,
@@ -66,280 +67,323 @@ limitations under the License.
     highlightKeywordSources,
     setHighlightKeywordSources,
     theme,
+    geminiConfig,
+    onOpenSettings
   }) => {
-    const palette = theme === 'dark' ? DARK_MODE_PALETTE : COLOR_PALETTE;
-    const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
-    const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
+              const palette = theme === 'dark' ? DARK_MODE_PALETTE : COLOR_PALETTE;
+              const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+              const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
 
-    const searchVolumeDisclaimer = (
-      <div style={{ padding: '0 1rem 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'center' }}>
-        * Search Volume is from the previous full month only and is limited by the <a href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Historical Metrics</a> endpoint from the Google Ads API.
-      </div>
-    );
+              const searchVolumeDisclaimer = (
+                <div style={{ padding: '0 1rem 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', textAlign: 'center' }}>
+                  * Search Volume is from the previous full month only and is limited by the <a href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Historical Metrics</a> endpoint from the Google Ads API.
+                </div>
+              );
 
-    const promptCustomizationNote = (promptName) => (
-      <p>
-        The {promptName} can be customized to your needs. Any changes you make are stored locally in your
-        browser and will only affect your current session, not other users of the application.
-      </p>
-    );
+              const promptCustomizationNote = (promptName) => (
+                <p>
+                  The {promptName} can be customized to your needs. Any changes you make are stored locally in your
+                  browser and will only affect your current session, not other users of the application.
+                </p>
+              );
 
-    const filteredCountries = useMemo(() => {
-      if (continent === 'Custom Locations') {
-        return customCountries;
-      }
-      const countriesForContinent = window.REGION_MAP[continent] || [];
-      return countriesForContinent;
-    }, [continent, customCountries]);
+              const filteredCountries = useMemo(() => {
+                if (continent === 'Custom Locations') {
+                  return customCountries;
+                }
+                const countriesForContinent = window.REGION_MAP[continent] || [];
+                return countriesForContinent;
+              }, [continent, customCountries]);
 
-    const [activeInfoModal, setActiveInfoModal] = useState(null);
-    const detailsRef = useRef(null);
+              const [activeInfoModal, setActiveInfoModal] = useState(null);
+              const detailsRef = useRef(null);
 
-    useEffect(() => {
-      if (highlightKeywordSources && detailsRef.current) {
-        detailsRef.current.open = true;
-      }
-    }, [highlightKeywordSources]);
+              useEffect(() => {
+                if (highlightKeywordSources && detailsRef.current) {
+                  detailsRef.current.open = true;
+                }
+              }, [highlightKeywordSources]);
 
-    // Keyword Table State
-    const [sortConfig, setSortConfig] = useState({
-      key: 'growth',
-      direction: 'descending',
-    });
-    const [filters, setFilters] = useState({ keyword: '', minVolume: '' });
-    const [expandedIdea, setExpandedIdea] = useState(null);
+              // Keyword Table State
+              const [sortConfig, setSortConfig] = useState({
+                key: 'latest_vs_max',
+                direction: 'descending',
+              });
+              const [filters, setFilters] = useState({ keyword: '', minVolume: '' });
+              const [expandedIdea, setExpandedIdea] = useState(null);
+              const [activeMetrics, setActiveMetrics] = window.useStickyState(
+                ['latest_vs_max', 'yoy', 'mom'],
+                'giga_activeMetrics'
+              );
+              const [isMetricsDropdownOpen, setIsMetricsDropdownOpen] = useState(false);
+              const metricsDropdownRef = useRef(null);
 
-    const requestSort = key => {
-      let direction = 'descending';
-      if (sortConfig.key === key && sortConfig.direction === 'descending') {
-        direction = 'ascending';
-      }
-      setSortConfig({ key, direction });
-    };
+              useEffect(() => {
+                const handleClickOutside = event => {
+                  if (metricsDropdownRef.current && !metricsDropdownRef.current.contains(event.target)) {
+                    setIsMetricsDropdownOpen(false);
+                  }
+                };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+              }, []);
 
-    const getSortIndicator = key => {
-      if (sortConfig.key !== key) return null;
-      return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
-    };
+              const requestSort = key => {
+                let direction = 'descending';
+                if (sortConfig.key === key && sortConfig.direction === 'descending') {
+                  direction = 'ascending';
+                }
+                setSortConfig({ key, direction });
+              };
 
-    const processedIdeas = useMemo(() => {
-      if (!ideasData) return [];
-      return ideasData;
-    }, [ideasData]);
+              const getSortIndicator = key => {
+                if (sortConfig.key !== key) return null;
+                return sortConfig.direction === 'ascending' ? ' ↑' : ' ↓';
+              };
 
-    const filteredIdeas = useMemo(() => {
-      return processedIdeas.filter(item => {
-        if (
-          filters.keyword &&
-          !item.text.toLowerCase().includes(filters.keyword.toLowerCase())
-        ) {
-          return false;
-        }
-        if (
-          filters.minVolume !== '' &&
-          (item.latestSearchVolume || 0) < Number(filters.minVolume)
-        ) {
-          return false;
-        }
-        return true;
-      });
-    }, [processedIdeas, filters]);
+              const processedIdeas = useMemo(() => {
+                if (!ideasData) return [];
+                return ideasData;
+              }, [ideasData]);
 
-    const sortedIdeas = useMemo(() => {
-      let sortableItems = [...filteredIdeas];
-      if (sortConfig.key) {
-        sortableItems.sort((a, b) => {
-          let aValue, bValue;
-          if (sortConfig.key === 'competition') {
-            aValue =
-              a.competition_index != null ? Number(a.competition_index) : null;
-            bValue =
-              b.competition_index != null ? Number(b.competition_index) : null;
-          } else if (
-            [
-              'low_top_of_page_bid_micros',
-              'high_top_of_page_bid_micros',
-              'average_cpc_micros',
-            ].includes(sortConfig.key)
-          ) {
-            aValue =
-              a[sortConfig.key] != null ? Number(a[sortConfig.key]) : null;
-            bValue =
-              b[sortConfig.key] != null ? Number(b[sortConfig.key]) : null;
-          } else if (sortConfig.key === 'growth') {
-            if (growthMetric === 'yoy') {
-              aValue = a.growthYoY;
-              bValue = b.growthYoY;
-            } else if (growthMetric === 'mom') {
-              aValue = a.growthMoM;
-              bValue = b.growthMoM;
-            } else if (growthMetric === 'latest_vs_avg') {
-              aValue = a.growthLatestVsAvg;
-              bValue = b.growthLatestVsAvg;
-            } else if (growthMetric === 'latest_vs_max') {
-              aValue = a.growthLatestVsMax;
-              bValue = b.growthLatestVsMax;
-            } else if (growthMetric === 'three_months_vs_avg') {
-              aValue = a.growthThreeMonthsVsAvg;
-              bValue = b.growthThreeMonthsVsAvg;
-            }
-          } else {
-            aValue = a[sortConfig.key];
-            bValue = b[sortConfig.key];
-          }
+              const filteredIdeas = useMemo(() => {
+                return processedIdeas.filter(item => {
+                  if (
+                    filters.keyword &&
+                    !item.text.toLowerCase().includes(filters.keyword.toLowerCase())
+                  ) {
+                    return false;
+                  }
+                  if (
+                    filters.minVolume !== '' &&
+                    (item.latestSearchVolume || 0) < Number(filters.minVolume)
+                  ) {
+                    return false;
+                  }
+                  return true;
+                });
+              }, [processedIdeas, filters]);
 
-          if (aValue == null) return 1;
-          if (bValue == null) return -1;
+              const sortedIdeas = useMemo(() => {
+                let sortableItems = [...filteredIdeas];
+                if (sortConfig.key) {
+                  sortableItems.sort((a, b) => {
+                    let aValue, bValue;
+                    if (sortConfig.key === 'competition') {
+                      aValue =
+                        a.competition_index != null ? Number(a.competition_index) : null;
+                      bValue =
+                        b.competition_index != null ? Number(b.competition_index) : null;
+                    } else if (
+                      [
+                        'low_top_of_page_bid_micros',
+                        'high_top_of_page_bid_micros',
+                        'average_cpc_micros',
+                      ].includes(sortConfig.key)
+                    ) {
+                      aValue =
+                        a[sortConfig.key] != null ? Number(a[sortConfig.key]) : null;
+                      bValue =
+                        b[sortConfig.key] != null ? Number(b[sortConfig.key]) : null;
+                    } else if (sortConfig.key === 'yoy') {
+                      aValue = a.growthYoY;
+                      bValue = b.growthYoY;
+                    } else if (sortConfig.key === 'mom') {
+                      aValue = a.growthMoM;
+                      bValue = b.growthMoM;
+                    } else if (sortConfig.key === 'latest_vs_avg') {
+                      aValue = a.growthLatestVsAvg;
+                      bValue = b.growthLatestVsAvg;
+                    } else if (sortConfig.key === 'latest_vs_max') {
+                      aValue = a.growthLatestVsMax;
+                      bValue = b.growthLatestVsMax;
+                    } else if (sortConfig.key === 'three_months_vs_avg') {
+                      aValue = a.growthThreeMonthsVsAvg;
+                      bValue = b.growthThreeMonthsVsAvg;
+                    } else if (sortConfig.key === 'growth') {
+                      // Fallback for default sort which is just 'growth' initially
+                      const defaultMetric = activeMetrics[0] || 'yoy';
+                      if (defaultMetric === 'yoy') {
+                        aValue = a.growthYoY;
+                        bValue = b.growthYoY;
+                      } else if (defaultMetric === 'mom') {
+                        aValue = a.growthMoM;
+                        bValue = b.growthMoM;
+                      } else if (defaultMetric === 'latest_vs_avg') {
+                        aValue = a.growthLatestVsAvg;
+                        bValue = b.growthLatestVsAvg;
+                      } else if (defaultMetric === 'latest_vs_max') {
+                        aValue = a.growthLatestVsMax;
+                        bValue = b.growthLatestVsMax;
+                      } else if (defaultMetric === 'three_months_vs_avg') {
+                        aValue = a.growthThreeMonthsVsAvg;
+                        bValue = b.growthThreeMonthsVsAvg;
+                      }
+                    } else {
+                      aValue = a[sortConfig.key];
+                      bValue = b[sortConfig.key];
+                    }
 
-          if (aValue < bValue)
-            return sortConfig.direction === 'ascending' ? -1 : 1;
-          if (aValue > bValue)
-            return sortConfig.direction === 'ascending' ? 1 : -1;
-          return 0;
-        });
-      }
-      return sortableItems;
-    }, [filteredIdeas, sortConfig, growthMetric]);
+                    if (aValue == null) return 1;
+                    if (bValue == null) return -1;
 
-    // Memoize chart options to prevent re-renders/animations
-    const seedChartOptions = useMemo(
-      () => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { boxWidth: 10, padding: 10 },
-          },
-          tooltip: { mode: 'index', intersect: false },
-        },
-        interaction: {
-          mode: 'nearest',
-          axis: 'x',
-          intersect: false,
-        },
-        scales: {
-          x: {
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-        },
-      }),
-      [theme]
-    );
+                    if (aValue < bValue)
+                      return sortConfig.direction === 'ascending' ? -1 : 1;
+                    if (aValue > bValue)
+                      return sortConfig.direction === 'ascending' ? 1 : -1;
+                    return 0;
+                  });
+                }
+                return sortableItems;
+              }, [filteredIdeas, sortConfig, growthMetric]);
+
+              // Memoize chart options to prevent re-renders/animations
+              const seedChartOptions = useMemo(
+                () => ({
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: 10, padding: 10 },
+                    },
+                    tooltip: { mode: 'index', intersect: false },
+                  },
+                  interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false,
+                  },
+                  scales: {
+                    x: {
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                    y: {
+                      beginAtZero: true,
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                  },
+                }),
+                [theme]
+              );
 
 
 
-    const clusterVolumeChartOptions = useMemo(
-      () => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-        },
-        scales: {
-          x: {
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-          y: {
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-        },
-      }),
-      [theme, textColor, gridColor]
-    );
+              const clusterVolumeChartOptions = useMemo(
+                () => ({
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                  },
+                  scales: {
+                    x: {
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                    y: {
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                  },
+                }),
+                [theme, textColor, gridColor]
+              );
 
-    const keywordVolumeChartOptions = useMemo(
-      () => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { boxWidth: 10, padding: 10 },
-          },
-          tooltip: { mode: 'index', intersect: false },
-        },
-        interaction: {
-          mode: 'nearest',
-          axis: 'x',
-          intersect: false,
-        },
-        scales: {
-          x: {
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { color: textColor },
-            grid: { color: gridColor },
-          },
-        },
-      }),
-      [theme]
-    );
+              const keywordVolumeChartOptions = useMemo(
+                () => ({
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: 10, padding: 10 },
+                    },
+                    tooltip: { mode: 'index', intersect: false },
+                  },
+                  interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false,
+                  },
+                  scales: {
+                    x: {
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                    y: {
+                      beginAtZero: true,
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                    },
+                  },
+                }),
+                [theme]
+              );
 
-    const keywordVolumeChartData = useMemo(() => {
-      if (!selectedCluster || !chartLabels) return null;
-      return {
-        labels: chartLabels,
-        datasets: selectedCluster.keywords.map((k, i) => {
-          const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
-          const color = palette[i % palette.length];
-          return {
-            label: k,
-            data: volHistory.slice(),
-            borderColor: color,
-            backgroundColor: color,
-            fill: false,
-            tension: 0.3,
-            pointRadius: 2,
-            pointHoverRadius: 5,
-          };
-        }),
-      };
-    }, [selectedCluster, chartLabels, relevantIdeas, palette]);
+              const keywordVolumeChartData = useMemo(() => {
+                if (!selectedCluster || !chartLabels) return null;
+                return {
+                  labels: chartLabels,
+                  datasets: selectedCluster.keywords.map((k, i) => {
+                    const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
+                    const color = palette[i % palette.length];
+                    return {
+                      label: k,
+                      data: volHistory.slice(),
+                      borderColor: color,
+                      backgroundColor: color,
+                      fill: false,
+                      tension: 0.3,
+                      pointRadius: 2,
+                      pointHoverRadius: 5,
+                    };
+                  }),
+                };
+              }, [selectedCluster, chartLabels, relevantIdeas, palette]);
 
-    const expandedIdeaChartData = useMemo(() => {
-      if (!expandedIdea || !chartLabels) return null;
-      // Verify lengths match or slice
-      // In ideasData, searchVolume matches months. chartLabels should match.
-      return {
-        labels: chartLabels,
-        datasets: [
-          {
-            label: expandedIdea.text,
-            data: expandedIdea.searchVolume,
-            borderColor: palette[0],
-            backgroundColor: palette[0],
-            fill: false,
-            tension: 0.3,
-            pointRadius: 3,
-            pointHoverRadius: 6,
-          },
-        ],
-      };
-    }, [expandedIdea, chartLabels, palette]);
+              const expandedIdeaChartData = useMemo(() => {
+                if (!expandedIdea || !chartLabels) return null;
+                // Verify lengths match or slice
+                // In ideasData, searchVolume matches months. chartLabels should match.
+                return {
+                  labels: chartLabels,
+                  datasets: [
+                    {
+                      label: expandedIdea.text,
+                      data: expandedIdea.searchVolume,
+                      borderColor: palette[0],
+                      backgroundColor: palette[0],
+                      fill: false,
+                      tension: 0.3,
+                      pointRadius: 3,
+                      pointHoverRadius: 6,
+                    },
+                  ],
+                };
+              }, [expandedIdea, chartLabels, palette]);
 
-    return (
-      <div className="card fade-in">
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1rem',
-          }}
-        >
-          <h2 style={{ marginBottom: 0 }}>Explore trending topics</h2>
+              const exploreModelId = geminiConfig?.modelId || 'gemini-3.1-pro-preview';
+              const exploreModelName = MODEL_NAMES?.[exploreModelId] || exploreModelId;
+
+              return (
+                <div className="card fade-in">
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '1rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <h2 style={{ marginBottom: 0 }}>Explore trending topics</h2>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        Model: {exploreModelName} (<a href="#" onClick={(e) => { e.preventDefault(); onOpenSettings('EXPLORE_MODEL'); }} style={{ color: 'var(--primary)', textDecoration: 'none' }}>change</a>)
+                      </div>
+                    </div>
           <button
             className="btn-icon"
             onClick={() => {
@@ -572,6 +616,7 @@ limitations under the License.
                       color: '#dc2626',
                       fontSize: '48px',
                       fontWeight: 'bold',
+                      zIndex: 9999,
                       animation: 'bounceHorizontal 1s infinite ease-in-out',
                     }}
                   >
@@ -707,22 +752,38 @@ limitations under the License.
           </div>
         </details>
 
-        <button
-          className="btn btn-primary"
-          onClick={runExplore}
-          disabled={isExploring}
-        >
-          {isExploring ? (
-            <>
-              <div className="spinner"></div> {exploreStatus || 'Running...'}
-            </>
-          ) : (
-            <>
-              <span className="material-symbols-outlined">rocket_launch</span>{' '}
-              Start
-            </>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            className="btn btn-primary"
+            onClick={runExplore}
+            disabled={isExploring}
+          >
+            {isExploring ? (
+              <>
+                <div className="spinner"></div> {exploreStatus || 'Running...'}
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined">rocket_launch</span>{' '}
+                Start
+              </>
+            )}
+          </button>
+
+          {isExploring && (
+            <button
+              className="btn btn-secondary"
+              onClick={stopExplore}
+              style={{
+                color: 'var(--error)',
+                borderColor: 'var(--error)',
+                background: 'transparent'
+              }}
+            >
+              <span className="material-symbols-outlined">close</span> Cancel
+            </button>
           )}
-        </button>
+        </div>
 
         {seedChartData && (
           <div
@@ -747,18 +808,10 @@ limitations under the License.
             className="mt-4"
             style={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-end',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
             }}
           >
-            <div style={{ maxWidth: '300px' }}>
-              <SelectField
-                label="Growth Metric"
-                value={growthMetric}
-                onChange={setGrowthMetric}
-                options={GROWTH_METRICS}
-              />
-            </div>
             <div>
               {useClustering && clusters && (
                 <>
@@ -800,6 +853,14 @@ limitations under the License.
         {useClustering && clustersChartData && (
           <div className="mt-4">
             <h3>Clusters</h3>
+            <div style={{ marginBottom: '8px', width: '250px' }}>
+              <SelectField
+                label="Growth metric for clustering"
+                value={growthMetric}
+                onChange={setGrowthMetric}
+                options={GROWTH_METRICS}
+              />
+            </div>
             <div className="text-sm text-muted mb-2">
               Click on a bubble to view details
             </div>
@@ -863,9 +924,14 @@ limitations under the License.
                     val = selectedCluster.growthLatestVsMax || 0;
                   else if (growthMetric === 'three_months_vs_avg')
                     val = selectedCluster.growthThreeMonthsVsAvg || 0;
-                  return (val * 100).toFixed(1);
+                  return (
+                    <span style={{ 
+                      color: val > 0 ? 'var(--success)' : val < 0 ? 'var(--error)' : 'inherit' 
+                    }}>
+                      {val > 0 ? '+' : ''}{(val * 100).toFixed(0)}%
+                    </span>
+                  );
                 })()}
-                %
               </div>
             </div>
             <div className="mt-4">
@@ -917,6 +983,82 @@ limitations under the License.
                   placeholder="Search..."
                 />
               </div>
+              <div style={{ flex: 1 }}>
+                <div className="input-group">
+                  <label>Growth Metrics</label>
+                  <div style={{ position: 'relative' }} ref={metricsDropdownRef}>
+                    <div
+                      style={{
+                        padding: '8px 12px',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '8px',
+                        background: 'var(--surface-color)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        color: 'var(--text-main)',
+                        minHeight: '38px',
+                        boxSizing: 'border-box'
+                      }}
+                      onClick={() => setIsMetricsDropdownOpen(!isMetricsDropdownOpen)}
+                    >
+                      <span>{activeMetrics.length} selected</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>
+                        {isMetricsDropdownOpen ? 'expand_less' : 'expand_more'}
+                      </span>
+                    </div>
+                    {isMetricsDropdownOpen && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          right: 0,
+                          marginTop: '4px',
+                          background: 'var(--surface-color)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '8px',
+                          boxShadow: 'var(--shadow-md)',
+                          zIndex: 10,
+                          maxHeight: '250px',
+                          overflowY: 'auto',
+                          padding: '8px 0',
+                        }}
+                      >
+                        {GROWTH_METRICS.map(m => (
+                          <label
+                            key={m.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '8px 12px',
+                              cursor: 'pointer',
+                              gap: '8px',
+                              margin: 0,
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={activeMetrics.includes(m.id)}
+                              onChange={e => {
+                                if (e.target.checked) {
+                                  setActiveMetrics([...activeMetrics, m.id]);
+                                } else {
+                                  if (activeMetrics.length > 1) {
+                                    setActiveMetrics(activeMetrics.filter(id => id !== m.id));
+                                  }
+                                }
+                              }}
+                            />
+                            <span style={{ color: 'var(--text-main)' }}>{m.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
               <div style={{ width: '150px' }}>
                 <InputField
                   type="number"
@@ -965,16 +1107,21 @@ limitations under the License.
                     >
                       Search Vol{getSortIndicator('latestSearchVolume')}
                     </th>
-                    <th
-                      style={{
-                        textAlign: 'right',
-                        padding: '8px',
-                        cursor: 'pointer',
-                      }}
-                      onClick={() => requestSort('growth')}
-                    >
-                      Growth{getSortIndicator('growth')}
-                    </th>
+                    {activeMetrics.map(metricId => (
+                      <th
+                        key={metricId}
+                        style={{
+                          textAlign: 'right',
+                          padding: '8px',
+                          cursor: 'pointer',
+                          minWidth: '100px',
+                        }}
+                        onClick={() => requestSort(metricId)}
+                      >
+                        {GROWTH_METRICS.find(m => m.id === metricId)?.name || metricId}
+                        {getSortIndicator(metricId)}
+                      </th>
+                    ))}
                     <th
                       style={{
                         textAlign: 'left',
@@ -1028,17 +1175,6 @@ limitations under the License.
                     const low = item.low_top_of_page_bid_micros;
                     const high = item.high_top_of_page_bid_micros;
                     const cpc = item.average_cpc_micros;
-
-                    let growth = 0;
-                    if (growthMetric === 'yoy') growth = item.growthYoY || 0;
-                    else if (growthMetric === 'mom')
-                      growth = item.growthMoM || 0;
-                    else if (growthMetric === 'latest_vs_avg')
-                      growth = item.growthLatestVsAvg || 0;
-                    else if (growthMetric === 'latest_vs_max')
-                      growth = item.growthLatestVsMax || 0;
-                    else if (growthMetric === 'three_months_vs_avg')
-                      growth = item.growthThreeMonthsVsAvg || 0;
 
                     const formatMoney = micros =>
                       micros != null
@@ -1098,21 +1234,33 @@ limitations under the License.
                           >
                             {vol != null ? vol.toLocaleString() : '-'}
                           </td>
-                          <td
-                            style={{
-                              padding: '8px',
-                              textAlign: 'right',
-                              color:
-                                growth > 0
-                                  ? 'var(--success)'
-                                  : growth < 0
-                                    ? 'var(--error)'
-                                    : 'inherit',
-                            }}
-                          >
-                            {growth > 0 ? '+' : ''}
-                            {(growth * 100).toFixed(1)}%
-                          </td>
+                          {activeMetrics.map(metricId => {
+                            let growth = 0;
+                            if (metricId === 'yoy') growth = item.growthYoY || 0;
+                            else if (metricId === 'mom') growth = item.growthMoM || 0;
+                            else if (metricId === 'latest_vs_avg') growth = item.growthLatestVsAvg || 0;
+                            else if (metricId === 'latest_vs_max') growth = item.growthLatestVsMax || 0;
+                            else if (metricId === 'three_months_vs_avg') growth = item.growthThreeMonthsVsAvg || 0;
+                            
+                            return (
+                              <td
+                                key={metricId}
+                                style={{
+                                  padding: '8px',
+                                  textAlign: 'right',
+                                  color:
+                                    growth > 0
+                                      ? 'var(--success)'
+                                      : growth < 0
+                                        ? 'var(--error)'
+                                        : 'inherit',
+                                }}
+                              >
+                                {growth > 0 ? '+' : ''}
+                                {(growth * 100).toFixed(0)}%
+                              </td>
+                            );
+                          })}
                           <td style={{ padding: '8px' }}>
                             {comp ? `${comp} (${idx ?? '-'})` : '-'}
                           </td>
@@ -1147,41 +1295,7 @@ limitations under the License.
                               backgroundColor: 'rgba(37, 99, 235, 0.05)',
                             }}
                           >
-                            <td colSpan={7} style={{ padding: '16px' }}>
-                              <div className="grid-2 mb-4">
-                                <div>
-                                  <strong>Total Volume:</strong>{' '}
-                                  {expandedIdea.latestSearchVolume?.toLocaleString() ??
-                                    '-'}
-                                </div>
-                                <div>
-                                  <strong>
-                                    {GROWTH_METRICS.find(
-                                      m => m.id === growthMetric
-                                    )?.name || 'Growth'}
-                                    :
-                                  </strong>{' '}
-                                  {(() => {
-                                    let val = 0;
-                                    if (growthMetric === 'yoy')
-                                      val = expandedIdea.growthYoY || 0;
-                                    else if (growthMetric === 'mom')
-                                      val = expandedIdea.growthMoM || 0;
-                                    else if (growthMetric === 'latest_vs_avg')
-                                      val = expandedIdea.growthLatestVsAvg || 0;
-                                    else if (growthMetric === 'latest_vs_max')
-                                      val = expandedIdea.growthLatestVsMax || 0;
-                                    else if (
-                                      growthMetric === 'three_months_vs_avg'
-                                    )
-                                      val =
-                                        expandedIdea.growthThreeMonthsVsAvg ||
-                                        0;
-                                    return (val * 100).toFixed(1);
-                                  })()}
-                                  %
-                                </div>
-                              </div>
+                            <td colSpan={6 + activeMetrics.length} style={{ padding: '16px' }}>
                               {expandedIdeaChartData ? (
                                 <div>
                                   <div style={{ height: '300px' }}>
@@ -1330,6 +1444,14 @@ limitations under the License.
                         The tool will only retrieve search volume and historical
                         metrics specific to this location.
                       </p>
+                      <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem' }}>
+                        <p style={{ marginBottom: '4px' }}>
+                          * When adding a custom location, use city level or higher (e.g., City, State, Country).
+                        </p>
+                        <p>
+                          * Locations lower than city level (e.g., postal codes, specific neighborhoods) often result in sparse or no data being returned. <a href="https://developers.google.com/google-ads/api/reference/data/geotargets" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Learn more about geo targets</a>.
+                        </p>
+                      </div>
                     </div>
                   );
                 case 'clustering_info':
