@@ -42,6 +42,11 @@ limitations under the License.
   <!-- Chart.js & React Chart.js 2 -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script>
+    if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
+      Chart.unregister(ChartDataLabels);
+    }
+  </script>
 
   <style>
     :root {
