@@ -51,6 +51,7 @@ limitations under the License.
     handleExportExploreToSheet,
     isExporting,
     clustersChartData,
+    showClusterNumbers,
     bubbleChartOptions,
     selectedCluster,
     selectedClusterChartData,
@@ -870,6 +871,7 @@ limitations under the License.
                 data={clustersChartData}
                 options={bubbleChartOptions}
                 theme={theme}
+                plugins={showClusterNumbers && typeof ChartDataLabels !== 'undefined' ? [ChartDataLabels] : []}
               />
             </div>
             {searchVolumeDisclaimer}

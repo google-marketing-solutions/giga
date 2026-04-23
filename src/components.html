@@ -358,23 +358,25 @@ limitations under the License.
     );
   };
 
-  window.ChartComponent = ({ type, data, options, theme }) => {
+  window.ChartComponent = ({ type, data, options, theme, plugins }) => {
     const canvasRef = useRef(null);
     const chartRef = useRef(null);
 
     useEffect(() => {
       if (canvasRef.current) {
         if (chartRef.current) chartRef.current.destroy();
+
         chartRef.current = new Chart(canvasRef.current, {
           type,
           data,
           options,
+          plugins: plugins || [],
         });
       }
       return () => {
         if (chartRef.current) chartRef.current.destroy();
       };
-    }, [type, data, options, theme]);
+    }, [type, data, options, theme, plugins]);
 
     return (
       <div className="chart-container" style={{ position: 'relative', height: '100%', width: '100%' }}>
@@ -389,6 +391,7 @@ limitations under the License.
     modalConfig,
     geminiConfig,
     minSearchVolume,
+    showClusterNumbers,
     configStatus,
     onSave,
     onClearCache,
@@ -398,6 +401,8 @@ limitations under the License.
       useState(geminiConfig);
     const [localMinSearchVolume, setLocalMinSearchVolume] =
       useState(minSearchVolume);
+    const [localShowClusterNumbers, setLocalShowClusterNumbers] =
+      useState(showClusterNumbers ?? true);
     const [localAdsId, setLocalAdsId] = useState(
       configStatus.adsAccountId || ''
     );
@@ -412,6 +417,7 @@ limitations under the License.
       if (isOpen) {
         setLocalGeminiConfig(geminiConfig);
         setLocalMinSearchVolume(minSearchVolume);
+        setLocalShowClusterNumbers(showClusterNumbers ?? true);
         setLocalSpreadsheetUrl(modalConfig.spreadsheetUrl || '');
         setLocalAdsId(configStatus.adsAccountId || '');
         setLocalDevToken('');
@@ -420,6 +426,7 @@ limitations under the License.
       isOpen,
       geminiConfig,
       minSearchVolume,
+      showClusterNumbers,
       configStatus,
       modalConfig.spreadsheetUrl,
     ]);
@@ -464,6 +471,7 @@ limitations under the License.
         await onSave({
           geminiConfig: localGeminiConfig,
           minSearchVolume: localMinSearchVolume,
+          showClusterNumbers: localShowClusterNumbers,
           adsAccountId: localAdsId,
           devToken: localDevToken,
           spreadsheetUrl: localSpreadsheetUrl,
@@ -737,6 +745,18 @@ limitations under the License.
                 }
                 placeholder="100"
               />
+            </div>
+
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  checked={localShowClusterNumbers}
+                  onChange={e => setLocalShowClusterNumbers(e.target.checked)}
+                  style={{ width: 'auto' }}
+                />
+                Show numbers for clustering (bubbles and legend)
+              </label>
             </div>
 
             <div className="input-group">
