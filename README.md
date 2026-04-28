@@ -1,5 +1,5 @@
 <!--
-Copyright 2025 Google LLC
+Copyright 2026 Google LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,8 +22,17 @@ limitations under the License.
 
 **Disclaimer: This is not an official Google product.**
 
+[Overview](#overview) •
+[Challenge Addressed](#challenge-addressed) •
+[Outcome & Impact](#outcome--impact) •
+[Services Used](#services-used) •
+[Limitations](#limitations) •
+[Prerequisites](#prerequisites) •
+[Get Started](#get-started) •
+
 ## Latest Updates
 
+- **May 2026:** Initial version of GIGA on Google Cloud Run.
 - **April 2026:** Account ID selector for Google Ads Manager accounts and added multi-select growth metrics.
 - **March 2026:**
   - Agentic Insights Follow-up to power dynamic, ongoing chat analysis functionality.
@@ -89,76 +98,29 @@ This project utilizes the following Google services:
 
 ## Prerequisites
 
-- **Google Ads Account with a Developer Token:** The developer token needs **"Basic"** or **"Standard"** access level ("Test Account Access" is not sufficient, see [access levels](https://developers.google.com/google-ads/api/docs/access-levels) for details). Additionally, it requires the **"Permissible Use"** for **"Researching keywords and recommendations"** (see [permissible use](https://developers.google.com/google-ads/api/docs/api-policy/access-levels#permissible-use) for details).
+- **[Google Ads Account with a Developer Token](https://developers.google.com/google-ads/api/docs/access-levels):** The developer token needs **"Basic"** or **"Standard"** access level ("Test Account Access" is not sufficient). Additionally, it requires the **"Permissible Use"** for **"Researching keywords and recommendations"** (see [permissible use](https://developers.google.com/google-ads/api/docs/api-policy/access-levels#permissible-use) for details).
 - Google Cloud Project with [Vertex AI](https://cloud.google.com/vertex-ai) enabled
-- Google Workspace (to run [Google Apps Script](https://developers.google.com/apps-script))
 
 ## Get Started
 
-To get started with GIGA:
+To get started with GIGA, clone the repository and copy `configuration.env.template` to `configuration.env` and add all necessary information.
 
-1. Make a copy of the Google Apps Script project
-   <a href="https://script.google.com/home/projects/1ISsbf-oDTHMzr-G6zIl3FmPz-ZkneTVQjfXehpG1mJLaFDTjyCvJprgA" target="_blank" rel="noopener noreferrer">template</a>
+## Run locally
 
-   <a href="https://script.google.com/home/projects/1ISsbf-oDTHMzr-G6zIl3FmPz-ZkneTVQjfXehpG1mJLaFDTjyCvJprgA" target="_blank" rel="noopener noreferrer"><img src="assets/copy_button.png" alt="Copy Button" width="200"/></a>
+Run the server locally
 
-1. Link Apps Script to a Google Cloud Project. To do this, navigate to "Project Settings" and add your project number (only numbers, and not to be confused with the Project ID; full guide [here](https://developers.google.com/apps-script/guides/cloud-platform-projects)).
+```bash
+sh bin/run_local.sh
+```
 
-   <img src="assets/gcp_setup.png" alt="GCP Setup" width="400"/>
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-1. Deploy the solution as a Web-App
-   (see [this](https://developers.google.com/apps-script/guides/web#deploy_a_script_as_a_web_app) for details)
+## Deploy
 
-   <img src="assets/web_app_setup.png" alt="Setup" width="400"/>
+This deploys GIGA on Cloud Run and uses Identity Aware Proxy (IAP) for authentication so that only authenticated users can access the app.
 
-   The user set in "Execute as" needs at least the Vertex AI User ([roles/aiplatform.user](https://docs.cloud.google.com/vertex-ai/docs/general/access-control#aiplatform.user)) IAM role as well as [read access](https://support.google.com/google-ads/answer/9978556) to the associated Google Ads Account.
+```sh
+sh bin/deploy.sh
+```
 
-1. Setup
-   When you run the application the first time, it'll automatically show the settings screen where you need to specify your Google Ads account Id and the corresponding developer token.
-
-   <img src="assets/setup.png" alt="Setup" width="400"/>
-
-   Please note the following:
-
-- A Google Cloud project can be associated with only one developer token (see [this](https://developers.google.com/google-ads/api/docs/get-started/common-errors) for details).
-
-## Contribution (Deploying the solution locally)
-
-Since this is an open-source solution, it is also possible to make contributions by building additional features. To deploy the solution locally, you can follow these steps:
-
-1. Ideally, you should already have installed: `node.js`, `npm`, and `git`.
-2. Install [clasp](https://github.com/google/clasp). `clasp` allows you to develop your Apps Script projects locally. You will need this because GIGA is developed in Apps Script.
-3. Clone this GitHub repository.
-4. Open the cloned repo in your code editor (e.g., VS Code).
-5. In your IDE, open the terminal and install [ASIDE](https://github.com/google/aside) by running this command: `npx @google/aside init`. During the installation, it will ask you a couple of questions:
-
-- Project title - provide the name you want.
-- Create Angular UI - select No.
-- After that, it will ask 6-7 times to replace or overwrite certain files. For each question, select No.
-- Next, it will ask you for "Script ID (optional)" and "Script ID for production environment (optional)". For both questions, you don't have to provide anything; you can just press Enter, and it will create the files automatically for you.
-- After it finishes the installation process, it should provide you with Google Sheets and Apps Script links. The Apps Script link is what you will need.
-
-6. Next, in your IDE terminal, run `npm run deploy`. **NOTE:** If you get the error "FAIL test/example-module.test.ts", just delete the "test" folder from the project directory and run the `npm run deploy` command again.
-7. After it finishes, go to the [Apps Script](https://script.google.com/) page and open the project with the title you gave during the installation process.
-8. Once you open the project, in the upper right corner, click on the blue button "Deploy" -> "New deployment".
-9. It will open a popup. Click on the gear icon next to "Select type". Select "Web App". Add a description if you want. Once you are ready, click the "Deploy" button.
-10. It will ask you to authorize access and grant permissions. Once you provide them, you should see a screen that says "Deployment successfully updated." On this screen, you will find the _Web app URL_. Copy the URL, open it in your browser, and you should see your GIGA app!
-
-### Process of making changes and deploying
-
-If you make changes to the code and want to deploy and test them, follow these steps:
-
-1. After making changes, open the terminal in your IDE and run `npm run deploy`.
-2. When the process is finished, go to the [Apps Script](https://script.google.com/) page and open your project. Click on the "Deploy" button -> "New deployment", and then click the "Deploy" button again.
-3. After you get the message that the deployment is successfully updated, copy the link shown in the popup and open it in your browser.
-
-**Keep in mind**: After each deployment, Apps Script gives you a new URL, so to see the latest version of the GIGA app, you need to use the URL from the latest deployment. If you are not sure what the URL is, you can find it by clicking on the "Deploy" button -> "Manage deployments", where you will find a list of versions you have deployed over time.
-To test your web app, you can also use Apps Script [test deployments](https://developers.google.com/apps-script/guides/web#test_a_web_app_deployment).
-
-## Troubleshooting
-
-If you encounter issues, please verify the following:
-
-- **[Developer Token Access](https://developers.google.com/google-ads/api/docs/access-levels):** Ensure your developer token has at least **"Basic"** or **"Standard"** access level. Test account access is insufficient.
-- **[GCP Project Binding](https://developers.google.com/google-ads/api/docs/get-started/common-errors):** Remember that a Google Cloud Project is permanently associated with the first developer token used. Ensure you haven't previously used a different token with this project.
-- **Connection Test:** To verify your access to Vertex AI and the Google Ads API, you can make a copy of this [Test Spreadsheet](https://docs.google.com/spreadsheets/d/1ZUR1XxyCA48YhULFYUBOb86CMcgavD6boO5kNtb-kXk/view) and run the included tests.
+After deployment is done, you'll see a link to the deployed app in the terminal output.
