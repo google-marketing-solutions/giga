@@ -1,4 +1,4 @@
-Copyright 2026 Google LLC
+/*Copyright 2026 Google LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,3 +11,21 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+*/
+
+
+import {getEnvVar} from './utils';
+
+export interface ApplicationConfig {
+  projectId: string;
+  gcpBucket: string;
+}
+
+export const appConfig: ApplicationConfig = {
+  projectId: getEnvVar('GCP_PROJECT_ID', 'missing-project-id'),
+  gcpBucket: getEnvVar('GCP_BUCKET', 'missing-bucket-name'),
+};
+
+export async function getApplicationConfig(): Promise<ApplicationConfig> {
+  return appConfig;
+}
