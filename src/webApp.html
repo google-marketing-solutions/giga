@@ -1485,7 +1485,13 @@ limitations under the License.
           }
 
           if (cached) {
-            setInsights(JSON.parse(cached));
+            try {
+              setInsights(JSON.parse(cached));
+            } catch (e) {
+              console.error("Failed to parse cached insights:", e);
+              showError("Cache Load Error", "Failed to load cached insights.");
+              setInsights(''); // Clear corrupted cache
+            }
           } else {
             // If no specific cache exists, clear to avoid mismatch
             setInsights('');
