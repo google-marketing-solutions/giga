@@ -2850,6 +2850,10 @@ limitations under the License.
         setShowClusterNumbers(newSettings.showClusterNumbers);
         setSpreadsheetUrl(newSettings.spreadsheetUrl);
 
+        if (newSettings.devToken && newSettings.devToken !== configStatus.devToken) {
+          await updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken);
+        }
+
         let finalAdsId = newSettings.adsAccountId;
         if (newSettings.adsAccountId !== configStatus.adsAccountId) {
           finalAdsId = await resolveAccountId(newSettings.adsAccountId);
@@ -2860,11 +2864,6 @@ limitations under the License.
         if (finalAdsId !== configStatus.adsAccountId) {
           promises.push(
             updateScriptProperty('ADS_ACCOUNT_ID', finalAdsId)
-          );
-        }
-        if (newSettings.devToken) {
-          promises.push(
-            updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken)
           );
         }
 
