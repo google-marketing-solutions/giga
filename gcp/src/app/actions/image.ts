@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 'use server';
 
 import {GoogleGenAI, HarmCategory, HarmBlockThreshold} from '@google/genai';
@@ -58,7 +57,7 @@ export async function generateImage(formData: FormData) {
       }
     }
 
-        const generateConfig: Record<string, unknown> = {};
+    const generateConfig: Record<string, unknown> = {};
     const imageConfig: Record<string, unknown> = {};
 
     if (aspectRatio) imageConfig.aspectRatio = aspectRatio;
@@ -88,7 +87,10 @@ export async function generateImage(formData: FormData) {
                   category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
                   threshold: HarmBlockThreshold.BLOCK_NONE,
                 },
-                {category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE},
+                {
+                  category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                  threshold: HarmBlockThreshold.BLOCK_NONE,
+                },
               ],
             }
           : {
@@ -105,7 +107,10 @@ export async function generateImage(formData: FormData) {
                   category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
                   threshold: HarmBlockThreshold.BLOCK_NONE,
                 },
-                {category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE},
+                {
+                  category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                  threshold: HarmBlockThreshold.BLOCK_NONE,
+                },
               ],
             },
     });
@@ -115,7 +120,6 @@ export async function generateImage(formData: FormData) {
       throw new Error('No content generated');
     }
 
-     
     const content = respParts
       .map((part: import('@google/genai').Part) => {
         if (part.text) {

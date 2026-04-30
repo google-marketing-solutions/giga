@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 export const calculateGrowthMetrics = (searchVolumes: number[]) => {
   const latest = searchVolumes[searchVolumes.length - 1] || 0;
   const prevMonth = searchVolumes[searchVolumes.length - 2] || 0;
@@ -33,22 +32,29 @@ export const calculateGrowthMetrics = (searchVolumes: number[]) => {
 
   const last3Months = searchVolumes.slice(-3);
   const prevMonths = searchVolumes.slice(-24, -3);
-  const avgLast3 = last3Months.length > 0 ? last3Months.reduce((a, b) => a + b, 0) / last3Months.length : 0;
-  const avgPrev = prevMonths.length > 0 ? prevMonths.reduce((a, b) => a + b, 0) / prevMonths.length : 0;
-  const three_months_vs_avg = avgPrev !== 0 ? (avgLast3 - avgPrev) / avgPrev : 0;
+  const avgLast3 =
+    last3Months.length > 0
+      ? last3Months.reduce((a, b) => a + b, 0) / last3Months.length
+      : 0;
+  const avgPrev =
+    prevMonths.length > 0
+      ? prevMonths.reduce((a, b) => a + b, 0) / prevMonths.length
+      : 0;
+  const three_months_vs_avg =
+    avgPrev !== 0 ? (avgLast3 - avgPrev) / avgPrev : 0;
 
   return {
     yoy,
     mom,
     latest_vs_avg,
     latest_vs_max,
-    three_months_vs_avg
+    three_months_vs_avg,
   };
 };
 
 export const calculateKeywordGrowth = (
   ideas: Record<string, number[]>,
-  growthMetric = 'three_months_vs_avg'
+  growthMetric = 'three_months_vs_avg',
 ): [string, number][] => {
   return Object.entries(ideas).map(([idea, searchVolume]) => {
     const history = searchVolume as number[];

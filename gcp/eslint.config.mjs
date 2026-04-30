@@ -28,7 +28,8 @@ const __dirname = path.dirname(__filename);
 eslintPluginHeader.rules.header.meta.schema = false;
 
 // Read the license file and split into an array of lines
-const licenseText = fs.readFileSync(path.join(__dirname, 'license-header.txt'), 'utf8')
+const licenseText = fs
+  .readFileSync(path.join(__dirname, 'license-header.txt'), 'utf8')
   .split('\n')
   .map(line => line.trimEnd()); // Clean up trailing spaces
 
@@ -48,9 +49,9 @@ const eslintConfig = defineConfig([
       header: eslintPluginHeader,
     },
     rules: {
-      'header/header': [2, 'block', licenseText, 2]
-    }
-  }
+      'header/header': [2, 'block', licenseText, 2],
+    },
+  },
 ]);
 
 export default eslintConfig;

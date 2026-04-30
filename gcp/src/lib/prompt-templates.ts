@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 export const INSIGHTS_CHAT_PROMPT = `\nIMPORTANT:
 * Context: Respond to the user message using the existing conversation history.
 * Formatting: Use standard HTML tags for rich text (such as p, strong, ul, li), no raw Markdown.
@@ -27,7 +26,7 @@ export const getInsightsPrompt = (
   keywords: string[],
   metricName: string,
   language = 'English',
-  specificQuestion?: string
+  specificQuestion?: string,
 ) => {
   const data = ideaRows.map(row => {
     return `${row[0]}, ${(row[1] * 100).toFixed(0)}%`;

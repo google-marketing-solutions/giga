@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 export function getEnvVar(name: string, defaultValue?: string): string {
   const value = process.env[name];
   if (!value) {

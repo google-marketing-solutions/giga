@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 import {GoogleAdsApi, enums, services} from 'google-ads-api';
 import {chunk, getEnvVar, sleep} from './utils';
 
@@ -41,29 +40,44 @@ export interface KeywordIdea {
   /** The high range top of page bid in micros. */
   highTopOfPageBidMicros: number | null;
   /** The monthly search volumes for the past 12 months. */
-  monthlySearchVolumes: { month: string; year: number; monthlySearches: number }[];
+  monthlySearchVolumes: {
+    month: string;
+    year: number;
+    monthlySearches: number;
+  }[];
   /** A list of close variants for the keyword. */
   closeVariants: string[];
-    averageCpcMicros: number | null;
+  averageCpcMicros: number | null;
 }
 
-
 const monthsOfYear = [
-  'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
-  'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER',
+  'JANUARY',
+  'FEBRUARY',
+  'MARCH',
+  'APRIL',
+  'MAY',
+  'JUNE',
+  'JULY',
+  'AUGUST',
+  'SEPTEMBER',
+  'OCTOBER',
+  'NOVEMBER',
+  'DECEMBER',
 ];
 const getMonth = (offset = 0) => {
   const x = new Date();
   x.setMonth(x.getMonth() + offset);
-  return enums.MonthOfYear[monthsOfYear[x.getMonth()] as keyof typeof enums.MonthOfYear];
+  return enums.MonthOfYear[
+    monthsOfYear[x.getMonth()] as keyof typeof enums.MonthOfYear
+  ];
 };
 const getYear = (offset = 0) => new Date().getFullYear() + offset;
 
 export const getHistoricalMetricsOptions = (lookbackYears: number) => ({
   include_average_cpc: true,
   year_month_range: {
-    start: { year: getYear(-lookbackYears), month: getMonth(-2) },
-    end: { year: getYear(), month: getMonth(-1) },
+    start: {year: getYear(-lookbackYears), month: getMonth(-2)},
+    end: {year: getYear(), month: getMonth(-1)},
   },
 });
 
@@ -139,30 +153,78 @@ async function getKeywordIdeas(
         const i = idea as {
           text?: string;
           keyword_idea_metrics?: {
-            avg_monthly_searches?: string | number; avgMonthlySearches?: string | number;
+            avg_monthly_searches?: string | number;
+            avgMonthlySearches?: string | number;
             competition?: string;
-            monthly_search_volumes?: { month?: string | number; year?: string | number; monthly_searches?: string | number; monthlySearches?: string | number }[];
-            competition_index?: string | number; competitionIndex?: string | number;
-            low_top_of_page_bid_micros?: string | number; lowTopOfPageBidMicros?: string | number;
-            high_top_of_page_bid_micros?: string | number; highTopOfPageBidMicros?: string | number;
-            average_cpc_micros?: string | number; averageCpcMicros?: string | number;
+            monthly_search_volumes?: {
+              month?: string | number;
+              year?: string | number;
+              monthly_searches?: string | number;
+              monthlySearches?: string | number;
+            }[];
+            competition_index?: string | number;
+            competitionIndex?: string | number;
+            low_top_of_page_bid_micros?: string | number;
+            lowTopOfPageBidMicros?: string | number;
+            high_top_of_page_bid_micros?: string | number;
+            highTopOfPageBidMicros?: string | number;
+            average_cpc_micros?: string | number;
+            averageCpcMicros?: string | number;
           };
-          close_variants?: string[]; closeVariants?: string[];
+          close_variants?: string[];
+          closeVariants?: string[];
         };
         return {
           text: i.text || '',
-          avgMonthlySearches: Number(i.keyword_idea_metrics?.avg_monthly_searches ?? i.keyword_idea_metrics?.avgMonthlySearches) || 0,
+          avgMonthlySearches:
+            Number(
+              i.keyword_idea_metrics?.avg_monthly_searches ??
+                i.keyword_idea_metrics?.avgMonthlySearches,
+            ) || 0,
           competition: i.keyword_idea_metrics?.competition || 'UNKNOWN',
-          monthlySearchVolumes: i.keyword_idea_metrics?.monthly_search_volumes?.map(vol => ({
-            month: typeof vol.month === 'number' || !isNaN(Number(vol.month)) ? enums.MonthOfYear[Number(vol.month)] : String(vol.month),
-            year: Number(vol.year),
-            monthlySearches: Number(vol.monthly_searches ?? vol.monthlySearches) || 0
-          })) || [],
+          monthlySearchVolumes:
+            i.keyword_idea_metrics?.monthly_search_volumes?.map(vol => ({
+              month:
+                typeof vol.month === 'number' || !isNaN(Number(vol.month))
+                  ? enums.MonthOfYear[Number(vol.month)]
+                  : String(vol.month),
+              year: Number(vol.year),
+              monthlySearches:
+                Number(vol.monthly_searches ?? vol.monthlySearches) || 0,
+            })) || [],
           closeVariants: i.close_variants ?? i.closeVariants ?? [],
-          competitionIndex: (i.keyword_idea_metrics?.competition_index ?? i.keyword_idea_metrics?.competitionIndex) != null ? Number(i.keyword_idea_metrics?.competition_index ?? i.keyword_idea_metrics?.competitionIndex) : null,
-          lowTopOfPageBidMicros: (i.keyword_idea_metrics?.low_top_of_page_bid_micros ?? i.keyword_idea_metrics?.lowTopOfPageBidMicros) != null ? Number(i.keyword_idea_metrics?.low_top_of_page_bid_micros ?? i.keyword_idea_metrics?.lowTopOfPageBidMicros) : null,
-          highTopOfPageBidMicros: (i.keyword_idea_metrics?.high_top_of_page_bid_micros ?? i.keyword_idea_metrics?.highTopOfPageBidMicros) != null ? Number(i.keyword_idea_metrics?.high_top_of_page_bid_micros ?? i.keyword_idea_metrics?.highTopOfPageBidMicros) : null,
-          averageCpcMicros: (i.keyword_idea_metrics?.average_cpc_micros ?? i.keyword_idea_metrics?.averageCpcMicros) != null ? Number(i.keyword_idea_metrics?.average_cpc_micros ?? i.keyword_idea_metrics?.averageCpcMicros) : null,
+          competitionIndex:
+            (i.keyword_idea_metrics?.competition_index ??
+              i.keyword_idea_metrics?.competitionIndex) != null
+              ? Number(
+                  i.keyword_idea_metrics?.competition_index ??
+                    i.keyword_idea_metrics?.competitionIndex,
+                )
+              : null,
+          lowTopOfPageBidMicros:
+            (i.keyword_idea_metrics?.low_top_of_page_bid_micros ??
+              i.keyword_idea_metrics?.lowTopOfPageBidMicros) != null
+              ? Number(
+                  i.keyword_idea_metrics?.low_top_of_page_bid_micros ??
+                    i.keyword_idea_metrics?.lowTopOfPageBidMicros,
+                )
+              : null,
+          highTopOfPageBidMicros:
+            (i.keyword_idea_metrics?.high_top_of_page_bid_micros ??
+              i.keyword_idea_metrics?.highTopOfPageBidMicros) != null
+              ? Number(
+                  i.keyword_idea_metrics?.high_top_of_page_bid_micros ??
+                    i.keyword_idea_metrics?.highTopOfPageBidMicros,
+                )
+              : null,
+          averageCpcMicros:
+            (i.keyword_idea_metrics?.average_cpc_micros ??
+              i.keyword_idea_metrics?.averageCpcMicros) != null
+              ? Number(
+                  i.keyword_idea_metrics?.average_cpc_micros ??
+                    i.keyword_idea_metrics?.averageCpcMicros,
+                )
+              : null,
         };
       });
       return acc.concat(mappedResults);
@@ -219,7 +281,11 @@ export interface HistoricalMetrics {
     /** The high range top of page bid in micros. */
     highTopOfPageBidMicros: number | null;
     /** The monthly search volumes for the past 12 months. */
-    monthlySearchVolumes: { month: string; year: number; monthlySearches: number }[];
+    monthlySearchVolumes: {
+      month: string;
+      year: number;
+      monthlySearches: number;
+    }[];
     /** A list of close variants for the keyword. */
     closeVariants: string[];
     averageCpcMicros: number | null;
@@ -283,31 +349,79 @@ export async function getHistoricalMetrics(
         const m = metric as {
           text?: string;
           keyword_metrics?: {
-            avg_monthly_searches?: string | number; avgMonthlySearches?: string | number;
+            avg_monthly_searches?: string | number;
+            avgMonthlySearches?: string | number;
             competition?: string;
-            competition_index?: string | number; competitionIndex?: string | number;
-            low_top_of_page_bid_micros?: string | number; lowTopOfPageBidMicros?: string | number;
-            high_top_of_page_bid_micros?: string | number; highTopOfPageBidMicros?: string | number;
-            average_cpc_micros?: string | number; averageCpcMicros?: string | number;
-            monthly_search_volumes?: { month?: string | number; year?: string | number; monthly_searches?: string | number; monthlySearches?: string | number }[];
+            competition_index?: string | number;
+            competitionIndex?: string | number;
+            low_top_of_page_bid_micros?: string | number;
+            lowTopOfPageBidMicros?: string | number;
+            high_top_of_page_bid_micros?: string | number;
+            highTopOfPageBidMicros?: string | number;
+            average_cpc_micros?: string | number;
+            averageCpcMicros?: string | number;
+            monthly_search_volumes?: {
+              month?: string | number;
+              year?: string | number;
+              monthly_searches?: string | number;
+              monthlySearches?: string | number;
+            }[];
           };
-          close_variants?: string[]; closeVariants?: string[];
+          close_variants?: string[];
+          closeVariants?: string[];
         };
         return {
           text: m.text || '',
           metrics: {
-            avgMonthlySearches: Number(m.keyword_metrics?.avg_monthly_searches ?? m.keyword_metrics?.avgMonthlySearches) || 0,
+            avgMonthlySearches:
+              Number(
+                m.keyword_metrics?.avg_monthly_searches ??
+                  m.keyword_metrics?.avgMonthlySearches,
+              ) || 0,
             competition: m.keyword_metrics?.competition || 'UNKNOWN',
-            competitionIndex: (m.keyword_metrics?.competition_index ?? m.keyword_metrics?.competitionIndex) != null ? Number(m.keyword_metrics?.competition_index ?? m.keyword_metrics?.competitionIndex) : null,
-            lowTopOfPageBidMicros: (m.keyword_metrics?.low_top_of_page_bid_micros ?? m.keyword_metrics?.lowTopOfPageBidMicros) != null ? Number(m.keyword_metrics?.low_top_of_page_bid_micros ?? m.keyword_metrics?.lowTopOfPageBidMicros) : null,
-            highTopOfPageBidMicros: (m.keyword_metrics?.high_top_of_page_bid_micros ?? m.keyword_metrics?.highTopOfPageBidMicros) != null ? Number(m.keyword_metrics?.high_top_of_page_bid_micros ?? m.keyword_metrics?.highTopOfPageBidMicros) : null,
-            monthlySearchVolumes: m.keyword_metrics?.monthly_search_volumes?.map(vol => ({
-              month: typeof vol.month === 'number' || !isNaN(Number(vol.month)) ? enums.MonthOfYear[Number(vol.month)] : String(vol.month),
-              year: Number(vol.year),
-              monthlySearches: Number(vol.monthly_searches ?? vol.monthlySearches) || 0
-            })) || [],
+            competitionIndex:
+              (m.keyword_metrics?.competition_index ??
+                m.keyword_metrics?.competitionIndex) != null
+                ? Number(
+                    m.keyword_metrics?.competition_index ??
+                      m.keyword_metrics?.competitionIndex,
+                  )
+                : null,
+            lowTopOfPageBidMicros:
+              (m.keyword_metrics?.low_top_of_page_bid_micros ??
+                m.keyword_metrics?.lowTopOfPageBidMicros) != null
+                ? Number(
+                    m.keyword_metrics?.low_top_of_page_bid_micros ??
+                      m.keyword_metrics?.lowTopOfPageBidMicros,
+                  )
+                : null,
+            highTopOfPageBidMicros:
+              (m.keyword_metrics?.high_top_of_page_bid_micros ??
+                m.keyword_metrics?.highTopOfPageBidMicros) != null
+                ? Number(
+                    m.keyword_metrics?.high_top_of_page_bid_micros ??
+                      m.keyword_metrics?.highTopOfPageBidMicros,
+                  )
+                : null,
+            monthlySearchVolumes:
+              m.keyword_metrics?.monthly_search_volumes?.map(vol => ({
+                month:
+                  typeof vol.month === 'number' || !isNaN(Number(vol.month))
+                    ? enums.MonthOfYear[Number(vol.month)]
+                    : String(vol.month),
+                year: Number(vol.year),
+                monthlySearches:
+                  Number(vol.monthly_searches ?? vol.monthlySearches) || 0,
+              })) || [],
             closeVariants: m.close_variants ?? m.closeVariants ?? [],
-            averageCpcMicros: (m.keyword_metrics?.average_cpc_micros ?? m.keyword_metrics?.averageCpcMicros) != null ? Number(m.keyword_metrics?.average_cpc_micros ?? m.keyword_metrics?.averageCpcMicros) : null,
+            averageCpcMicros:
+              (m.keyword_metrics?.average_cpc_micros ??
+                m.keyword_metrics?.averageCpcMicros) != null
+                ? Number(
+                    m.keyword_metrics?.average_cpc_micros ??
+                      m.keyword_metrics?.averageCpcMicros,
+                  )
+                : null,
           },
         };
       });
