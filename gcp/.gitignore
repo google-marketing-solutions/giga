@@ -1,0 +1,31 @@
+# node
+node_modules/
+
+# build
+build/
+dist/
+.next/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# ide
+.vscode/
+*.code-workspace
+
+# system
+.DS_Store
+
+# env
+.env
+configuration.env
+
+# misc
+.clasp*.json
+*.tgz
+scripts/
+public/
+
+# gemini
+gemini*/*
