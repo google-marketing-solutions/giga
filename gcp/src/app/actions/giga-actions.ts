@@ -182,7 +182,6 @@ export async function getLocationId(
   }
 
   const prompt = `You are a Google Ads API expert. I need to find the Google Ads location criterion ID for the following location query: "${lookupText}".
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 Search for this location. It could be a city, country, region, or a combination (like "Munich, Germany"). 
 Please provide the EXACT Google Ads location criterion ID and standard name for the most relevant location match.
 If you cannot confidently find a match, return null or empty values.`;
