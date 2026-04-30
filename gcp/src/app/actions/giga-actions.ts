@@ -32,6 +32,63 @@ import {
   getPromptKeywordsTemplate,
 } from '../../lib/prompt-templates';
 
+export interface GeoTargetConstant {
+  status?: string | number;
+  id?: string | number;
+  name?: string;
+  canonicalName?: string;
+  canonical_name?: string;
+}
+
+export interface GeoTargetSuggestion {
+  geoTargetConstant?: GeoTargetConstant;
+  geo_target_constant?: GeoTargetConstant;
+}
+
+export interface ChatMessagePart {
+  text: string;
+}
+
+export interface ChatMessage {
+  role: string;
+  parts: ChatMessagePart[];
+}
+
+export interface ImageContent {
+  type: string;
+  value: string;
+}
+
+export interface AdTextAsset {
+  text: string;
+}
+
+export interface ResponsiveSearchAd {
+  headlines: AdTextAsset[];
+  descriptions: AdTextAsset[];
+}
+
+export interface AdGroupAd {
+  ad: {
+    responsive_search_ad?: ResponsiveSearchAd;
+  };
+}
+
+export interface AdGroup {
+  id: string;
+}
+
+export interface TopPerformingAdItem {
+  ad_group: AdGroup;
+  ad_group_ad: AdGroupAd;
+}
+
+export interface AdSuggestion {
+  keywords: string[];
+  headlines: string[];
+  descriptions: string[];
+}
+
 /**
  * The default limit for keyword ideas to generate.
  */
@@ -152,15 +209,11 @@ export async function getLocationId(
 
     const suggestions = (responseData.geoTargetConstantSuggestions ||
       responseData.geo_target_constant_suggestions ||
-      []) as any[];
-    const bestMatch = suggestions.find(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (s: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const c = s.geoTargetConstant || (s.geo_target_constant as any);
-        return c?.status === 'ENABLED' || c?.status === 2;
-      },
-    );
+      []) as GeoTargetSuggestion[];
+    const bestMatch = suggestions.find((s) => {
+      const c = s.geoTargetConstant || s.geo_target_constant;
+      return c?.status === 'ENABLED' || c?.status === 2;
+    });
 
     const geoTarget =
       bestMatch?.geoTargetConstant || bestMatch?.geo_target_constant;
@@ -449,13 +502,13 @@ export async function getClusters(
 }
 
 export async function getInsightsChatResponse(
-  history: any[],
+  history: ChatMessage[],
   config: Record<string, unknown>,
 ) {
   const transcript = history
     .map(
       msg =>
-        `${msg.role === 'user' ? 'User' : 'Model'}: ${msg.parts.map((p: any) => p.text).join('')}`,
+        `${msg.role === 'user' ? 'User' : 'Model'}: ${msg.parts.map(p => p.text).join('')}`,
     )
     .join('\n\n');
   const finalPrompt = `${INSIGHTS_CHAT_PROMPT}\n\nCHAT HISTORY:\n${transcript}\n\nModel response (JSON format):`;
@@ -502,8 +555,8 @@ export async function getInsightsChatResponse(
         if (imgResult.content) {
           generatedImages.push(
             ...imgResult.content
-              .filter((c: any) => c.type === 'image')
-              .map((c: any) => c.value),
+              .filter((c: ImageContent) => c.type === 'image')
+              .map((c: ImageContent) => c.value),
           );
         }
       }
@@ -587,17 +640,16 @@ export async function getTopPerformingAdsAndKeywords(
       LIMIT ${topN}
     `;
     const response = await customer.query(query);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return response.map((item: any) => ({
+    return response.map((item: TopPerformingAdItem) => ({
       adGroupId: item.ad_group.id,
 
       headlines: (
         item.ad_group_ad.ad.responsive_search_ad?.headlines || []
-      ).map((x: any) => x.text),
+      ).map((x: AdTextAsset) => x.text),
 
       descriptions: (
         item.ad_group_ad.ad.responsive_search_ad?.descriptions || []
-      ).map((x: any) => x.text),
+      ).map((x: AdTextAsset) => x.text),
       keywords: [], // To keep it simple, we skip keyword mapping here unless necessary
     }));
   } catch (e) {
@@ -700,7 +752,7 @@ export async function createCampaignPrompt(cid: string) {
     '  ' +
     ads
       .map(
-        (ad: any) =>
+        (ad: AdSuggestion) =>
           '\n' +
           getPromptKeywordsTemplate(ad.keywords) +
           '\n' +
