@@ -33,11 +33,20 @@ limitations under the License.
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
+  <!-- Markdown Parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
   <!-- Babel for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <!-- Chart.js & React Chart.js 2 -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script>
+    if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
+      Chart.unregister(ChartDataLabels);
+    }
+  </script>
 
   <style>
     :root {
@@ -1062,6 +1071,10 @@ limitations under the License.
         100,
         'giga_minSearchVolume'
       );
+      const [showClusterNumbers, setShowClusterNumbers] = useStickyState(
+        true,
+        'giga_showClusterNumbers'
+      );
       const [highlightKeywordSources, setHighlightKeywordSources] =
         useState(false);
 
@@ -1472,7 +1485,13 @@ limitations under the License.
           }
 
           if (cached) {
-            setInsights(JSON.parse(cached));
+            try {
+              setInsights(JSON.parse(cached));
+            } catch (e) {
+              console.error("Failed to parse cached insights:", e);
+              showError("Cache Load Error", "Failed to load cached insights.");
+              setInsights(''); // Clear corrupted cache
+            }
           } else {
             // If no specific cache exists, clear to avoid mismatch
             setInsights('');
@@ -2346,7 +2365,13 @@ limitations under the License.
 
           if (cached) {
             await new Promise(resolve => setTimeout(resolve, 1500));
-            setInsights(JSON.parse(cached));
+            const parsed = JSON.parse(cached);
+            setInsights(parsed.report || parsed);
+            setFollowUpSuggestions(parsed.suggestions || []);
+            setInsightsChatHistory([
+              ...updatedHistory,
+              { role: 'model', parts: [{ text: parsed.report || parsed }], isReport: true }
+            ]);
             setIsGeneratingInsights(false);
             setInsightsStatus('');
             return;
@@ -2607,7 +2632,7 @@ limitations under the License.
             }
 
             return {
-              label: c.topic,
+              label: showClusterNumbers ? `${i + 1} - ${c.topic}` : c.topic,
               data: [
                 {
                   x: c.searchVolume || 0,
@@ -2619,7 +2644,7 @@ limitations under the License.
             };
           }),
         };
-      }, [clusters, growthMetric]);
+      }, [clusters, growthMetric, showClusterNumbers]);
 
       const selectedClusterChartData = useMemo(() => {
         if (!selectedCluster || !chartLabels.length) return null;
@@ -2708,6 +2733,17 @@ limitations under the License.
               callbacks: {
                 label: ctx =>
                   `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(0)}%`,              },
+            },
+            datalabels: {
+              color: '#ffffff',
+              anchor: 'center',
+              align: 'center',
+              formatter: (value, context) => {
+                return context.datasetIndex + 1;
+              },
+              font: {
+                weight: 'bold',
+              },
             },
           },
           onClick: (evt, elements) => {
@@ -2817,7 +2853,12 @@ limitations under the License.
       const handleSettingsSave = async newSettings => {
         setGeminiConfig(newSettings.geminiConfig);
         setMinSearchVolume(newSettings.minSearchVolume);
+        setShowClusterNumbers(newSettings.showClusterNumbers);
         setSpreadsheetUrl(newSettings.spreadsheetUrl);
+
+        if (newSettings.devToken && newSettings.devToken !== configStatus.devToken) {
+          await updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken);
+        }
 
         let finalAdsId = newSettings.adsAccountId;
         if (newSettings.adsAccountId !== configStatus.adsAccountId) {
@@ -2829,11 +2870,6 @@ limitations under the License.
         if (finalAdsId !== configStatus.adsAccountId) {
           promises.push(
             updateScriptProperty('ADS_ACCOUNT_ID', finalAdsId)
-          );
-        }
-        if (newSettings.devToken) {
-          promises.push(
-            updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken)
           );
         }
 
@@ -3497,6 +3533,7 @@ limitations under the License.
               handleExportExploreToSheet={handleExportExploreToSheet}
               isExporting={isExporting}
               clustersChartData={clustersChartData}
+              showClusterNumbers={showClusterNumbers}
               bubbleChartOptions={bubbleChartOptions}
               selectedCluster={selectedCluster}
               selectedClusterChartData={selectedClusterChartData}
@@ -3592,6 +3629,7 @@ limitations under the License.
             modalConfig={modalConfig}
             geminiConfig={geminiConfig}
             minSearchVolume={minSearchVolume}
+            showClusterNumbers={showClusterNumbers}
             configStatus={configStatus}
             onSave={handleSettingsSave}
             onClearCache={clearCache}
