@@ -56,7 +56,7 @@ export const getNewSearchTermsClusters = (
  * @returns The response from the Google Ads API.
  */
 const authorizedGoogleAdsRequest = (customerId, service, request) => {
-  const params: object = addGoogleAdsAuth(request);
+  const params: object = addGoogleAdsAuth(request, customerId);
   const url = `${ADS_ENDPOINT}/customers/${customerId}${service}`;
   return UrlFetchApp.fetch(url, params).getContentText();
 };

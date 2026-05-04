@@ -23,25 +23,32 @@ export const LOOKBACK_YEARS = 2;
 export const MAX_NUMBER_OF_KEYWORD_SEED_IDEAS = 20;
 
 export const getDeveloperToken = () => getScriptProperties('DEVELOPER_TOKEN');
-export const getCustomerId = () =>
-  getScriptProperties('ADS_ACCOUNT_ID').toString().replace(/-/g, '').trim();
-export const ADS_VERSION = 'v22';
+export const getCustomerId = () => {
+  const id = getScriptProperties('ADS_ACCOUNT_ID');
+  return id ? id.toString().replace(/-/g, '').trim() : '';
+};
+export const ADS_VERSION = 'v23';
 export const ADS_ENDPOINT = `https://googleads.googleapis.com/${ADS_VERSION}`;
 
-export const addGoogleAdsAuth = payload =>
-  Object.assign(
+export const addGoogleAdsAuth = (payload, loginCustomerId = '') => {
+  const id = loginCustomerId || getCustomerId();
+  const headers: Record<string, string> = {
+    'developer-token': getDeveloperToken(),
+    'Authorization': 'Bearer ' + ScriptApp.getOAuthToken(),
+  };
+  if (id) {
+    headers['login-customer-id'] = id;
+  }
+  return Object.assign(
     { payload },
     {
       method: 'POST',
       contentType: 'application/json',
       muteHttpExceptions: true,
-      headers: {
-        'developer-token': getDeveloperToken(),
-        'Authorization': 'Bearer ' + ScriptApp.getOAuthToken(),
-        'login-customer-id': getCustomerId(),
-      },
+      headers,
     }
   );
+};
 
 export const post = (service, params) => {
   return fetchJson(
