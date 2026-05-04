@@ -60,27 +60,27 @@ export interface ImageContent {
 }
 
 export interface AdTextAsset {
-  text: string;
+  text?: string | null;
 }
 
 export interface ResponsiveSearchAd {
-  headlines: AdTextAsset[];
-  descriptions: AdTextAsset[];
+  headlines?: AdTextAsset[] | null;
+  descriptions?: AdTextAsset[] | null;
 }
 
 export interface AdGroupAd {
-  ad: {
-    responsive_search_ad?: ResponsiveSearchAd;
-  };
+  ad?: {
+    responsive_search_ad?: ResponsiveSearchAd | null;
+  } | null;
 }
 
 export interface AdGroup {
-  id: string;
+  id?: string | number | null;
 }
 
 export interface TopPerformingAdItem {
-  ad_group: AdGroup;
-  ad_group_ad: AdGroupAd;
+  ad_group?: AdGroup | null;
+  ad_group_ad?: AdGroupAd | null;
 }
 
 export interface AdSuggestion {
@@ -641,15 +641,15 @@ export async function getTopPerformingAdsAndKeywords(
     `;
     const response = await customer.query(query);
     return response.map((item: TopPerformingAdItem) => ({
-      adGroupId: item.ad_group.id,
+      adGroupId: item.ad_group?.id?.toString() || '',
 
       headlines: (
-        item.ad_group_ad.ad.responsive_search_ad?.headlines || []
-      ).map((x: AdTextAsset) => x.text),
+        item.ad_group_ad?.ad?.responsive_search_ad?.headlines || []
+      ).map((x: AdTextAsset) => x.text || ''),
 
       descriptions: (
-        item.ad_group_ad.ad.responsive_search_ad?.descriptions || []
-      ).map((x: AdTextAsset) => x.text),
+        item.ad_group_ad?.ad?.responsive_search_ad?.descriptions || []
+      ).map((x: AdTextAsset) => x.text || ''),
       keywords: [], // To keep it simple, we skip keyword mapping here unless necessary
     }));
   } catch (e) {
