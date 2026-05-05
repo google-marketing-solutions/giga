@@ -930,17 +930,21 @@ limitations under the License.
       // Theme State
       const [theme, setTheme] = useStickyState('light', 'giga_theme');
 
-      useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme);
+      // Update Chart.js defaults synchronously so children pick them up
+      const isDark = theme === 'dark';
+      const textColor = isDark ? '#f1f5f9' : '#1e293b';
+      const gridColor = isDark ? '#334155' : '#e2e8f0';
 
-        // Update Chart.js defaults
-        const isDark = theme === 'dark';
-        const textColor = isDark ? '#f1f5f9' : '#1e293b';
-        const gridColor = isDark ? '#334155' : '#e2e8f0';
-
+      if (typeof Chart !== 'undefined' && Chart.defaults) {
         Chart.defaults.color = textColor;
         Chart.defaults.borderColor = gridColor;
-        Chart.defaults.scale.grid.color = gridColor;
+        if (Chart.defaults.scale && Chart.defaults.scale.grid) {
+          Chart.defaults.scale.grid.color = gridColor;
+        }
+      }
+
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
       }, [theme]);
 
       const toggleTheme = () => {
@@ -2650,6 +2654,7 @@ limitations under the License.
       const selectedClusterChartData = useMemo(() => {
         if (!selectedCluster || !chartLabels.length) return null;
         const data = selectedCluster.searchVolumeHistory.slice();
+        const baseColor = theme === 'dark' ? '#ffffff' : '#64748b';
 
         return {
           labels: chartLabels,
@@ -2657,14 +2662,14 @@ limitations under the License.
             {
               label: `Search Volume: ${selectedCluster.topic}`,
               data: data,
-              borderColor: COLOR_PALETTE[4],
-              backgroundColor: COLOR_PALETTE[4] + '1A',
+              borderColor: baseColor,
+              backgroundColor: baseColor + '1A',
               fill: true,
               tension: 0.3,
             },
           ],
         };
-      }, [selectedCluster, chartLabels]);
+      }, [selectedCluster, chartLabels, theme]);
 
       const seedChartData = useMemo(() => {
         if (!ideasData || !keywords || !chartLabels.length) return null;
@@ -2681,7 +2686,7 @@ limitations under the License.
         return {
           labels: chartLabels,
           datasets: seedIdeas.map((idea, index) => {
-            const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
+            const color = index === 0 ? (theme === 'dark' ? '#ffffff' : '#64748b') : COLOR_PALETTE[(index - 1) % COLOR_PALETTE.length];
 
             return {
               label: idea.text,
@@ -2695,7 +2700,7 @@ limitations under the License.
             };
           }),
         };
-      }, [ideasData, keywords, chartLabels]);
+      }, [ideasData, keywords, chartLabels, theme]);
 
       const bubbleChartOptions = useMemo(() => {
         const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';

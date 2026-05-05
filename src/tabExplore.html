@@ -381,7 +381,7 @@ limitations under the License.
                   labels: chartLabels,
                   datasets: selectedCluster.keywords.map((k, i) => {
                     const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
-                    const color = palette[i % palette.length];
+                    const color = i === 0 ? (theme === 'dark' ? '#ffffff' : '#64748b') : palette[(i - 1) % palette.length];
                     return {
                       label: k,
                       data: volHistory.slice(),
@@ -394,20 +394,21 @@ limitations under the License.
                     };
                   }),
                 };
-              }, [selectedCluster, chartLabels, relevantIdeas, palette]);
+              }, [selectedCluster, chartLabels, relevantIdeas, palette, theme]);
 
               const expandedIdeaChartData = useMemo(() => {
                 if (!expandedIdea || !chartLabels) return null;
                 // Verify lengths match or slice
                 // In ideasData, searchVolume matches months. chartLabels should match.
+                const color = theme === 'dark' ? '#ffffff' : '#64748b';
                 return {
                   labels: chartLabels,
                   datasets: [
                     {
                       label: expandedIdea.text,
                       data: expandedIdea.searchVolume,
-                      borderColor: palette[0],
-                      backgroundColor: palette[0],
+                      borderColor: color,
+                      backgroundColor: color,
                       fill: false,
                       tension: 0.3,
                       pointRadius: 3,
@@ -415,7 +416,7 @@ limitations under the License.
                     },
                   ],
                 };
-              }, [expandedIdea, chartLabels, palette]);
+              }, [expandedIdea, chartLabels, theme]);
 
               const exploreModelId = geminiConfig?.modelId || 'gemini-3.1-pro-preview';
               const exploreModelName = MODEL_NAMES?.[exploreModelId] || exploreModelId;
@@ -1515,6 +1516,7 @@ limitations under the License.
                                 <div>
                                   <div style={{ height: '300px' }}>
                                     <ChartComponent
+                                      key={theme}
                                       type="line"
                                       data={expandedIdeaChartData}
                                       options={{
@@ -1534,6 +1536,7 @@ limitations under the License.
                                           },
                                         },
                                       }}
+                                      theme={theme}
                                     />
                                   </div>
                                   {searchVolumeDisclaimer}

@@ -2843,7 +2843,7 @@ const ExploreTab = ({
       labels: chartLabels,
       datasets: selectedCluster.keywords.map((k, i) => {
         const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
-        const color = palette[i % palette.length];
+        const color = i === 0 ? (theme === 'dark' ? '#ffffff' : '#64748b') : palette[(i - 1) % palette.length];
         return {
           label: k,
           data: volHistory.slice(),
@@ -2856,20 +2856,21 @@ const ExploreTab = ({
         };
       }),
     };
-  }, [selectedCluster, chartLabels, relevantIdeas, palette]);
+  }, [selectedCluster, chartLabels, relevantIdeas, palette, theme]);
 
   const expandedIdeaChartData = useMemo(() => {
     if (!expandedIdea || !chartLabels) return null;
     // Verify lengths match or slice
     // In ideasData, searchVolume matches months. chartLabels should match.
+    const color = theme === 'dark' ? '#ffffff' : '#64748b';
     return {
       labels: chartLabels,
       datasets: [
         {
           label: expandedIdea.text,
           data: expandedIdea.searchVolume,
-          borderColor: palette[0],
-          backgroundColor: palette[0],
+          borderColor: color,
+          backgroundColor: color,
           fill: false,
           tension: 0.3,
           pointRadius: 3,
@@ -2877,7 +2878,7 @@ const ExploreTab = ({
         },
       ],
     };
-  }, [expandedIdea, chartLabels, palette]);
+  }, [expandedIdea, chartLabels, theme]);
 
   const exploreModelId = geminiConfig?.modelId || 'gemini-3.1-pro-preview';
   const exploreModelName = MODEL_NAMES?.[exploreModelId] || exploreModelId;
@@ -4076,6 +4077,7 @@ const ExploreTab = ({
                               <div>
                                 <div style={{height: '300px'}}>
                                   <ChartComponent
+                                    key={theme}
                                     type="line"
                                     data={expandedIdeaChartData}
                                     options={{
@@ -4095,6 +4097,7 @@ const ExploreTab = ({
                                         },
                                       },
                                     }}
+                                    theme={theme}
                                   />
                                 </div>
                                 {searchVolumeDisclaimer}
@@ -5170,17 +5173,21 @@ const GigaApp = ({onReset, isDemoMode}) => {
   // Theme State
   const [theme, setTheme] = useStickyState('light', 'giga_theme');
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+  // Update Chart.js defaults synchronously so children pick them up
+  const isDark = theme === 'dark';
+  const textColor = isDark ? '#f1f5f9' : '#1e293b';
+  const gridColor = isDark ? '#334155' : '#e2e8f0';
 
-    // Update Chart.js defaults
-    const isDark = theme === 'dark';
-    const textColor = isDark ? '#f1f5f9' : '#1e293b';
-    const gridColor = isDark ? '#334155' : '#e2e8f0';
-
+  if (typeof Chart !== 'undefined' && Chart.defaults) {
     Chart.defaults.color = textColor;
     Chart.defaults.borderColor = gridColor;
-    Chart.defaults.scale.grid.color = gridColor;
+    if (Chart.defaults.scale && Chart.defaults.scale.grid) {
+      Chart.defaults.scale.grid.color = gridColor;
+    }
+  }
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
@@ -7122,6 +7129,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
   const selectedClusterChartData = useMemo(() => {
     if (!selectedCluster || !chartLabels.length) return null;
     const data = selectedCluster.searchVolumeHistory.slice();
+    const baseColor = theme === 'dark' ? '#ffffff' : '#64748b';
 
     return {
       labels: chartLabels,
@@ -7129,14 +7137,14 @@ const GigaApp = ({onReset, isDemoMode}) => {
         {
           label: `Search Volume: ${selectedCluster.topic}`,
           data: data,
-          borderColor: COLOR_PALETTE[4],
-          backgroundColor: COLOR_PALETTE[4] + '1A',
+          borderColor: baseColor,
+          backgroundColor: baseColor + '1A',
           fill: true,
           tension: 0.3,
         },
       ],
     };
-  }, [selectedCluster, chartLabels]);
+  }, [selectedCluster, chartLabels, theme]);
 
   const seedChartData = useMemo(() => {
     if (!ideasData || !keywords || !chartLabels.length) return null;
@@ -7153,7 +7161,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
     return {
       labels: chartLabels,
       datasets: seedIdeas.map((idea, index) => {
-        const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
+        const color = index === 0 ? (theme === 'dark' ? '#ffffff' : '#64748b') : COLOR_PALETTE[(index - 1) % COLOR_PALETTE.length];
 
         return {
           label: idea.text,
@@ -7167,7 +7175,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
         };
       }),
     };
-  }, [ideasData, keywords, chartLabels]);
+  }, [ideasData, keywords, chartLabels, theme]);
 
   const bubbleChartOptions = useMemo(() => {
     const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
