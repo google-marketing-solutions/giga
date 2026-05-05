@@ -18,6 +18,7 @@ limitations under the License.*/
 'use client';
 import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import Chart from 'chart.js/auto';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 // Mocking backend calls
 const USER_EMAIL = 'mocked.user@example.com';
@@ -27,14 +28,30 @@ import * as serverActions from '../actions/giga-actions';
 // --- utils.html ---
 
 // --- Constants & Data ---
-const COLOR_PALETTE = ['#4f6d7a', '#c0d6df', '#dbe9ee', '#4a6fa5', '#166088'];
+const COLOR_PALETTE = [
+  '#4285F4', // blue
+  '#DB4437', // red
+  '#F4B400', // yellow
+  '#0F9D58', // green
+  '#AB47BC', // purple
+  '#00ACC1', // cyan
+  '#FF7043', // orange
+  '#9E9D24', // lime
+  '#5C6BC0', // indigo
+  '#F06292', // pink
+];
 
 const DARK_MODE_PALETTE = [
-  '#60a5fa', // blue-400
-  '#93c5fd', // blue-300
-  '#38bdf8', // sky-400
-  '#7dd3fc', // sky-300
-  '#22d3ee', // cyan-400
+  '#7BAAF7', // light blue
+  '#E67C73', // light red
+  '#F7CB4D', // light yellow
+  '#57BA8A', // light green
+  '#C47ED0', // light purple
+  '#4DC5D4', // light cyan
+  '#FF9B7B', // light orange
+  '#BBBA66', // light lime
+  '#8D97D3', // light indigo
+  '#F591B3', // light pink
 ];
 
 /**
@@ -809,13 +826,16 @@ const SelectField = ({
   );
 };
 
-const ChartComponent = ({type, data, options, theme}) => {
+const ChartComponent = ({type, data, options, theme, plugins}) => {
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
 
   useEffect(() => {
     if (canvasRef.current) {
-      if (chartRef.current && chartRef.current.config.type !== type) {
+      const currentPluginsLength = chartRef.current?.config?.plugins?.length || 0;
+      const newPluginsLength = plugins?.length || 0;
+
+      if (chartRef.current && (chartRef.current.config.type !== type || currentPluginsLength !== newPluginsLength)) {
         chartRef.current.destroy();
         chartRef.current = null;
       }
@@ -829,10 +849,11 @@ const ChartComponent = ({type, data, options, theme}) => {
           type,
           data,
           options,
+          plugins: plugins || [],
         });
       }
     }
-  }, [type, data, options, theme]);
+  }, [type, data, options, theme, plugins]);
 
   useEffect(() => {
     return () => {
@@ -859,6 +880,7 @@ const SettingsModal = ({
   modalConfig,
   geminiConfig,
   minSearchVolume,
+  showClusterNumbers,
   keywordLimit,
   configStatus,
   onSave,
@@ -867,6 +889,8 @@ const SettingsModal = ({
   const [localGeminiConfig, setLocalGeminiConfig] = useState(geminiConfig);
   const [localMinSearchVolume, setLocalMinSearchVolume] =
     useState(minSearchVolume);
+  const [localShowClusterNumbers, setLocalShowClusterNumbers] =
+    useState(showClusterNumbers ?? true);
   const [localKeywordLimit, setLocalKeywordLimit] = useState(keywordLimit);
   const [localAdsId, setLocalAdsId] = useState(configStatus.adsAccountId || '');
   const [localDevToken, setLocalDevToken] = useState('');
@@ -880,6 +904,7 @@ const SettingsModal = ({
     if (isOpen) {
       setLocalGeminiConfig(geminiConfig);
       setLocalMinSearchVolume(minSearchVolume);
+      setLocalShowClusterNumbers(showClusterNumbers ?? true);
       setLocalKeywordLimit(keywordLimit);
       setLocalSpreadsheetUrl(modalConfig.spreadsheetUrl || '');
       setLocalAdsId(configStatus.adsAccountId || '');
@@ -889,6 +914,7 @@ const SettingsModal = ({
     isOpen,
     geminiConfig,
     minSearchVolume,
+    showClusterNumbers,
     keywordLimit,
     configStatus,
     modalConfig.spreadsheetUrl,
@@ -948,6 +974,7 @@ const SettingsModal = ({
       await onSave({
         geminiConfig: localGeminiConfig,
         minSearchVolume: localMinSearchVolume,
+        showClusterNumbers: localShowClusterNumbers,
         keywordLimit: localKeywordLimit,
         adsAccountId: localAdsId,
         devToken: localDevToken,
@@ -1291,6 +1318,17 @@ const SettingsModal = ({
                 onChange={e => setLocalMinSearchVolume(Number(e.target.value))}
                 placeholder="100"
               />
+            </div>
+
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  checked={localShowClusterNumbers}
+                  onChange={e => setLocalShowClusterNumbers(e.target.checked)}
+                />
+                Show numbers for clustering (bubbles and legend)
+              </label>
             </div>
 
             <div className="input-group">
@@ -2450,6 +2488,7 @@ const ExploreTab = ({
   setGeminiPrompt,
   useClustering,
   setUseClustering,
+  showClusterNumbers,
   highlightKeywordSources,
   setHighlightKeywordSources,
   theme,
@@ -3410,6 +3449,7 @@ const ExploreTab = ({
               data={clustersChartData}
               options={bubbleChartOptions}
               theme={theme}
+              plugins={showClusterNumbers ? [ChartDataLabels] : []}
             />
           </div>
           {searchVolumeDisclaimer}
@@ -5235,7 +5275,11 @@ const GigaApp = ({onReset, isDemoMode}) => {
   const [useGemini, setUseGemini] = useStickyState(true, 'giga_useGemini');
   const [useClustering, setUseClustering] = useStickyState(
     true,
-    'giga_useClustering',
+    'giga_useClustering'
+  );
+  const [showClusterNumbers, setShowClusterNumbers] = useStickyState(
+    true,
+    'giga_showClusterNumbers'
   );
   const [exploreStatus, setExploreStatus] = useState('');
   const [isExploring, setIsExploring] = useState(false);
@@ -7061,7 +7105,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
         }
 
         return {
-          label: c.topic,
+          label: showClusterNumbers ? `${i + 1} - ${c.topic}` : c.topic,
           data: [
             {
               x: c.searchVolume || 0,
@@ -7073,7 +7117,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
         };
       }),
     };
-  }, [clusters, growthMetric]);
+  }, [clusters, growthMetric, showClusterNumbers]);
 
   const selectedClusterChartData = useMemo(() => {
     if (!selectedCluster || !chartLabels.length) return null;
@@ -7161,6 +7205,17 @@ const GigaApp = ({onReset, isDemoMode}) => {
           callbacks: {
             label: ctx =>
               `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(0)}%`,
+          },
+        },
+        datalabels: {
+          color: '#ffffff',
+          anchor: 'center',
+          align: 'center',
+          formatter: (value, context) => {
+            return context.datasetIndex + 1;
+          },
+          font: {
+            weight: 'bold',
           },
         },
       },
@@ -7278,6 +7333,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
   const handleSettingsSave = async newSettings => {
     setGeminiConfig(newSettings.geminiConfig);
     setMinSearchVolume(newSettings.minSearchVolume);
+    setShowClusterNumbers(newSettings.showClusterNumbers);
     setKeywordLimit(newSettings.keywordLimit);
     setSpreadsheetUrl(newSettings.spreadsheetUrl);
 
@@ -7991,6 +8047,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
           setGeminiPrompt={setGeminiPrompt}
           useClustering={useClustering}
           setUseClustering={setUseClustering}
+          showClusterNumbers={showClusterNumbers}
           highlightKeywordSources={highlightKeywordSources}
           setHighlightKeywordSources={setHighlightKeywordSources}
           theme={theme}
@@ -8096,6 +8153,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
         modalConfig={modalConfig}
         geminiConfig={geminiConfig}
         minSearchVolume={minSearchVolume}
+        showClusterNumbers={showClusterNumbers}
         keywordLimit={keywordLimit}
         configStatus={configStatus}
         onSave={handleSettingsSave}
