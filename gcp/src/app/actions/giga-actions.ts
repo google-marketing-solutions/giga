@@ -123,12 +123,7 @@ const getAdsClient = (customerIdOverride?: string) => {
   });
 };
 
-export async function createSpreadsheet() {
-  return 'https://docs.google.com/spreadsheets/d/mock-sheet-id';
-}
-export async function exportToSheet() {
-  return true;
-}
+
 export async function getLanguageId(
   lookupText: string,
   config: Record<string, unknown>,

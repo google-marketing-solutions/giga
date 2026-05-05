@@ -406,19 +406,6 @@ const downloadFile = (content, filename, mimeType) => {
   URL.revokeObjectURL(url);
 };
 
-const flattenCampaignsForSheet = campaigns => {
-  if (!Array.isArray(campaigns)) return [];
-  const rows = [];
-  campaigns.forEach(campaign => {
-    campaign.adGroups.forEach(adGroup => {
-      adGroup.keywords.forEach(keyword => {
-        rows.push([campaign.campaignName, adGroup.name, keyword]);
-      });
-    });
-  });
-  return rows;
-};
-
 // --- components.html ---
 
 const TabButton = ({active, onClick, children}) => (
@@ -1885,8 +1872,6 @@ const CampaignsTab = ({
   isGeneratingCampaigns,
   generateCampaignSuggestions,
   handleDownloadCampaigns,
-  handleExportCampaignsToSheet,
-  isExporting,
   GOOGLE_ADS_ID_HELP_URL,
   creationLookbackDays,
   setCreationLookbackDays,
@@ -2146,31 +2131,6 @@ const CampaignsTab = ({
               title="Download Markdown"
             >
               <span className="material-symbols-outlined">download</span>
-            </button>
-          )}
-          {campaignSuggestions && (
-            <button
-              className="btn btn-secondary"
-              onClick={handleExportCampaignsToSheet}
-              style={{
-                background: 'var(--surface-color)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-              }}
-              disabled={isExporting}
-              title="Export to Sheet"
-            >
-              {isExporting ? (
-                <div
-                  className="spinner"
-                  style={{
-                    borderColor: 'rgba(37, 99, 235, 0.3)',
-                    borderTopColor: '#2563eb',
-                  }}
-                ></div>
-              ) : (
-                <span className="material-symbols-outlined">table</span>
-              )}
             </button>
           )}
         </div>
@@ -2472,8 +2432,6 @@ const ExploreTab = ({
   growthMetric,
   setGrowthMetric,
   handleDownloadExplore,
-  handleExportExploreToSheet,
-  isExporting,
   clustersChartData,
   bubbleChartOptions,
   selectedCluster,
@@ -3403,27 +3361,6 @@ const ExploreTab = ({
                 >
                   <span className="material-symbols-outlined">download</span>
                 </button>
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleExportExploreToSheet}
-                  style={{
-                    marginLeft: '8px',
-                  }}
-                  disabled={isExporting}
-                  title="Export to Sheet"
-                >
-                  {isExporting ? (
-                    <div
-                      className="spinner"
-                      style={{
-                        borderColor: 'rgba(37, 99, 235, 0.3)',
-                        borderTopColor: '#2563eb',
-                      }}
-                    ></div>
-                  ) : (
-                    <span className="material-symbols-outlined">table</span>
-                  )}
-                </button>
               </>
             )}
           </div>
@@ -4336,8 +4273,6 @@ const InsightsTab = ({
   generateInsights,
   isGeneratingInsights,
   handleDownloadInsights,
-  handleExportInsightsToSheet,
-  isExporting,
   language,
   setLanguage,
   insightsChatHistory,
@@ -4491,29 +4426,6 @@ const InsightsTab = ({
               title="Download Markdown"
             >
               <span className="material-symbols-outlined">download</span>
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={handleExportInsightsToSheet}
-              style={{
-                background: 'var(--surface-color)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-              }}
-              disabled={isExporting}
-              title="Export to Sheet"
-            >
-              {isExporting ? (
-                <div
-                  className="spinner"
-                  style={{
-                    borderColor: 'rgba(37, 99, 235, 0.3)',
-                    borderTopColor: '#2563eb',
-                  }}
-                ></div>
-              ) : (
-                <span className="material-symbols-outlined">table</span>
-              )}
             </button>
           </div>
         </div>
@@ -5392,113 +5304,6 @@ const GigaApp = ({onReset, isDemoMode}) => {
   }, [setDemoRandomizationPercent]);
 
   // --- Sheet Export Helper ---
-  const [isExporting, setIsExporting] = useState(false);
-
-  const handleSheetExport = async (
-    sheetName,
-    header,
-    rows,
-    columnFormats = [],
-  ) => {
-    setIsExporting(true);
-    try {
-      let targetUrl = spreadsheetUrl;
-      let isNewSheet = false;
-      if (!targetUrl) {
-        targetUrl = await serverActions.createSpreadsheet('Giga Export');
-        setSpreadsheetUrl(targetUrl);
-        isNewSheet = true;
-      }
-      await serverActions.exportToSheet(
-        targetUrl,
-        sheetName,
-        header,
-        rows,
-        columnFormats,
-      );
-      if (isNewSheet) {
-        showAlert(
-          `Successfully exported to a new spreadsheet. You can change the destination URL in Settings. Note: The user (${USER_EMAIL}) must have edit access to this spreadsheet for future exports.`,
-          targetUrl,
-        );
-      } else {
-        showAlert('Successfully exported to:', targetUrl);
-      }
-    } catch (e) {
-      showError('Export Failed', e);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleExportExploreToSheet = () => {
-    if (!clusters) return;
-    const headers = [
-      'Cluster Topic',
-      'Keyword',
-      'Last Month Search Volume',
-      'Cluster Growth YoY',
-      'Cluster Growth MoM',
-      'Competition',
-      'Low Bid (Micros)',
-      'High Bid (Micros)',
-      'Avg CPC (Micros)',
-    ];
-    const rows = [];
-
-    clusters.forEach(cluster => {
-      cluster.keywords.forEach(kw => {
-        const history = relevantIdeas[kw];
-        const vol = history && history.length > 0 ? history[0] : 0;
-        const idea = ideasData ? ideasData.find(i => i.text === kw) : null;
-
-        rows.push([
-          cluster.topic,
-          kw,
-          vol,
-          cluster.growthYoY,
-          cluster.growthMoM,
-          idea ? idea.competition : '',
-          idea ? idea.low_top_of_page_bid_micros : '',
-          idea ? idea.high_top_of_page_bid_micros : '',
-          idea ? idea.average_cpc_micros : '',
-        ]);
-      });
-    });
-
-    const columnFormats = [
-      {colIndex: 2, numberFormat: '#,##0'},
-      {colIndex: 3, numberFormat: '0%'},
-      {colIndex: 4, numberFormat: '0%'},
-      {
-        colIndex: 6,
-        numberFormat: '"$"#,##0.00',
-        scale: 0.000001,
-        headerRename: 'Low Bid (USD)',
-      },
-      {
-        colIndex: 7,
-        numberFormat: '"$"#,##0.00',
-        scale: 0.000001,
-        headerRename: 'High Bid (USD)',
-      },
-      {
-        colIndex: 8,
-        numberFormat: '"$"#,##0.00',
-        scale: 0.000001,
-        headerRename: 'Avg CPC (USD)',
-      },
-    ];
-
-    handleSheetExport('Explore', headers, rows, columnFormats);
-  };
-
-  const handleExportInsightsToSheet = () => {
-    if (!insights) return;
-    // Just put the markdown text in one cell
-    const rows = [[htmlToMarkdown(insights)]];
-    handleSheetExport('Insights', ['Insights Content'], rows);
-  };
 
   const formatCampaignsForExport = campaigns => {
     if (!campaigns) return '';
@@ -5526,28 +5331,6 @@ const GigaApp = ({onReset, isDemoMode}) => {
         return text;
       })
       .join('\n\n' + '-'.repeat(40) + '\n\n');
-  };
-
-  const handleExportCampaignsToSheet = async () => {
-    if (!campaignSuggestions) return;
-    setIsExporting(true);
-    try {
-      const text = formatCampaignsForExport(campaignSuggestions);
-      const rows = [[text]];
-      await handleSheetExport(
-        'Campaign Suggestions',
-        ['Campaign Content'],
-        rows,
-      );
-
-      const headers = ['Campaign', 'Ad Group', 'Keyword'];
-      const flatData = flattenCampaignsForSheet(campaignSuggestions);
-      await handleSheetExport('Campaign Structure', headers, flatData);
-    } catch (e) {
-      showError('Export Failed', e);
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   const handleDownloadCampaigns = () => {
@@ -8039,8 +7822,6 @@ const GigaApp = ({onReset, isDemoMode}) => {
           growthMetric={growthMetric}
           setGrowthMetric={setGrowthMetric}
           handleDownloadExplore={handleDownloadExplore}
-          handleExportExploreToSheet={handleExportExploreToSheet}
-          isExporting={isExporting}
           clustersChartData={clustersChartData}
           bubbleChartOptions={bubbleChartOptions}
           selectedCluster={selectedCluster}
@@ -8078,8 +7859,6 @@ const GigaApp = ({onReset, isDemoMode}) => {
           generateInsights={generateInsights}
           isGeneratingInsights={isGeneratingInsights}
           handleDownloadInsights={handleDownloadInsights}
-          handleExportInsightsToSheet={handleExportInsightsToSheet}
-          isExporting={isExporting}
           language={insightsLanguage}
           setLanguage={setInsightsLanguage}
           insightsChatHistory={insightsChatHistory}
@@ -8142,8 +7921,6 @@ const GigaApp = ({onReset, isDemoMode}) => {
           isGeneratingCampaigns={isGeneratingCampaigns}
           generateCampaignSuggestions={generateCampaignSuggestions}
           handleDownloadCampaigns={handleDownloadCampaigns}
-          handleExportCampaignsToSheet={handleExportCampaignsToSheet}
-          isExporting={isExporting}
           GOOGLE_ADS_ID_HELP_URL={GOOGLE_ADS_ID_HELP_URL}
           creationLookbackDays={creationLookbackDays}
           setCreationLookbackDays={setCreationLookbackDays}
