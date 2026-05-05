@@ -815,17 +815,33 @@ const ChartComponent = ({type, data, options, theme}) => {
 
   useEffect(() => {
     if (canvasRef.current) {
-      if (chartRef.current) chartRef.current.destroy();
-      chartRef.current = new Chart(canvasRef.current, {
-        type,
-        data,
-        options,
-      });
+      if (chartRef.current && chartRef.current.config.type !== type) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+
+      if (chartRef.current) {
+        chartRef.current.data = data;
+        chartRef.current.options = options;
+        chartRef.current.update();
+      } else {
+        chartRef.current = new Chart(canvasRef.current, {
+          type,
+          data,
+          options,
+        });
+      }
     }
-    return () => {
-      if (chartRef.current) chartRef.current.destroy();
-    };
   }, [type, data, options, theme]);
+
+  useEffect(() => {
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <div

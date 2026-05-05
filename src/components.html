@@ -364,19 +364,34 @@ limitations under the License.
 
     useEffect(() => {
       if (canvasRef.current) {
-        if (chartRef.current) chartRef.current.destroy();
+        if (chartRef.current && chartRef.current.config.type !== type) {
+          chartRef.current.destroy();
+          chartRef.current = null;
+        }
 
-        chartRef.current = new Chart(canvasRef.current, {
-          type,
-          data,
-          options,
-          plugins: plugins || [],
-        });
+        if (chartRef.current) {
+          chartRef.current.data = data;
+          chartRef.current.options = options;
+          chartRef.current.update();
+        } else {
+          chartRef.current = new Chart(canvasRef.current, {
+            type,
+            data,
+            options,
+            plugins: plugins || [],
+          });
+        }
       }
-      return () => {
-        if (chartRef.current) chartRef.current.destroy();
-      };
     }, [type, data, options, theme, plugins]);
+
+    useEffect(() => {
+      return () => {
+        if (chartRef.current) {
+          chartRef.current.destroy();
+          chartRef.current = null;
+        }
+      };
+    }, []);
 
     return (
       <div className="chart-container" style={{ position: 'relative', height: '100%', width: '100%' }}>
