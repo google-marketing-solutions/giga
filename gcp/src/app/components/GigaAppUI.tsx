@@ -2490,7 +2490,15 @@ const ExploreTab = ({
     key: 'latest_vs_max',
     direction: 'descending',
   });
-  const [filters, setFilters] = useState({keyword: '', minVolume: ''});
+  const [filters, setFilters] = useState({
+    keyword: '',
+    minVolume: '',
+    minGrowth: {},
+    competition: '',
+    maxLowBid: '',
+    maxHighBid: '',
+    maxCpc: '',
+  });
   const [expandedIdea, setExpandedIdea] = useState(null);
   const lastAutoExpandedDataRef = useRef(null);
 
@@ -2540,15 +2548,48 @@ const ExploreTab = ({
       ) {
         return false;
       }
-      if (
-        filters.minVolume !== '' &&
-        (item.latestSearchVolume || 0) < Number(filters.minVolume)
-      ) {
+      
+      const vol = item.latestSearchVolume || 0;
+      if (filters.minVolume !== '' && vol < Number(filters.minVolume)) {
         return false;
       }
+
+      if (filters.competition && item.competition !== filters.competition) {
+        return false;
+      }
+
+      if (filters.maxLowBid !== '') {
+        const lowBid = (item.low_top_of_page_bid_micros || 0) / 1000000;
+        if (lowBid > Number(filters.maxLowBid)) return false;
+      }
+
+      if (filters.maxHighBid !== '') {
+        const highBid = (item.high_top_of_page_bid_micros || 0) / 1000000;
+        if (highBid > Number(filters.maxHighBid)) return false;
+      }
+
+      if (filters.maxCpc !== '') {
+        const cpc = (item.average_cpc_micros || 0) / 1000000;
+        if (cpc > Number(filters.maxCpc)) return false;
+      }
+
+      for (const metricId of activeMetrics) {
+        const minVal = filters.minGrowth[metricId];
+        if (minVal !== undefined && minVal !== '') {
+          let growth = 0;
+          if (metricId === 'yoy') growth = item.growthYoY || 0;
+          else if (metricId === 'mom') growth = item.growthMoM || 0;
+          else if (metricId === 'latest_vs_avg') growth = item.growthLatestVsAvg || 0;
+          else if (metricId === 'latest_vs_max') growth = item.growthLatestVsMax || 0;
+          else if (metricId === 'three_months_vs_avg') growth = item.growthThreeMonthsVsAvg || 0;
+          
+          if ((growth * 100) < Number(minVal)) return false;
+        }
+      }
+
       return true;
     });
-  }, [processedIdeas, filters]);
+  }, [processedIdeas, filters, activeMetrics]);
 
   const sortedIdeas = useMemo(() => {
     let sortableItems = [...filteredIdeas];
@@ -3445,14 +3486,6 @@ const ExploreTab = ({
             }}
           >
             <div style={{flex: 1}}>
-              <InputField
-                label="Filter by Keyword"
-                value={filters.keyword}
-                onChange={val => setFilters(prev => ({...prev, keyword: val}))}
-                placeholder="Search..."
-              />
-            </div>
-            <div style={{flex: 1}}>
               <div className="input-group">
                 <label>Growth Metrics</label>
                 <div style={{position: 'relative'}} ref={metricsDropdownRef}>
@@ -3536,17 +3569,6 @@ const ExploreTab = ({
                   )}
                 </div>
               </div>
-            </div>
-            <div style={{width: '150px'}}>
-              <InputField
-                type="number"
-                label="Min Volume"
-                value={filters.minVolume}
-                onChange={val =>
-                  setFilters(prev => ({...prev, minVolume: val}))
-                }
-                placeholder="e.g. 100"
-              />
             </div>
           </div>
           <div style={{overflowX: 'auto'}}>
@@ -3642,6 +3664,76 @@ const ExploreTab = ({
                     onClick={() => requestSort('average_cpc_micros')}
                   >
                     Avg CPC{getSortIndicator('average_cpc_micros')}
+                  </th>
+                </tr>
+                <tr style={{ backgroundColor: 'var(--surface-color)', fontSize: '0.8rem' }}>
+                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      value={filters.keyword}
+                      onChange={e => setFilters(prev => ({...prev, keyword: e.target.value}))}
+                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                    />
+                  </th>
+                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minVolume}
+                      onChange={e => setFilters(prev => ({...prev, minVolume: e.target.value}))}
+                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                    />
+                  </th>
+                  {activeMetrics.map(metricId => (
+                    <th key={metricId} style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                      <input
+                        type="number"
+                        placeholder="Min %"
+                        value={filters.minGrowth[metricId] || ''}
+                        onChange={e => setFilters(prev => ({...prev, minGrowth: {...prev.minGrowth, [metricId]: e.target.value}}))}
+                        style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                      />
+                    </th>
+                  ))}
+                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                    <select
+                      value={filters.competition}
+                      onChange={e => setFilters(prev => ({...prev, competition: e.target.value}))}
+                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                    >
+                      <option value="">All</option>
+                      <option value="HIGH">HIGH</option>
+                      <option value="MEDIUM">MEDIUM</option>
+                      <option value="LOW">LOW</option>
+                    </select>
+                  </th>
+                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                    <input
+                      type="number"
+                      placeholder="Max $"
+                      value={filters.maxLowBid}
+                      onChange={e => setFilters(prev => ({...prev, maxLowBid: e.target.value}))}
+                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                    />
+                  </th>
+                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                    <input
+                      type="number"
+                      placeholder="Max $"
+                      value={filters.maxHighBid}
+                      onChange={e => setFilters(prev => ({...prev, maxHighBid: e.target.value}))}
+                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                    />
+                  </th>
+                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                    <input
+                      type="number"
+                      placeholder="Max $"
+                      value={filters.maxCpc}
+                      onChange={e => setFilters(prev => ({...prev, maxCpc: e.target.value}))}
+                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                    />
                   </th>
                 </tr>
               </thead>
