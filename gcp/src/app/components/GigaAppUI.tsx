@@ -250,6 +250,13 @@ const GROWTH_METRICS = [
   {id: 'three_months_vs_avg', name: 'Last 3 Months vs Prev Avg'},
 ];
 
+const PERFORMANCE_METRICS = [
+  {id: 'competition', name: 'Competition'},
+  {id: 'low_top_of_page_bid_micros', name: 'Low Bid'},
+  {id: 'high_top_of_page_bid_micros', name: 'High Bid'},
+  {id: 'average_cpc_micros', name: 'Avg CPC'},
+];
+
 const MODEL_NAMES = {
   'gemini-3.1-pro-preview': 'Gemini 3.1 Pro',
   'gemini-3-flash-preview': 'Gemini 3 Flash',
@@ -2509,6 +2516,13 @@ const ExploreTab = ({
   const [isMetricsDropdownOpen, setIsMetricsDropdownOpen] = useState(false);
   const metricsDropdownRef = useRef(null);
 
+  const [activePerformanceMetrics, setActivePerformanceMetrics] = useStickyState(
+    ['competition', 'average_cpc_micros'],
+    'giga_activePerformanceMetrics',
+  );
+  const [isPerformanceMetricsDropdownOpen, setIsPerformanceMetricsDropdownOpen] = useState(false);
+  const performanceMetricsDropdownRef = useRef(null);
+
   useEffect(() => {
     const handleClickOutside = event => {
       if (
@@ -2516,6 +2530,12 @@ const ExploreTab = ({
         !metricsDropdownRef.current.contains(event.target)
       ) {
         setIsMetricsDropdownOpen(false);
+      }
+      if (
+        performanceMetricsDropdownRef.current &&
+        !performanceMetricsDropdownRef.current.contains(event.target)
+      ) {
+        setIsPerformanceMetricsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -3485,7 +3505,7 @@ const ExploreTab = ({
               marginBottom: '1rem',
             }}
           >
-            <div style={{flex: 1}}>
+            <div style={{width: '250px'}}>
               <div className="input-group">
                 <label>Growth Metrics</label>
                 <div style={{position: 'relative'}} ref={metricsDropdownRef}>
@@ -3552,11 +3572,109 @@ const ExploreTab = ({
                               if (e.target.checked) {
                                 setActiveMetrics([...activeMetrics, m.id]);
                               } else {
-                                if (activeMetrics.length > 1) {
-                                  setActiveMetrics(
-                                    activeMetrics.filter(id => id !== m.id),
-                                  );
-                                }
+                                setActiveMetrics(
+                                  activeMetrics.filter(id => id !== m.id),
+                                );
+                              }
+                            }}
+                          />
+                          <span style={{color: 'var(--text-main)'}}>
+                            {m.name}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div style={{width: '250px'}}>
+              <div className="input-group">
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                  <label style={{ marginBottom: 0 }}>Performance Metrics</label>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: '1rem',
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      marginLeft: '4px',
+                    }}
+                    onClick={e => {
+                      e.preventDefault();
+                      setActiveInfoModal('performance_metrics_info');
+                    }}
+                  >
+                    info
+                  </span>
+                </div>
+                <div style={{position: 'relative'}} ref={performanceMetricsDropdownRef}>
+                  <div
+                    style={{
+                      padding: '8px 12px',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '8px',
+                      background: 'var(--surface-color)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      color: 'var(--text-main)',
+                      minHeight: '38px',
+                      boxSizing: 'border-box',
+                    }}
+                    onClick={() =>
+                      setIsPerformanceMetricsDropdownOpen(!isPerformanceMetricsDropdownOpen)
+                    }
+                  >
+                    <span>{activePerformanceMetrics.length} selected</span>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{fontSize: '1.2rem'}}
+                    >
+                      {isPerformanceMetricsDropdownOpen ? 'expand_less' : 'expand_more'}
+                    </span>
+                  </div>
+                  {isPerformanceMetricsDropdownOpen && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        marginTop: '4px',
+                        background: 'var(--surface-color)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '8px',
+                        boxShadow: 'var(--shadow-md)',
+                        zIndex: 10,
+                        maxHeight: '250px',
+                        overflowY: 'auto',
+                        padding: '8px 0',
+                      }}
+                    >
+                      {PERFORMANCE_METRICS.map(m => (
+                        <label
+                          key={m.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '8px 12px',
+                            cursor: 'pointer',
+                            gap: '8px',
+                            margin: 0,
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={activePerformanceMetrics.includes(m.id)}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setActivePerformanceMetrics([...activePerformanceMetrics, m.id]);
+                              } else {
+                                setActivePerformanceMetrics(
+                                  activePerformanceMetrics.filter(id => id !== m.id),
+                                );
                               }
                             }}
                           />
@@ -3623,48 +3741,56 @@ const ExploreTab = ({
                       {getSortIndicator(metricId)}
                     </th>
                   ))}
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '8px',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => requestSort('competition')}
-                  >
-                    Competition{getSortIndicator('competition')}
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      padding: '8px',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => requestSort('low_top_of_page_bid_micros')}
-                  >
-                    Low Bid
-                    {getSortIndicator('low_top_of_page_bid_micros')}
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      padding: '8px',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => requestSort('high_top_of_page_bid_micros')}
-                  >
-                    High Bid
-                    {getSortIndicator('high_top_of_page_bid_micros')}
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      padding: '8px',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => requestSort('average_cpc_micros')}
-                  >
-                    Avg CPC{getSortIndicator('average_cpc_micros')}
-                  </th>
+                  {activePerformanceMetrics.includes('competition') && (
+                    <th
+                      style={{
+                        textAlign: 'left',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('competition')}
+                    >
+                      Competition{getSortIndicator('competition')}
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes('low_top_of_page_bid_micros') && (
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('low_top_of_page_bid_micros')}
+                    >
+                      Low Bid
+                      {getSortIndicator('low_top_of_page_bid_micros')}
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes('high_top_of_page_bid_micros') && (
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('high_top_of_page_bid_micros')}
+                    >
+                      High Bid
+                      {getSortIndicator('high_top_of_page_bid_micros')}
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes('average_cpc_micros') && (
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('average_cpc_micros')}
+                    >
+                      Avg CPC{getSortIndicator('average_cpc_micros')}
+                    </th>
+                  )}
                 </tr>
                 <tr style={{ backgroundColor: 'var(--surface-color)', fontSize: '0.8rem' }}>
                   <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
@@ -3696,45 +3822,53 @@ const ExploreTab = ({
                       />
                     </th>
                   ))}
-                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
-                    <select
-                      value={filters.competition}
-                      onChange={e => setFilters(prev => ({...prev, competition: e.target.value}))}
-                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
-                    >
-                      <option value="">All</option>
-                      <option value="HIGH">HIGH</option>
-                      <option value="MEDIUM">MEDIUM</option>
-                      <option value="LOW">LOW</option>
-                    </select>
-                  </th>
-                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
-                    <input
-                      type="number"
-                      placeholder="Max $"
-                      value={filters.maxLowBid}
-                      onChange={e => setFilters(prev => ({...prev, maxLowBid: e.target.value}))}
-                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
-                    />
-                  </th>
-                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
-                    <input
-                      type="number"
-                      placeholder="Max $"
-                      value={filters.maxHighBid}
-                      onChange={e => setFilters(prev => ({...prev, maxHighBid: e.target.value}))}
-                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
-                    />
-                  </th>
-                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
-                    <input
-                      type="number"
-                      placeholder="Max $"
-                      value={filters.maxCpc}
-                      onChange={e => setFilters(prev => ({...prev, maxCpc: e.target.value}))}
-                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
-                    />
-                  </th>
+                  {activePerformanceMetrics.includes('competition') && (
+                    <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                      <select
+                        value={filters.competition}
+                        onChange={e => setFilters(prev => ({...prev, competition: e.target.value}))}
+                        style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                      >
+                        <option value="">All</option>
+                        <option value="HIGH">HIGH</option>
+                        <option value="MEDIUM">MEDIUM</option>
+                        <option value="LOW">LOW</option>
+                      </select>
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes('low_top_of_page_bid_micros') && (
+                    <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                      <input
+                        type="number"
+                        placeholder="Max $"
+                        value={filters.maxLowBid}
+                        onChange={e => setFilters(prev => ({...prev, maxLowBid: e.target.value}))}
+                        style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                      />
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes('high_top_of_page_bid_micros') && (
+                    <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                      <input
+                        type="number"
+                        placeholder="Max $"
+                        value={filters.maxHighBid}
+                        onChange={e => setFilters(prev => ({...prev, maxHighBid: e.target.value}))}
+                        style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                      />
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes('average_cpc_micros') && (
+                    <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                      <input
+                        type="number"
+                        placeholder="Max $"
+                        value={filters.maxCpc}
+                        onChange={e => setFilters(prev => ({...prev, maxCpc: e.target.value}))}
+                        style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                      />
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -3836,33 +3970,41 @@ const ExploreTab = ({
                             </td>
                           );
                         })}
-                        <td style={{padding: '8px'}}>
-                          {comp ? `${comp} (${idx ?? '-'})` : '-'}
-                        </td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            textAlign: 'right',
-                          }}
-                        >
-                          {formatMoney(low)}
-                        </td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            textAlign: 'right',
-                          }}
-                        >
-                          {formatMoney(high)}
-                        </td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            textAlign: 'right',
-                          }}
-                        >
-                          {formatMoney(cpc)}
-                        </td>
+                        {activePerformanceMetrics.includes('competition') && (
+                          <td style={{padding: '8px'}}>
+                            {comp ? `${comp} (${idx ?? '-'})` : '-'}
+                          </td>
+                        )}
+                        {activePerformanceMetrics.includes('low_top_of_page_bid_micros') && (
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {formatMoney(low)}
+                          </td>
+                        )}
+                        {activePerformanceMetrics.includes('high_top_of_page_bid_micros') && (
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {formatMoney(high)}
+                          </td>
+                        )}
+                        {activePerformanceMetrics.includes('average_cpc_micros') && (
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {formatMoney(cpc)}
+                          </td>
+                        )}
                       </tr>
                       {expandedIdea?.text === text && (
                         <tr
