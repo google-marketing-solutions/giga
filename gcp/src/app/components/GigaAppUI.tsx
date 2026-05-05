@@ -7344,10 +7344,10 @@ const GigaApp = ({onReset, isDemoMode}) => {
     }
 
     if (finalAdsId !== configStatus.adsAccountId) {
-      await updateScriptProperty('ADS_ACCOUNT_ID', finalAdsId);
+      await updateProperty('ADS_ACCOUNT_ID', finalAdsId);
     }
     if (newSettings.devToken) {
-      await updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken);
+      await updateProperty('DEVELOPER_TOKEN', newSettings.devToken);
     }
 
     setModalConfig({...modalConfig, isOpen: false});
@@ -7852,7 +7852,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
     </Modal>
   );
 
-  const updateScriptProperty = async (key, value) => {
+  const updateProperty = async (key, value) => {
     try {
       const localProps = localStorage.getItem('giga_script_properties');
       const parsedProps = localProps ? JSON.parse(localProps) : {};
@@ -7862,7 +7862,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
         JSON.stringify(parsedProps),
       );
 
-      const status = await serverActions.setScriptProperty(key, value);
+      const status = await serverActions.setProperty(key, value);
       setConfigStatus({...status, checked: true});
       if (key === 'ADS_ACCOUNT_ID') {
         setAdsAccountId(value);

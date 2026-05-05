@@ -341,7 +341,7 @@ export async function getScriptPropertiesConfiguration(
     hasEnvAdsCredentials: !!envAdsAccountId && !!envDevToken,
   };
 }
-export async function setScriptProperty(key: string, value: string) {
+export async function setProperty(key: string, value: string) {
   properties[key] = value;
 
   const envAdsAccountId = getEnvVar('GOOGLE_ADS_CUSTOMER_ID', '');
