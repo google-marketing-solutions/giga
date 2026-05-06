@@ -48,6 +48,7 @@ limitations under the License.
     growthMetric,
     setGrowthMetric,
     handleDownloadExplore,
+    handleDownloadAllKeywords,
     handleExportExploreToSheet,
     isExporting,
     clustersChartData,
@@ -1191,6 +1192,15 @@ limitations under the License.
                     )}
                   </div>
                 </div>
+              </div>
+              <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleDownloadAllKeywords}
+                  title="Download All Keywords as CSV"
+                >
+                  <span className="material-symbols-outlined">download</span>
+                </button>
               </div>
             </div>
             <div style={{ overflowX: 'auto' }}>

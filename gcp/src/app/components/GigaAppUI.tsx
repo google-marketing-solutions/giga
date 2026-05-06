@@ -2432,6 +2432,7 @@ const ExploreTab = ({
   growthMetric,
   setGrowthMetric,
   handleDownloadExplore,
+  handleDownloadAllKeywords,
   clustersChartData,
   bubbleChartOptions,
   selectedCluster,
@@ -3681,6 +3682,15 @@ const ExploreTab = ({
                   )}
                 </div>
               </div>
+            </div>
+            <div style={{flexGrow: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
+              <button
+                className="btn btn-secondary"
+                onClick={handleDownloadAllKeywords}
+                title="Download All Keywords as CSV"
+              >
+                <span className="material-symbols-outlined">download</span>
+              </button>
             </div>
           </div>
           <div style={{overflowX: 'auto'}}>
@@ -7065,6 +7075,38 @@ const GigaApp = ({onReset, isDemoMode}) => {
     downloadFile(csv, 'giga_explore_clusters.csv', 'text/csv');
   };
 
+  const handleDownloadAllKeywords = () => {
+    if (!ideasData) return;
+    const headers = [
+      'Keyword',
+      'Last Month Search Volume',
+      'Year over Year Growth',
+      'Month over Month Growth',
+      'Last Month vs Max Growth',
+      'Last Month vs Average Growth',
+      'Last 3 Months vs Prev Avg Growth',
+      'Competition',
+      'Low Bid (USD)',
+      'High Bid (USD)',
+      'Avg CPC (USD)',
+    ];
+    const rows = ideasData.map(idea => [
+      idea.text,
+      idea.latestSearchVolume,
+      idea.growthYoY,
+      idea.growthMoM,
+      idea.growthLatestVsMax,
+      idea.growthLatestVsAvg,
+      idea.growthThreeMonthsVsAvg,
+      idea.competition || '',
+      formatMicrosToCurrency(idea.low_top_of_page_bid_micros),
+      formatMicrosToCurrency(idea.high_top_of_page_bid_micros),
+      formatMicrosToCurrency(idea.average_cpc_micros),
+    ]);
+    const csv = convertToCSV(headers, rows);
+    downloadFile(csv, 'giga_all_keywords.csv', 'text/csv');
+  };
+
   const handleDownloadInsights = () => {
     if (!insights) return;
     const md = htmlToMarkdown(insights);
@@ -7822,6 +7864,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
           growthMetric={growthMetric}
           setGrowthMetric={setGrowthMetric}
           handleDownloadExplore={handleDownloadExplore}
+          handleDownloadAllKeywords={handleDownloadAllKeywords}
           clustersChartData={clustersChartData}
           bubbleChartOptions={bubbleChartOptions}
           selectedCluster={selectedCluster}
