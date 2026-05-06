@@ -658,6 +658,38 @@ limitations under the License.
             </div>
           </div>
 
+          {(!localGeminiConfig.modelId?.includes('pro') ||
+            (localGeminiConfig.insightsModelId &&
+              !localGeminiConfig.insightsModelId.includes('pro'))) && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px',
+                background: '#fef9c3',
+                border: '1px solid #fef08a',
+                color: '#854d0e',
+                padding: '12px 16px',
+                borderRadius: '8px',
+                marginBottom: '16px',
+                fontSize: '0.9rem',
+                lineHeight: '1.4',
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{color: '#ca8a04', flexShrink: 0}}
+              >
+                warning
+              </span>
+              <div>
+                Flash models are not recommended for analysis (Explore,
+                Insights, and Campaigns) due to complexity and volume. They
+                should only be used for demonstration purposes.
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div className="input-group">
               <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

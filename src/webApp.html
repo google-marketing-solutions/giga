@@ -3656,6 +3656,8 @@ limitations under the License.
               setCreationLookbackDays={setCreationLookbackDays}
               creationMetric={creationMetric}
               setCreationMetric={setCreationMetric}
+              geminiConfig={geminiConfig}
+              onOpenSettings={(highlight) => setModalConfig({ ...modalConfig, isOpen: true, type: 'settings', highlight: highlight || null })}
             />
           )}
 

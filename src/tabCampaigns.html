@@ -53,7 +53,12 @@ limitations under the License.
     setCreationLookbackDays,
     creationMetric,
     setCreationMetric,
+    geminiConfig,
+    onOpenSettings,
   }) => {
+    const campaignModelId = geminiConfig?.modelId || 'gemini-3.1-pro-preview';
+    const campaignModelName = MODEL_NAMES?.[campaignModelId] || campaignModelId;
+
     return (
       <div className="card fade-in">
         <div
@@ -64,7 +69,36 @@ limitations under the License.
             marginBottom: '1rem',
           }}
         >
-          <h2 style={{ marginBottom: 0 }}>Campaigns</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <h2 style={{ marginBottom: 0 }}>Campaigns</h2>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              Model: {campaignModelName} (<a href="#" onClick={(e) => { e.preventDefault(); onOpenSettings('EXPLORE_MODEL'); }} style={{ color: 'var(--primary)', textDecoration: 'none' }}>change</a>)
+              {!campaignModelId?.includes('pro') && (
+                <span
+                  style={{
+                    color: '#ca8a04',
+                    marginLeft: '8px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: '#fef9c3',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    border: '1px solid #fef08a',
+                  }}
+                  title="Flash models are not recommended for analysis. They should only be used for demonstration purposes."
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{fontSize: '12px'}}
+                  >
+                    warning
+                  </span>
+                  Please consider using pro models
+                </span>
+              )}
+            </div>
+          </div>
           <button
             className="header-action-btn"
             onClick={() => {
