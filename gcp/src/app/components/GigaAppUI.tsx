@@ -819,10 +819,15 @@ const ChartComponent = ({type, data, options, theme, plugins}) => {
 
   useEffect(() => {
     if (canvasRef.current) {
-      const currentPluginsLength = chartRef.current?.config?.plugins?.length || 0;
+      const currentPluginsLength =
+        chartRef.current?.config?.plugins?.length || 0;
       const newPluginsLength = plugins?.length || 0;
 
-      if (chartRef.current && (chartRef.current.config.type !== type || currentPluginsLength !== newPluginsLength)) {
+      if (
+        chartRef.current &&
+        (chartRef.current.config.type !== type ||
+          currentPluginsLength !== newPluginsLength)
+      ) {
         chartRef.current.destroy();
         chartRef.current = null;
       }
@@ -876,8 +881,9 @@ const SettingsModal = ({
   const [localGeminiConfig, setLocalGeminiConfig] = useState(geminiConfig);
   const [localMinSearchVolume, setLocalMinSearchVolume] =
     useState(minSearchVolume);
-  const [localShowClusterNumbers, setLocalShowClusterNumbers] =
-    useState(showClusterNumbers ?? true);
+  const [localShowClusterNumbers, setLocalShowClusterNumbers] = useState(
+    showClusterNumbers ?? true,
+  );
   const [localKeywordLimit, setLocalKeywordLimit] = useState(keywordLimit);
   const [localAdsId, setLocalAdsId] = useState(configStatus.adsAccountId || '');
   const [localDevToken, setLocalDevToken] = useState('');
@@ -1308,7 +1314,9 @@ const SettingsModal = ({
             </div>
 
             <div className="input-group">
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label
+                style={{display: 'flex', alignItems: 'center', gap: '8px'}}
+              >
                 <input
                   type="checkbox"
                   checked={localShowClusterNumbers}
@@ -2530,11 +2538,15 @@ const ExploreTab = ({
   const [isMetricsDropdownOpen, setIsMetricsDropdownOpen] = useState(false);
   const metricsDropdownRef = useRef(null);
 
-  const [activePerformanceMetrics, setActivePerformanceMetrics] = useStickyState(
-    ['competition', 'average_cpc_micros'],
-    'giga_activePerformanceMetrics',
-  );
-  const [isPerformanceMetricsDropdownOpen, setIsPerformanceMetricsDropdownOpen] = useState(false);
+  const [activePerformanceMetrics, setActivePerformanceMetrics] =
+    useStickyState(
+      ['competition', 'average_cpc_micros'],
+      'giga_activePerformanceMetrics',
+    );
+  const [
+    isPerformanceMetricsDropdownOpen,
+    setIsPerformanceMetricsDropdownOpen,
+  ] = useState(false);
   const performanceMetricsDropdownRef = useRef(null);
 
   useEffect(() => {
@@ -2582,7 +2594,7 @@ const ExploreTab = ({
       ) {
         return false;
       }
-      
+
       const vol = item.latestSearchVolume || 0;
       if (filters.minVolume !== '' && vol < Number(filters.minVolume)) {
         return false;
@@ -2613,11 +2625,14 @@ const ExploreTab = ({
           let growth = 0;
           if (metricId === 'yoy') growth = item.growthYoY || 0;
           else if (metricId === 'mom') growth = item.growthMoM || 0;
-          else if (metricId === 'latest_vs_avg') growth = item.growthLatestVsAvg || 0;
-          else if (metricId === 'latest_vs_max') growth = item.growthLatestVsMax || 0;
-          else if (metricId === 'three_months_vs_avg') growth = item.growthThreeMonthsVsAvg || 0;
-          
-          if ((growth * 100) < Number(minVal)) return false;
+          else if (metricId === 'latest_vs_avg')
+            growth = item.growthLatestVsAvg || 0;
+          else if (metricId === 'latest_vs_max')
+            growth = item.growthLatestVsMax || 0;
+          else if (metricId === 'three_months_vs_avg')
+            growth = item.growthThreeMonthsVsAvg || 0;
+
+          if (growth * 100 < Number(minVal)) return false;
         }
       }
 
@@ -2802,7 +2817,12 @@ const ExploreTab = ({
       labels: chartLabels,
       datasets: selectedCluster.keywords.map((k, i) => {
         const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
-        const color = i === 0 ? (theme === 'dark' ? '#ffffff' : '#64748b') : palette[(i - 1) % palette.length];
+        const color =
+          i === 0
+            ? theme === 'dark'
+              ? '#ffffff'
+              : '#64748b'
+            : palette[(i - 1) % palette.length];
         return {
           label: k,
           data: volHistory.slice(),
@@ -3585,8 +3605,14 @@ const ExploreTab = ({
             </div>
             <div style={{width: '250px'}}>
               <div className="input-group">
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                  <label style={{ marginBottom: 0 }}>Performance Metrics</label>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '4px',
+                  }}
+                >
+                  <label style={{marginBottom: 0}}>Performance Metrics</label>
                   <span
                     className="material-symbols-outlined"
                     style={{
@@ -3603,7 +3629,10 @@ const ExploreTab = ({
                     info
                   </span>
                 </div>
-                <div style={{position: 'relative'}} ref={performanceMetricsDropdownRef}>
+                <div
+                  style={{position: 'relative'}}
+                  ref={performanceMetricsDropdownRef}
+                >
                   <div
                     style={{
                       padding: '8px 12px',
@@ -3619,7 +3648,9 @@ const ExploreTab = ({
                       boxSizing: 'border-box',
                     }}
                     onClick={() =>
-                      setIsPerformanceMetricsDropdownOpen(!isPerformanceMetricsDropdownOpen)
+                      setIsPerformanceMetricsDropdownOpen(
+                        !isPerformanceMetricsDropdownOpen,
+                      )
                     }
                   >
                     <span>{activePerformanceMetrics.length} selected</span>
@@ -3627,7 +3658,9 @@ const ExploreTab = ({
                       className="material-symbols-outlined"
                       style={{fontSize: '1.2rem'}}
                     >
-                      {isPerformanceMetricsDropdownOpen ? 'expand_less' : 'expand_more'}
+                      {isPerformanceMetricsDropdownOpen
+                        ? 'expand_less'
+                        : 'expand_more'}
                     </span>
                   </div>
                   {isPerformanceMetricsDropdownOpen && (
@@ -3665,10 +3698,15 @@ const ExploreTab = ({
                             checked={activePerformanceMetrics.includes(m.id)}
                             onChange={e => {
                               if (e.target.checked) {
-                                setActivePerformanceMetrics([...activePerformanceMetrics, m.id]);
+                                setActivePerformanceMetrics([
+                                  ...activePerformanceMetrics,
+                                  m.id,
+                                ]);
                               } else {
                                 setActivePerformanceMetrics(
-                                  activePerformanceMetrics.filter(id => id !== m.id),
+                                  activePerformanceMetrics.filter(
+                                    id => id !== m.id,
+                                  ),
                                 );
                               }
                             }}
@@ -3683,7 +3721,14 @@ const ExploreTab = ({
                 </div>
               </div>
             </div>
-            <div style={{flexGrow: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
+            <div
+              style={{
+                flexGrow: 1,
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'flex-end',
+              }}
+            >
               <button
                 className="btn btn-secondary"
                 onClick={handleDownloadAllKeywords}
@@ -3757,7 +3802,9 @@ const ExploreTab = ({
                       Competition{getSortIndicator('competition')}
                     </th>
                   )}
-                  {activePerformanceMetrics.includes('low_top_of_page_bid_micros') && (
+                  {activePerformanceMetrics.includes(
+                    'low_top_of_page_bid_micros',
+                  ) && (
                     <th
                       style={{
                         textAlign: 'right',
@@ -3770,7 +3817,9 @@ const ExploreTab = ({
                       {getSortIndicator('low_top_of_page_bid_micros')}
                     </th>
                   )}
-                  {activePerformanceMetrics.includes('high_top_of_page_bid_micros') && (
+                  {activePerformanceMetrics.includes(
+                    'high_top_of_page_bid_micros',
+                  ) && (
                     <th
                       style={{
                         textAlign: 'right',
@@ -3796,42 +3845,102 @@ const ExploreTab = ({
                     </th>
                   )}
                 </tr>
-                <tr style={{ backgroundColor: 'var(--surface-color)', fontSize: '0.8rem' }}>
-                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                <tr
+                  style={{
+                    backgroundColor: 'var(--surface-color)',
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
                     <input
                       type="text"
                       placeholder="Filter..."
                       value={filters.keyword}
-                      onChange={e => setFilters(prev => ({...prev, keyword: e.target.value}))}
-                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                      onChange={e =>
+                        setFilters(prev => ({...prev, keyword: e.target.value}))
+                      }
+                      style={{
+                        width: '100%',
+                        padding: '4px',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '4px',
+                        boxSizing: 'border-box',
+                        background: 'var(--bg-color)',
+                        color: 'var(--text-main)',
+                      }}
                     />
                   </th>
-                  <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                  <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
                     <input
                       type="number"
                       placeholder="Min"
                       value={filters.minVolume}
-                      onChange={e => setFilters(prev => ({...prev, minVolume: e.target.value}))}
-                      style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                      onChange={e =>
+                        setFilters(prev => ({
+                          ...prev,
+                          minVolume: e.target.value,
+                        }))
+                      }
+                      style={{
+                        width: '100%',
+                        padding: '4px',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '4px',
+                        boxSizing: 'border-box',
+                        background: 'var(--bg-color)',
+                        color: 'var(--text-main)',
+                      }}
                     />
                   </th>
                   {activeMetrics.map(metricId => (
-                    <th key={metricId} style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                    <th
+                      key={metricId}
+                      style={{padding: '4px 8px', fontWeight: 'normal'}}
+                    >
                       <input
                         type="number"
                         placeholder="Min %"
                         value={filters.minGrowth[metricId] || ''}
-                        onChange={e => setFilters(prev => ({...prev, minGrowth: {...prev.minGrowth, [metricId]: e.target.value}}))}
-                        style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                        onChange={e =>
+                          setFilters(prev => ({
+                            ...prev,
+                            minGrowth: {
+                              ...prev.minGrowth,
+                              [metricId]: e.target.value,
+                            },
+                          }))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          background: 'var(--bg-color)',
+                          color: 'var(--text-main)',
+                        }}
                       />
                     </th>
                   ))}
                   {activePerformanceMetrics.includes('competition') && (
-                    <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                    <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
                       <select
                         value={filters.competition}
-                        onChange={e => setFilters(prev => ({...prev, competition: e.target.value}))}
-                        style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                        onChange={e =>
+                          setFilters(prev => ({
+                            ...prev,
+                            competition: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          background: 'var(--bg-color)',
+                          color: 'var(--text-main)',
+                        }}
                       >
                         <option value="">All</option>
                         <option value="HIGH">HIGH</option>
@@ -3840,36 +3949,79 @@ const ExploreTab = ({
                       </select>
                     </th>
                   )}
-                  {activePerformanceMetrics.includes('low_top_of_page_bid_micros') && (
-                    <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                  {activePerformanceMetrics.includes(
+                    'low_top_of_page_bid_micros',
+                  ) && (
+                    <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
                       <input
                         type="number"
                         placeholder="Max $"
                         value={filters.maxLowBid}
-                        onChange={e => setFilters(prev => ({...prev, maxLowBid: e.target.value}))}
-                        style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                        onChange={e =>
+                          setFilters(prev => ({
+                            ...prev,
+                            maxLowBid: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          background: 'var(--bg-color)',
+                          color: 'var(--text-main)',
+                        }}
                       />
                     </th>
                   )}
-                  {activePerformanceMetrics.includes('high_top_of_page_bid_micros') && (
-                    <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                  {activePerformanceMetrics.includes(
+                    'high_top_of_page_bid_micros',
+                  ) && (
+                    <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
                       <input
                         type="number"
                         placeholder="Max $"
                         value={filters.maxHighBid}
-                        onChange={e => setFilters(prev => ({...prev, maxHighBid: e.target.value}))}
-                        style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                        onChange={e =>
+                          setFilters(prev => ({
+                            ...prev,
+                            maxHighBid: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          background: 'var(--bg-color)',
+                          color: 'var(--text-main)',
+                        }}
                       />
                     </th>
                   )}
                   {activePerformanceMetrics.includes('average_cpc_micros') && (
-                    <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                    <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
                       <input
                         type="number"
                         placeholder="Max $"
                         value={filters.maxCpc}
-                        onChange={e => setFilters(prev => ({...prev, maxCpc: e.target.value}))}
-                        style={{ width: '100%', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', boxSizing: 'border-box', background: 'var(--bg-color)', color: 'var(--text-main)' }}
+                        onChange={e =>
+                          setFilters(prev => ({
+                            ...prev,
+                            maxCpc: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          background: 'var(--bg-color)',
+                          color: 'var(--text-main)',
+                        }}
                       />
                     </th>
                   )}
@@ -3979,7 +4131,9 @@ const ExploreTab = ({
                             {comp ? `${comp} (${idx ?? '-'})` : '-'}
                           </td>
                         )}
-                        {activePerformanceMetrics.includes('low_top_of_page_bid_micros') && (
+                        {activePerformanceMetrics.includes(
+                          'low_top_of_page_bid_micros',
+                        ) && (
                           <td
                             style={{
                               padding: '8px',
@@ -3989,7 +4143,9 @@ const ExploreTab = ({
                             {formatMoney(low)}
                           </td>
                         )}
-                        {activePerformanceMetrics.includes('high_top_of_page_bid_micros') && (
+                        {activePerformanceMetrics.includes(
+                          'high_top_of_page_bid_micros',
+                        ) && (
                           <td
                             style={{
                               padding: '8px',
@@ -3999,7 +4155,9 @@ const ExploreTab = ({
                             {formatMoney(high)}
                           </td>
                         )}
-                        {activePerformanceMetrics.includes('average_cpc_micros') && (
+                        {activePerformanceMetrics.includes(
+                          'average_cpc_micros',
+                        ) && (
                           <td
                             style={{
                               padding: '8px',
@@ -5204,11 +5362,11 @@ const GigaApp = ({onReset, isDemoMode}) => {
   const [useGemini, setUseGemini] = useStickyState(true, 'giga_useGemini');
   const [useClustering, setUseClustering] = useStickyState(
     true,
-    'giga_useClustering'
+    'giga_useClustering',
   );
   const [showClusterNumbers, setShowClusterNumbers] = useStickyState(
     true,
-    'giga_showClusterNumbers'
+    'giga_showClusterNumbers',
   );
   const [exploreStatus, setExploreStatus] = useState('');
   const [isExploring, setIsExploring] = useState(false);
@@ -6954,7 +7112,12 @@ const GigaApp = ({onReset, isDemoMode}) => {
     return {
       labels: chartLabels,
       datasets: seedIdeas.map((idea, index) => {
-        const color = index === 0 ? (theme === 'dark' ? '#ffffff' : '#64748b') : COLOR_PALETTE[(index - 1) % COLOR_PALETTE.length];
+        const color =
+          index === 0
+            ? theme === 'dark'
+              ? '#ffffff'
+              : '#64748b'
+            : COLOR_PALETTE[(index - 1) % COLOR_PALETTE.length];
 
         return {
           label: idea.text,
@@ -7770,7 +7933,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
           marginBottom: '20px',
         }}
       >
-        <h1>GIGA GCP</h1>
+        <h1>GIGA</h1>
         <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
           <button
             className="btn"
