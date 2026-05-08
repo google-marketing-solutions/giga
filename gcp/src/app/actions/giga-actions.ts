@@ -60,27 +60,27 @@ export interface ImageContent {
 }
 
 export interface AdTextAsset {
-  text?: string | null;
+  text?: string;
 }
 
 export interface ResponsiveSearchAd {
-  headlines?: AdTextAsset[] | null;
-  descriptions?: AdTextAsset[] | null;
+  headlines?: AdTextAsset[];
+  descriptions?: AdTextAsset[];
 }
 
 export interface AdGroupAd {
   ad?: {
-    responsive_search_ad?: ResponsiveSearchAd | null;
-  } | null;
+    responsive_search_ad?: ResponsiveSearchAd;
+  };
 }
 
 export interface AdGroup {
-  id?: string | number | null;
+  id?: string | number;
 }
 
 export interface TopPerformingAdItem {
-  ad_group?: AdGroup | null;
-  ad_group_ad?: AdGroupAd | null;
+  ad_group?: AdGroup;
+  ad_group_ad?: AdGroupAd;
 }
 
 export interface AdSuggestion {

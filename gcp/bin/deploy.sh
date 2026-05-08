@@ -15,7 +15,7 @@
 # Exit on error
 set -e
 
-npm install
+npm ci
 
 # Navigate to project root
 cd "$(dirname "$0")/.."
@@ -86,6 +86,9 @@ gcloud builds submit --tag $IMAGE_NAME \
 # Create a YAML version of the configuration for gcloud
 sed 's/=/:\ /' configuration.env | sed -E 's/: (.*)$/: "\1"/' > env.yaml
 
+# Set default memory if not provided in configuration.env
+CLOUD_RUN_MEMORY="${CLOUD_RUN_MEMORY:-4Gi}"
+
 # Deploy the image to Google Cloud Run
 gcloud beta run deploy $SERVICE_NAME \
   --image $IMAGE_NAME \
@@ -93,7 +96,7 @@ gcloud beta run deploy $SERVICE_NAME \
   --project $CLOUD_RUN_GCP_PROJECT_ID \
   --env-vars-file=env.yaml \
   --service-account $SERVICE_ACCOUNT_EMAIL \
-  --memory 4Gi \
+  --memory $CLOUD_RUN_MEMORY \
   --iap \
   --no-allow-unauthenticated
 

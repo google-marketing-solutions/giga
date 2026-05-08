@@ -144,26 +144,7 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --role="roles/storage.objectViewer" \
     --quiet --condition=None
 
-echo "🔑 Creating custom role with exact storage.objects.create permission..."
-# Create a custom role to grant exactly what is needed without using Admin roles
-USE_CUSTOM_ROLE=true
-if ! gcloud iam roles describe customStorageWriter --project="$PROJECT_ID" &> /dev/null; then
-  if ! gcloud iam roles create customStorageWriter \
-      --project="$PROJECT_ID" \
-      --title="Custom Storage Writer" \
-      --description="Role with exact storage.objects.create permission" \
-      --permissions="storage.objects.create" \
-      --quiet 2> /dev/null; then
-    echo "⚠️  Could not create custom role. Falling back to roles/storage.objectCreator"
-    USE_CUSTOM_ROLE=false
-  fi
-fi
-
-if [ "$USE_CUSTOM_ROLE" = true ]; then
-  ROLE_ID="projects/$PROJECT_ID/roles/customStorageWriter"
-else
-  ROLE_ID="roles/storage.objectCreator"
-fi
+ROLE_ID="roles/storage.objectCreator"
 
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
@@ -196,12 +177,13 @@ if [ -n "$GCP_BUCKET" ]; then
 fi
 
 # 7. Ensure gcr.io Artifact Registry repository exists for the project
-echo "🔎 Checking if gcr.io Artifact Registry repository exists..."
-if ! gcloud artifacts repositories describe gcr.io --project="$PROJECT_ID" --location=us --quiet &> /dev/null; then
-  echo "🤔 gcr.io repository not found. Creating..."
+ARTIFACT_REGISTRY_LOCATION="${ARTIFACT_REGISTRY_LOCATION:-us}"
+echo "🔎 Checking if gcr.io Artifact Registry repository exists in ${ARTIFACT_REGISTRY_LOCATION}..."
+if ! gcloud artifacts repositories describe gcr.io --project="$PROJECT_ID" --location="$ARTIFACT_REGISTRY_LOCATION" --quiet &> /dev/null; then
+  echo "🤔 gcr.io repository not found. Creating in ${ARTIFACT_REGISTRY_LOCATION}..."
   gcloud artifacts repositories create gcr.io \
     --repository-format=docker \
-    --location=us \
+    --location="$ARTIFACT_REGISTRY_LOCATION" \
     --project="$PROJECT_ID" \
     --description="Docker repository for gcr.io (created by setup.sh)"
   echo "✅ gcr.io repository created."

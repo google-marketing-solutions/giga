@@ -16,9 +16,9 @@ limitations under the License.*/
 
 // @ts-nocheck
 'use client';
-import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 // Mocking backend calls
 const USER_EMAIL = 'mocked.user@example.com';
@@ -2595,8 +2595,8 @@ const ExploreTab = ({
         return false;
       }
 
-      const vol = item.latestSearchVolume || 0;
-      if (filters.minVolume !== '' && vol < Number(filters.minVolume)) {
+      const searchVolume = item.latestSearchVolume || 0;
+      if (filters.minVolume !== '' && searchVolume < Number(filters.minVolume)) {
         return false;
       }
 

@@ -15,7 +15,7 @@
 cd "$(dirname "$0")/.."
 
 # install dependencies
-npm install
+npm ci
 
 # ensure to put all configuration.env variables also in .env
 if [ -f configuration.env ]; then
