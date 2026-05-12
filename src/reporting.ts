@@ -1,8 +1,3 @@
-import { addGoogleAdsAuth, ADS_ENDPOINT, ADS_VERSION } from './ideas';
-import { createGeminiConfig } from './main';
-import { deduplicate, getDateWithDeltaDays, groupBy, keepKeys } from './util';
-import { gemini } from './vertex';
-
 /**
  * Copyright 2025 Google LLC
  *
@@ -18,6 +13,12 @@ import { gemini } from './vertex';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { addGoogleAdsAuth, ADS_ENDPOINT, ADS_VERSION } from './ideas';
+import { createGeminiConfig } from './main';
+import { deduplicate, getDateWithDeltaDays, groupBy, keepKeys } from './util';
+import { gemini } from './vertex';
+
 export const getNewSearchTermsClusters = (
   customerId,
   newDuringLastDays = 7,

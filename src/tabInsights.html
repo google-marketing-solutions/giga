@@ -56,6 +56,30 @@ limitations under the License.
             <h2 style={{ marginBottom: 0 }}>Insights</h2>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
               Model: {insightsModelName} (<a href="#" onClick={(e) => { e.preventDefault(); onOpenSettings('INSIGHTS_MODEL'); }} style={{ color: 'var(--primary)', textDecoration: 'none' }}>change</a>)
+              {!insightsModelId?.includes('pro') && (
+                <span
+                  style={{
+                    color: '#ca8a04',
+                    marginLeft: '8px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: '#fef9c3',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    border: '1px solid #fef08a',
+                  }}
+                  title="Flash models are not recommended for analysis. They should only be used for demonstration purposes."
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{fontSize: '12px'}}
+                  >
+                    warning
+                  </span>
+                  Please consider using pro models
+                </span>
+              )}
             </div>
           </div>
           <button

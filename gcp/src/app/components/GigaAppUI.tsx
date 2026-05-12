@@ -16,8 +16,9 @@ limitations under the License.*/
 
 // @ts-nocheck
 'use client';
-import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import Chart from 'chart.js/auto';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 // Mocking backend calls
 const USER_EMAIL = 'mocked.user@example.com';
@@ -27,14 +28,30 @@ import * as serverActions from '../actions/giga-actions';
 // --- utils.html ---
 
 // --- Constants & Data ---
-const COLOR_PALETTE = ['#4f6d7a', '#c0d6df', '#dbe9ee', '#4a6fa5', '#166088'];
+const COLOR_PALETTE = [
+  '#4285F4', // blue
+  '#DB4437', // red
+  '#F4B400', // yellow
+  '#0F9D58', // green
+  '#AB47BC', // purple
+  '#00ACC1', // cyan
+  '#FF7043', // orange
+  '#9E9D24', // lime
+  '#5C6BC0', // indigo
+  '#F06292', // pink
+];
 
 const DARK_MODE_PALETTE = [
-  '#60a5fa', // blue-400
-  '#93c5fd', // blue-300
-  '#38bdf8', // sky-400
-  '#7dd3fc', // sky-300
-  '#22d3ee', // cyan-400
+  '#7BAAF7', // light blue
+  '#E67C73', // light red
+  '#F7CB4D', // light yellow
+  '#57BA8A', // light green
+  '#C47ED0', // light purple
+  '#4DC5D4', // light cyan
+  '#FF9B7B', // light orange
+  '#BBBA66', // light lime
+  '#8D97D3', // light indigo
+  '#F591B3', // light pink
 ];
 
 /**
@@ -250,6 +267,13 @@ const GROWTH_METRICS = [
   {id: 'three_months_vs_avg', name: 'Last 3 Months vs Prev Avg'},
 ];
 
+const PERFORMANCE_METRICS = [
+  {id: 'competition', name: 'Competition'},
+  {id: 'low_top_of_page_bid_micros', name: 'Low Bid'},
+  {id: 'high_top_of_page_bid_micros', name: 'High Bid'},
+  {id: 'average_cpc_micros', name: 'Avg CPC'},
+];
+
 const MODEL_NAMES = {
   'gemini-3.1-pro-preview': 'Gemini 3.1 Pro',
   'gemini-3-flash-preview': 'Gemini 3 Flash',
@@ -380,19 +404,6 @@ const downloadFile = (content, filename, mimeType) => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-};
-
-const flattenCampaignsForSheet = campaigns => {
-  if (!Array.isArray(campaigns)) return [];
-  const rows = [];
-  campaigns.forEach(campaign => {
-    campaign.adGroups.forEach(adGroup => {
-      adGroup.keywords.forEach(keyword => {
-        rows.push([campaign.campaignName, adGroup.name, keyword]);
-      });
-    });
-  });
-  return rows;
 };
 
 // --- components.html ---
@@ -802,23 +813,48 @@ const SelectField = ({
   );
 };
 
-const ChartComponent = ({type, data, options, theme}) => {
+const ChartComponent = ({type, data, options, theme, plugins}) => {
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
 
   useEffect(() => {
     if (canvasRef.current) {
-      if (chartRef.current) chartRef.current.destroy();
-      chartRef.current = new Chart(canvasRef.current, {
-        type,
-        data,
-        options,
-      });
+      const currentPluginsLength =
+        chartRef.current?.config?.plugins?.length || 0;
+      const newPluginsLength = plugins?.length || 0;
+
+      if (
+        chartRef.current &&
+        (chartRef.current.config.type !== type ||
+          currentPluginsLength !== newPluginsLength)
+      ) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+
+      if (chartRef.current) {
+        chartRef.current.data = data;
+        chartRef.current.options = options;
+        chartRef.current.update();
+      } else {
+        chartRef.current = new Chart(canvasRef.current, {
+          type,
+          data,
+          options,
+          plugins: plugins || [],
+        });
+      }
     }
+  }, [type, data, options, theme, plugins]);
+
+  useEffect(() => {
     return () => {
-      if (chartRef.current) chartRef.current.destroy();
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
     };
-  }, [type, data, options, theme]);
+  }, []);
 
   return (
     <div
@@ -836,6 +872,7 @@ const SettingsModal = ({
   modalConfig,
   geminiConfig,
   minSearchVolume,
+  showClusterNumbers,
   keywordLimit,
   configStatus,
   onSave,
@@ -844,6 +881,9 @@ const SettingsModal = ({
   const [localGeminiConfig, setLocalGeminiConfig] = useState(geminiConfig);
   const [localMinSearchVolume, setLocalMinSearchVolume] =
     useState(minSearchVolume);
+  const [localShowClusterNumbers, setLocalShowClusterNumbers] = useState(
+    showClusterNumbers ?? true,
+  );
   const [localKeywordLimit, setLocalKeywordLimit] = useState(keywordLimit);
   const [localAdsId, setLocalAdsId] = useState(configStatus.adsAccountId || '');
   const [localDevToken, setLocalDevToken] = useState('');
@@ -857,6 +897,7 @@ const SettingsModal = ({
     if (isOpen) {
       setLocalGeminiConfig(geminiConfig);
       setLocalMinSearchVolume(minSearchVolume);
+      setLocalShowClusterNumbers(showClusterNumbers ?? true);
       setLocalKeywordLimit(keywordLimit);
       setLocalSpreadsheetUrl(modalConfig.spreadsheetUrl || '');
       setLocalAdsId(configStatus.adsAccountId || '');
@@ -866,6 +907,7 @@ const SettingsModal = ({
     isOpen,
     geminiConfig,
     minSearchVolume,
+    showClusterNumbers,
     keywordLimit,
     configStatus,
     modalConfig.spreadsheetUrl,
@@ -925,6 +967,7 @@ const SettingsModal = ({
       await onSave({
         geminiConfig: localGeminiConfig,
         minSearchVolume: localMinSearchVolume,
+        showClusterNumbers: localShowClusterNumbers,
         keywordLimit: localKeywordLimit,
         adsAccountId: localAdsId,
         devToken: localDevToken,
@@ -1268,6 +1311,19 @@ const SettingsModal = ({
                 onChange={e => setLocalMinSearchVolume(Number(e.target.value))}
                 placeholder="100"
               />
+            </div>
+
+            <div className="input-group">
+              <label
+                style={{display: 'flex', alignItems: 'center', gap: '8px'}}
+              >
+                <input
+                  type="checkbox"
+                  checked={localShowClusterNumbers}
+                  onChange={e => setLocalShowClusterNumbers(e.target.checked)}
+                />
+                Show numbers for clustering (bubbles and legend)
+              </label>
             </div>
 
             <div className="input-group">
@@ -1824,8 +1880,6 @@ const CampaignsTab = ({
   isGeneratingCampaigns,
   generateCampaignSuggestions,
   handleDownloadCampaigns,
-  handleExportCampaignsToSheet,
-  isExporting,
   GOOGLE_ADS_ID_HELP_URL,
   creationLookbackDays,
   setCreationLookbackDays,
@@ -2085,31 +2139,6 @@ const CampaignsTab = ({
               title="Download Markdown"
             >
               <span className="material-symbols-outlined">download</span>
-            </button>
-          )}
-          {campaignSuggestions && (
-            <button
-              className="btn btn-secondary"
-              onClick={handleExportCampaignsToSheet}
-              style={{
-                background: 'var(--surface-color)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-              }}
-              disabled={isExporting}
-              title="Export to Sheet"
-            >
-              {isExporting ? (
-                <div
-                  className="spinner"
-                  style={{
-                    borderColor: 'rgba(37, 99, 235, 0.3)',
-                    borderTopColor: '#2563eb',
-                  }}
-                ></div>
-              ) : (
-                <span className="material-symbols-outlined">table</span>
-              )}
             </button>
           )}
         </div>
@@ -2411,8 +2440,7 @@ const ExploreTab = ({
   growthMetric,
   setGrowthMetric,
   handleDownloadExplore,
-  handleExportExploreToSheet,
-  isExporting,
+  handleDownloadAllKeywords,
   clustersChartData,
   bubbleChartOptions,
   selectedCluster,
@@ -2427,6 +2455,7 @@ const ExploreTab = ({
   setGeminiPrompt,
   useClustering,
   setUseClustering,
+  showClusterNumbers,
   highlightKeywordSources,
   setHighlightKeywordSources,
   theme,
@@ -2490,7 +2519,15 @@ const ExploreTab = ({
     key: 'latest_vs_max',
     direction: 'descending',
   });
-  const [filters, setFilters] = useState({keyword: '', minVolume: ''});
+  const [filters, setFilters] = useState({
+    keyword: '',
+    minVolume: '',
+    minGrowth: {},
+    competition: '',
+    maxLowBid: '',
+    maxHighBid: '',
+    maxCpc: '',
+  });
   const [expandedIdea, setExpandedIdea] = useState(null);
   const lastAutoExpandedDataRef = useRef(null);
 
@@ -2501,6 +2538,17 @@ const ExploreTab = ({
   const [isMetricsDropdownOpen, setIsMetricsDropdownOpen] = useState(false);
   const metricsDropdownRef = useRef(null);
 
+  const [activePerformanceMetrics, setActivePerformanceMetrics] =
+    useStickyState(
+      ['competition', 'average_cpc_micros'],
+      'giga_activePerformanceMetrics',
+    );
+  const [
+    isPerformanceMetricsDropdownOpen,
+    setIsPerformanceMetricsDropdownOpen,
+  ] = useState(false);
+  const performanceMetricsDropdownRef = useRef(null);
+
   useEffect(() => {
     const handleClickOutside = event => {
       if (
@@ -2508,6 +2556,12 @@ const ExploreTab = ({
         !metricsDropdownRef.current.contains(event.target)
       ) {
         setIsMetricsDropdownOpen(false);
+      }
+      if (
+        performanceMetricsDropdownRef.current &&
+        !performanceMetricsDropdownRef.current.contains(event.target)
+      ) {
+        setIsPerformanceMetricsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -2540,15 +2594,51 @@ const ExploreTab = ({
       ) {
         return false;
       }
-      if (
-        filters.minVolume !== '' &&
-        (item.latestSearchVolume || 0) < Number(filters.minVolume)
-      ) {
+
+      const searchVolume = item.latestSearchVolume || 0;
+      if (filters.minVolume !== '' && searchVolume < Number(filters.minVolume)) {
         return false;
       }
+
+      if (filters.competition && item.competition !== filters.competition) {
+        return false;
+      }
+
+      if (filters.maxLowBid !== '') {
+        const lowBid = (item.low_top_of_page_bid_micros || 0) / 1000000;
+        if (lowBid > Number(filters.maxLowBid)) return false;
+      }
+
+      if (filters.maxHighBid !== '') {
+        const highBid = (item.high_top_of_page_bid_micros || 0) / 1000000;
+        if (highBid > Number(filters.maxHighBid)) return false;
+      }
+
+      if (filters.maxCpc !== '') {
+        const cpc = (item.average_cpc_micros || 0) / 1000000;
+        if (cpc > Number(filters.maxCpc)) return false;
+      }
+
+      for (const metricId of activeMetrics) {
+        const minVal = filters.minGrowth[metricId];
+        if (minVal !== undefined && minVal !== '') {
+          let growth = 0;
+          if (metricId === 'yoy') growth = item.growthYoY || 0;
+          else if (metricId === 'mom') growth = item.growthMoM || 0;
+          else if (metricId === 'latest_vs_avg')
+            growth = item.growthLatestVsAvg || 0;
+          else if (metricId === 'latest_vs_max')
+            growth = item.growthLatestVsMax || 0;
+          else if (metricId === 'three_months_vs_avg')
+            growth = item.growthThreeMonthsVsAvg || 0;
+
+          if (growth * 100 < Number(minVal)) return false;
+        }
+      }
+
       return true;
     });
-  }, [processedIdeas, filters]);
+  }, [processedIdeas, filters, activeMetrics]);
 
   const sortedIdeas = useMemo(() => {
     let sortableItems = [...filteredIdeas];
@@ -2727,7 +2817,12 @@ const ExploreTab = ({
       labels: chartLabels,
       datasets: selectedCluster.keywords.map((k, i) => {
         const volHistory = relevantIdeas[k] ? relevantIdeas[k] : [];
-        const color = palette[i % palette.length];
+        const color =
+          i === 0
+            ? theme === 'dark'
+              ? '#ffffff'
+              : '#64748b'
+            : palette[(i - 1) % palette.length];
         return {
           label: k,
           data: volHistory.slice(),
@@ -2740,20 +2835,21 @@ const ExploreTab = ({
         };
       }),
     };
-  }, [selectedCluster, chartLabels, relevantIdeas, palette]);
+  }, [selectedCluster, chartLabels, relevantIdeas, palette, theme]);
 
   const expandedIdeaChartData = useMemo(() => {
     if (!expandedIdea || !chartLabels) return null;
     // Verify lengths match or slice
     // In ideasData, searchVolume matches months. chartLabels should match.
+    const color = theme === 'dark' ? '#ffffff' : '#64748b';
     return {
       labels: chartLabels,
       datasets: [
         {
           label: expandedIdea.text,
           data: expandedIdea.searchVolume,
-          borderColor: palette[0],
-          backgroundColor: palette[0],
+          borderColor: color,
+          backgroundColor: color,
           fill: false,
           tension: 0.3,
           pointRadius: 3,
@@ -2761,7 +2857,7 @@ const ExploreTab = ({
         },
       ],
     };
-  }, [expandedIdea, chartLabels, palette]);
+  }, [expandedIdea, chartLabels, theme]);
 
   const exploreModelId = geminiConfig?.modelId || 'gemini-3.1-pro-preview';
   const exploreModelName = MODEL_NAMES?.[exploreModelId] || exploreModelId;
@@ -3286,27 +3382,6 @@ const ExploreTab = ({
                 >
                   <span className="material-symbols-outlined">download</span>
                 </button>
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleExportExploreToSheet}
-                  style={{
-                    marginLeft: '8px',
-                  }}
-                  disabled={isExporting}
-                  title="Export to Sheet"
-                >
-                  {isExporting ? (
-                    <div
-                      className="spinner"
-                      style={{
-                        borderColor: 'rgba(37, 99, 235, 0.3)',
-                        borderTopColor: '#2563eb',
-                      }}
-                    ></div>
-                  ) : (
-                    <span className="material-symbols-outlined">table</span>
-                  )}
-                </button>
               </>
             )}
           </div>
@@ -3333,6 +3408,7 @@ const ExploreTab = ({
               data={clustersChartData}
               options={bubbleChartOptions}
               theme={theme}
+              plugins={showClusterNumbers ? [ChartDataLabels] : []}
             />
           </div>
           {searchVolumeDisclaimer}
@@ -3444,15 +3520,7 @@ const ExploreTab = ({
               marginBottom: '1rem',
             }}
           >
-            <div style={{flex: 1}}>
-              <InputField
-                label="Filter by Keyword"
-                value={filters.keyword}
-                onChange={val => setFilters(prev => ({...prev, keyword: val}))}
-                placeholder="Search..."
-              />
-            </div>
-            <div style={{flex: 1}}>
+            <div style={{width: '250px'}}>
               <div className="input-group">
                 <label>Growth Metrics</label>
                 <div style={{position: 'relative'}} ref={metricsDropdownRef}>
@@ -3519,11 +3587,9 @@ const ExploreTab = ({
                               if (e.target.checked) {
                                 setActiveMetrics([...activeMetrics, m.id]);
                               } else {
-                                if (activeMetrics.length > 1) {
-                                  setActiveMetrics(
-                                    activeMetrics.filter(id => id !== m.id),
-                                  );
-                                }
+                                setActiveMetrics(
+                                  activeMetrics.filter(id => id !== m.id),
+                                );
                               }
                             }}
                           />
@@ -3537,16 +3603,139 @@ const ExploreTab = ({
                 </div>
               </div>
             </div>
-            <div style={{width: '150px'}}>
-              <InputField
-                type="number"
-                label="Min Volume"
-                value={filters.minVolume}
-                onChange={val =>
-                  setFilters(prev => ({...prev, minVolume: val}))
-                }
-                placeholder="e.g. 100"
-              />
+            <div style={{width: '250px'}}>
+              <div className="input-group">
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '4px',
+                  }}
+                >
+                  <label style={{marginBottom: 0}}>Performance Metrics</label>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: '1rem',
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      marginLeft: '4px',
+                    }}
+                    onClick={e => {
+                      e.preventDefault();
+                      setActiveInfoModal('performance_metrics_info');
+                    }}
+                  >
+                    info
+                  </span>
+                </div>
+                <div
+                  style={{position: 'relative'}}
+                  ref={performanceMetricsDropdownRef}
+                >
+                  <div
+                    style={{
+                      padding: '8px 12px',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '8px',
+                      background: 'var(--surface-color)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      color: 'var(--text-main)',
+                      minHeight: '38px',
+                      boxSizing: 'border-box',
+                    }}
+                    onClick={() =>
+                      setIsPerformanceMetricsDropdownOpen(
+                        !isPerformanceMetricsDropdownOpen,
+                      )
+                    }
+                  >
+                    <span>{activePerformanceMetrics.length} selected</span>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{fontSize: '1.2rem'}}
+                    >
+                      {isPerformanceMetricsDropdownOpen
+                        ? 'expand_less'
+                        : 'expand_more'}
+                    </span>
+                  </div>
+                  {isPerformanceMetricsDropdownOpen && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        marginTop: '4px',
+                        background: 'var(--surface-color)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '8px',
+                        boxShadow: 'var(--shadow-md)',
+                        zIndex: 10,
+                        maxHeight: '250px',
+                        overflowY: 'auto',
+                        padding: '8px 0',
+                      }}
+                    >
+                      {PERFORMANCE_METRICS.map(m => (
+                        <label
+                          key={m.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '8px 12px',
+                            cursor: 'pointer',
+                            gap: '8px',
+                            margin: 0,
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={activePerformanceMetrics.includes(m.id)}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setActivePerformanceMetrics([
+                                  ...activePerformanceMetrics,
+                                  m.id,
+                                ]);
+                              } else {
+                                setActivePerformanceMetrics(
+                                  activePerformanceMetrics.filter(
+                                    id => id !== m.id,
+                                  ),
+                                );
+                              }
+                            }}
+                          />
+                          <span style={{color: 'var(--text-main)'}}>
+                            {m.name}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div
+              style={{
+                flexGrow: 1,
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'flex-end',
+              }}
+            >
+              <button
+                className="btn btn-secondary"
+                onClick={handleDownloadAllKeywords}
+                title="Download All Keywords as CSV"
+              >
+                <span className="material-symbols-outlined">download</span>
+              </button>
             </div>
           </div>
           <div style={{overflowX: 'auto'}}>
@@ -3601,48 +3790,241 @@ const ExploreTab = ({
                       {getSortIndicator(metricId)}
                     </th>
                   ))}
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '8px',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => requestSort('competition')}
-                  >
-                    Competition{getSortIndicator('competition')}
+                  {activePerformanceMetrics.includes('competition') && (
+                    <th
+                      style={{
+                        textAlign: 'left',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('competition')}
+                    >
+                      Competition{getSortIndicator('competition')}
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes(
+                    'low_top_of_page_bid_micros',
+                  ) && (
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('low_top_of_page_bid_micros')}
+                    >
+                      Low Bid
+                      {getSortIndicator('low_top_of_page_bid_micros')}
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes(
+                    'high_top_of_page_bid_micros',
+                  ) && (
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('high_top_of_page_bid_micros')}
+                    >
+                      High Bid
+                      {getSortIndicator('high_top_of_page_bid_micros')}
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes('average_cpc_micros') && (
+                    <th
+                      style={{
+                        textAlign: 'right',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => requestSort('average_cpc_micros')}
+                    >
+                      Avg CPC{getSortIndicator('average_cpc_micros')}
+                    </th>
+                  )}
+                </tr>
+                <tr
+                  style={{
+                    backgroundColor: 'var(--surface-color)',
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      value={filters.keyword}
+                      onChange={e =>
+                        setFilters(prev => ({...prev, keyword: e.target.value}))
+                      }
+                      style={{
+                        width: '100%',
+                        padding: '4px',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '4px',
+                        boxSizing: 'border-box',
+                        background: 'var(--bg-color)',
+                        color: 'var(--text-main)',
+                      }}
+                    />
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      padding: '8px',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => requestSort('low_top_of_page_bid_micros')}
-                  >
-                    Low Bid
-                    {getSortIndicator('low_top_of_page_bid_micros')}
+                  <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minVolume}
+                      onChange={e =>
+                        setFilters(prev => ({
+                          ...prev,
+                          minVolume: e.target.value,
+                        }))
+                      }
+                      style={{
+                        width: '100%',
+                        padding: '4px',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '4px',
+                        boxSizing: 'border-box',
+                        background: 'var(--bg-color)',
+                        color: 'var(--text-main)',
+                      }}
+                    />
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      padding: '8px',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => requestSort('high_top_of_page_bid_micros')}
-                  >
-                    High Bid
-                    {getSortIndicator('high_top_of_page_bid_micros')}
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      padding: '8px',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => requestSort('average_cpc_micros')}
-                  >
-                    Avg CPC{getSortIndicator('average_cpc_micros')}
-                  </th>
+                  {activeMetrics.map(metricId => (
+                    <th
+                      key={metricId}
+                      style={{padding: '4px 8px', fontWeight: 'normal'}}
+                    >
+                      <input
+                        type="number"
+                        placeholder="Min %"
+                        value={filters.minGrowth[metricId] || ''}
+                        onChange={e =>
+                          setFilters(prev => ({
+                            ...prev,
+                            minGrowth: {
+                              ...prev.minGrowth,
+                              [metricId]: e.target.value,
+                            },
+                          }))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          background: 'var(--bg-color)',
+                          color: 'var(--text-main)',
+                        }}
+                      />
+                    </th>
+                  ))}
+                  {activePerformanceMetrics.includes('competition') && (
+                    <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
+                      <select
+                        value={filters.competition}
+                        onChange={e =>
+                          setFilters(prev => ({
+                            ...prev,
+                            competition: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          background: 'var(--bg-color)',
+                          color: 'var(--text-main)',
+                        }}
+                      >
+                        <option value="">All</option>
+                        <option value="HIGH">HIGH</option>
+                        <option value="MEDIUM">MEDIUM</option>
+                        <option value="LOW">LOW</option>
+                      </select>
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes(
+                    'low_top_of_page_bid_micros',
+                  ) && (
+                    <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
+                      <input
+                        type="number"
+                        placeholder="Max $"
+                        value={filters.maxLowBid}
+                        onChange={e =>
+                          setFilters(prev => ({
+                            ...prev,
+                            maxLowBid: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          background: 'var(--bg-color)',
+                          color: 'var(--text-main)',
+                        }}
+                      />
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes(
+                    'high_top_of_page_bid_micros',
+                  ) && (
+                    <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
+                      <input
+                        type="number"
+                        placeholder="Max $"
+                        value={filters.maxHighBid}
+                        onChange={e =>
+                          setFilters(prev => ({
+                            ...prev,
+                            maxHighBid: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          background: 'var(--bg-color)',
+                          color: 'var(--text-main)',
+                        }}
+                      />
+                    </th>
+                  )}
+                  {activePerformanceMetrics.includes('average_cpc_micros') && (
+                    <th style={{padding: '4px 8px', fontWeight: 'normal'}}>
+                      <input
+                        type="number"
+                        placeholder="Max $"
+                        value={filters.maxCpc}
+                        onChange={e =>
+                          setFilters(prev => ({
+                            ...prev,
+                            maxCpc: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          background: 'var(--bg-color)',
+                          color: 'var(--text-main)',
+                        }}
+                      />
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -3744,33 +4126,47 @@ const ExploreTab = ({
                             </td>
                           );
                         })}
-                        <td style={{padding: '8px'}}>
-                          {comp ? `${comp} (${idx ?? '-'})` : '-'}
-                        </td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            textAlign: 'right',
-                          }}
-                        >
-                          {formatMoney(low)}
-                        </td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            textAlign: 'right',
-                          }}
-                        >
-                          {formatMoney(high)}
-                        </td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            textAlign: 'right',
-                          }}
-                        >
-                          {formatMoney(cpc)}
-                        </td>
+                        {activePerformanceMetrics.includes('competition') && (
+                          <td style={{padding: '8px'}}>
+                            {comp ? `${comp} (${idx ?? '-'})` : '-'}
+                          </td>
+                        )}
+                        {activePerformanceMetrics.includes(
+                          'low_top_of_page_bid_micros',
+                        ) && (
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {formatMoney(low)}
+                          </td>
+                        )}
+                        {activePerformanceMetrics.includes(
+                          'high_top_of_page_bid_micros',
+                        ) && (
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {formatMoney(high)}
+                          </td>
+                        )}
+                        {activePerformanceMetrics.includes(
+                          'average_cpc_micros',
+                        ) && (
+                          <td
+                            style={{
+                              padding: '8px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {formatMoney(cpc)}
+                          </td>
+                        )}
                       </tr>
                       {expandedIdea?.text === text && (
                         <tr
@@ -3786,6 +4182,7 @@ const ExploreTab = ({
                               <div>
                                 <div style={{height: '300px'}}>
                                   <ChartComponent
+                                    key={theme}
                                     type="line"
                                     data={expandedIdeaChartData}
                                     options={{
@@ -3805,6 +4202,7 @@ const ExploreTab = ({
                                         },
                                       },
                                     }}
+                                    theme={theme}
                                   />
                                 </div>
                                 {searchVolumeDisclaimer}
@@ -4043,8 +4441,6 @@ const InsightsTab = ({
   generateInsights,
   isGeneratingInsights,
   handleDownloadInsights,
-  handleExportInsightsToSheet,
-  isExporting,
   language,
   setLanguage,
   insightsChatHistory,
@@ -4198,29 +4594,6 @@ const InsightsTab = ({
               title="Download Markdown"
             >
               <span className="material-symbols-outlined">download</span>
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={handleExportInsightsToSheet}
-              style={{
-                background: 'var(--surface-color)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-              }}
-              disabled={isExporting}
-              title="Export to Sheet"
-            >
-              {isExporting ? (
-                <div
-                  className="spinner"
-                  style={{
-                    borderColor: 'rgba(37, 99, 235, 0.3)',
-                    borderTopColor: '#2563eb',
-                  }}
-                ></div>
-              ) : (
-                <span className="material-symbols-outlined">table</span>
-              )}
             </button>
           </div>
         </div>
@@ -4880,17 +5253,21 @@ const GigaApp = ({onReset, isDemoMode}) => {
   // Theme State
   const [theme, setTheme] = useStickyState('light', 'giga_theme');
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+  // Update Chart.js defaults synchronously so children pick them up
+  const isDark = theme === 'dark';
+  const textColor = isDark ? '#f1f5f9' : '#1e293b';
+  const gridColor = isDark ? '#334155' : '#e2e8f0';
 
-    // Update Chart.js defaults
-    const isDark = theme === 'dark';
-    const textColor = isDark ? '#f1f5f9' : '#1e293b';
-    const gridColor = isDark ? '#334155' : '#e2e8f0';
-
+  if (typeof Chart !== 'undefined' && Chart.defaults) {
     Chart.defaults.color = textColor;
     Chart.defaults.borderColor = gridColor;
-    Chart.defaults.scale.grid.color = gridColor;
+    if (Chart.defaults.scale && Chart.defaults.scale.grid) {
+      Chart.defaults.scale.grid.color = gridColor;
+    }
+  }
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
@@ -4986,6 +5363,10 @@ const GigaApp = ({onReset, isDemoMode}) => {
   const [useClustering, setUseClustering] = useStickyState(
     true,
     'giga_useClustering',
+  );
+  const [showClusterNumbers, setShowClusterNumbers] = useStickyState(
+    true,
+    'giga_showClusterNumbers',
   );
   const [exploreStatus, setExploreStatus] = useState('');
   const [isExploring, setIsExploring] = useState(false);
@@ -5091,113 +5472,6 @@ const GigaApp = ({onReset, isDemoMode}) => {
   }, [setDemoRandomizationPercent]);
 
   // --- Sheet Export Helper ---
-  const [isExporting, setIsExporting] = useState(false);
-
-  const handleSheetExport = async (
-    sheetName,
-    header,
-    rows,
-    columnFormats = [],
-  ) => {
-    setIsExporting(true);
-    try {
-      let targetUrl = spreadsheetUrl;
-      let isNewSheet = false;
-      if (!targetUrl) {
-        targetUrl = await serverActions.createSpreadsheet('Giga Export');
-        setSpreadsheetUrl(targetUrl);
-        isNewSheet = true;
-      }
-      await serverActions.exportToSheet(
-        targetUrl,
-        sheetName,
-        header,
-        rows,
-        columnFormats,
-      );
-      if (isNewSheet) {
-        showAlert(
-          `Successfully exported to a new spreadsheet. You can change the destination URL in Settings. Note: The user (${USER_EMAIL}) must have edit access to this spreadsheet for future exports.`,
-          targetUrl,
-        );
-      } else {
-        showAlert('Successfully exported to:', targetUrl);
-      }
-    } catch (e) {
-      showError('Export Failed', e);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleExportExploreToSheet = () => {
-    if (!clusters) return;
-    const headers = [
-      'Cluster Topic',
-      'Keyword',
-      'Last Month Search Volume',
-      'Cluster Growth YoY',
-      'Cluster Growth MoM',
-      'Competition',
-      'Low Bid (Micros)',
-      'High Bid (Micros)',
-      'Avg CPC (Micros)',
-    ];
-    const rows = [];
-
-    clusters.forEach(cluster => {
-      cluster.keywords.forEach(kw => {
-        const history = relevantIdeas[kw];
-        const vol = history && history.length > 0 ? history[0] : 0;
-        const idea = ideasData ? ideasData.find(i => i.text === kw) : null;
-
-        rows.push([
-          cluster.topic,
-          kw,
-          vol,
-          cluster.growthYoY,
-          cluster.growthMoM,
-          idea ? idea.competition : '',
-          idea ? idea.low_top_of_page_bid_micros : '',
-          idea ? idea.high_top_of_page_bid_micros : '',
-          idea ? idea.average_cpc_micros : '',
-        ]);
-      });
-    });
-
-    const columnFormats = [
-      {colIndex: 2, numberFormat: '#,##0'},
-      {colIndex: 3, numberFormat: '0%'},
-      {colIndex: 4, numberFormat: '0%'},
-      {
-        colIndex: 6,
-        numberFormat: '"$"#,##0.00',
-        scale: 0.000001,
-        headerRename: 'Low Bid (USD)',
-      },
-      {
-        colIndex: 7,
-        numberFormat: '"$"#,##0.00',
-        scale: 0.000001,
-        headerRename: 'High Bid (USD)',
-      },
-      {
-        colIndex: 8,
-        numberFormat: '"$"#,##0.00',
-        scale: 0.000001,
-        headerRename: 'Avg CPC (USD)',
-      },
-    ];
-
-    handleSheetExport('Explore', headers, rows, columnFormats);
-  };
-
-  const handleExportInsightsToSheet = () => {
-    if (!insights) return;
-    // Just put the markdown text in one cell
-    const rows = [[htmlToMarkdown(insights)]];
-    handleSheetExport('Insights', ['Insights Content'], rows);
-  };
 
   const formatCampaignsForExport = campaigns => {
     if (!campaigns) return '';
@@ -5225,28 +5499,6 @@ const GigaApp = ({onReset, isDemoMode}) => {
         return text;
       })
       .join('\n\n' + '-'.repeat(40) + '\n\n');
-  };
-
-  const handleExportCampaignsToSheet = async () => {
-    if (!campaignSuggestions) return;
-    setIsExporting(true);
-    try {
-      const text = formatCampaignsForExport(campaignSuggestions);
-      const rows = [[text]];
-      await handleSheetExport(
-        'Campaign Suggestions',
-        ['Campaign Content'],
-        rows,
-      );
-
-      const headers = ['Campaign', 'Ad Group', 'Keyword'];
-      const flatData = flattenCampaignsForSheet(campaignSuggestions);
-      await handleSheetExport('Campaign Structure', headers, flatData);
-    } catch (e) {
-      showError('Export Failed', e);
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   const handleDownloadCampaigns = () => {
@@ -6811,7 +7063,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
         }
 
         return {
-          label: c.topic,
+          label: showClusterNumbers ? `${i + 1} - ${c.topic}` : c.topic,
           data: [
             {
               x: c.searchVolume || 0,
@@ -6823,11 +7075,12 @@ const GigaApp = ({onReset, isDemoMode}) => {
         };
       }),
     };
-  }, [clusters, growthMetric]);
+  }, [clusters, growthMetric, showClusterNumbers]);
 
   const selectedClusterChartData = useMemo(() => {
     if (!selectedCluster || !chartLabels.length) return null;
     const data = selectedCluster.searchVolumeHistory.slice();
+    const baseColor = theme === 'dark' ? '#ffffff' : '#64748b';
 
     return {
       labels: chartLabels,
@@ -6835,14 +7088,14 @@ const GigaApp = ({onReset, isDemoMode}) => {
         {
           label: `Search Volume: ${selectedCluster.topic}`,
           data: data,
-          borderColor: COLOR_PALETTE[4],
-          backgroundColor: COLOR_PALETTE[4] + '1A',
+          borderColor: baseColor,
+          backgroundColor: baseColor + '1A',
           fill: true,
           tension: 0.3,
         },
       ],
     };
-  }, [selectedCluster, chartLabels]);
+  }, [selectedCluster, chartLabels, theme]);
 
   const seedChartData = useMemo(() => {
     if (!ideasData || !keywords || !chartLabels.length) return null;
@@ -6859,7 +7112,12 @@ const GigaApp = ({onReset, isDemoMode}) => {
     return {
       labels: chartLabels,
       datasets: seedIdeas.map((idea, index) => {
-        const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
+        const color =
+          index === 0
+            ? theme === 'dark'
+              ? '#ffffff'
+              : '#64748b'
+            : COLOR_PALETTE[(index - 1) % COLOR_PALETTE.length];
 
         return {
           label: idea.text,
@@ -6873,7 +7131,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
         };
       }),
     };
-  }, [ideasData, keywords, chartLabels]);
+  }, [ideasData, keywords, chartLabels, theme]);
 
   const bubbleChartOptions = useMemo(() => {
     const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
@@ -6911,6 +7169,17 @@ const GigaApp = ({onReset, isDemoMode}) => {
           callbacks: {
             label: ctx =>
               `${ctx.dataset.label}: Vol ${ctx.raw.x}, Growth ${(ctx.raw.y > 0 ? '+' : '') + (ctx.raw.y * 100).toFixed(0)}%`,
+          },
+        },
+        datalabels: {
+          color: '#ffffff',
+          anchor: 'center',
+          align: 'center',
+          formatter: (value, context) => {
+            return context.datasetIndex + 1;
+          },
+          font: {
+            weight: 'bold',
           },
         },
       },
@@ -6967,6 +7236,38 @@ const GigaApp = ({onReset, isDemoMode}) => {
 
     const csv = convertToCSV(headers, rows);
     downloadFile(csv, 'giga_explore_clusters.csv', 'text/csv');
+  };
+
+  const handleDownloadAllKeywords = () => {
+    if (!ideasData) return;
+    const headers = [
+      'Keyword',
+      'Last Month Search Volume',
+      'Year over Year Growth',
+      'Month over Month Growth',
+      'Last Month vs Max Growth',
+      'Last Month vs Average Growth',
+      'Last 3 Months vs Prev Avg Growth',
+      'Competition',
+      'Low Bid (USD)',
+      'High Bid (USD)',
+      'Avg CPC (USD)',
+    ];
+    const rows = ideasData.map(idea => [
+      idea.text,
+      idea.latestSearchVolume,
+      idea.growthYoY,
+      idea.growthMoM,
+      idea.growthLatestVsMax,
+      idea.growthLatestVsAvg,
+      idea.growthThreeMonthsVsAvg,
+      idea.competition || '',
+      formatMicrosToCurrency(idea.low_top_of_page_bid_micros),
+      formatMicrosToCurrency(idea.high_top_of_page_bid_micros),
+      formatMicrosToCurrency(idea.average_cpc_micros),
+    ]);
+    const csv = convertToCSV(headers, rows);
+    downloadFile(csv, 'giga_all_keywords.csv', 'text/csv');
   };
 
   const handleDownloadInsights = () => {
@@ -7028,6 +7329,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
   const handleSettingsSave = async newSettings => {
     setGeminiConfig(newSettings.geminiConfig);
     setMinSearchVolume(newSettings.minSearchVolume);
+    setShowClusterNumbers(newSettings.showClusterNumbers);
     setKeywordLimit(newSettings.keywordLimit);
     setSpreadsheetUrl(newSettings.spreadsheetUrl);
 
@@ -7038,10 +7340,10 @@ const GigaApp = ({onReset, isDemoMode}) => {
     }
 
     if (finalAdsId !== configStatus.adsAccountId) {
-      await updateScriptProperty('ADS_ACCOUNT_ID', finalAdsId);
+      await updateProperty('ADS_ACCOUNT_ID', finalAdsId);
     }
     if (newSettings.devToken) {
-      await updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken);
+      await updateProperty('DEVELOPER_TOKEN', newSettings.devToken);
     }
 
     setModalConfig({...modalConfig, isOpen: false});
@@ -7546,7 +7848,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
     </Modal>
   );
 
-  const updateScriptProperty = async (key, value) => {
+  const updateProperty = async (key, value) => {
     try {
       const localProps = localStorage.getItem('giga_script_properties');
       const parsedProps = localProps ? JSON.parse(localProps) : {};
@@ -7556,7 +7858,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
         JSON.stringify(parsedProps),
       );
 
-      const status = await serverActions.setScriptProperty(key, value);
+      const status = await serverActions.setProperty(key, value);
       setConfigStatus({...status, checked: true});
       if (key === 'ADS_ACCOUNT_ID') {
         setAdsAccountId(value);
@@ -7631,7 +7933,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
           marginBottom: '20px',
         }}
       >
-        <h1>GIGA GCP</h1>
+        <h1>GIGA</h1>
         <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
           <button
             className="btn"
@@ -7725,8 +8027,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
           growthMetric={growthMetric}
           setGrowthMetric={setGrowthMetric}
           handleDownloadExplore={handleDownloadExplore}
-          handleExportExploreToSheet={handleExportExploreToSheet}
-          isExporting={isExporting}
+          handleDownloadAllKeywords={handleDownloadAllKeywords}
           clustersChartData={clustersChartData}
           bubbleChartOptions={bubbleChartOptions}
           selectedCluster={selectedCluster}
@@ -7741,6 +8042,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
           setGeminiPrompt={setGeminiPrompt}
           useClustering={useClustering}
           setUseClustering={setUseClustering}
+          showClusterNumbers={showClusterNumbers}
           highlightKeywordSources={highlightKeywordSources}
           setHighlightKeywordSources={setHighlightKeywordSources}
           theme={theme}
@@ -7763,8 +8065,6 @@ const GigaApp = ({onReset, isDemoMode}) => {
           generateInsights={generateInsights}
           isGeneratingInsights={isGeneratingInsights}
           handleDownloadInsights={handleDownloadInsights}
-          handleExportInsightsToSheet={handleExportInsightsToSheet}
-          isExporting={isExporting}
           language={insightsLanguage}
           setLanguage={setInsightsLanguage}
           insightsChatHistory={insightsChatHistory}
@@ -7827,8 +8127,6 @@ const GigaApp = ({onReset, isDemoMode}) => {
           isGeneratingCampaigns={isGeneratingCampaigns}
           generateCampaignSuggestions={generateCampaignSuggestions}
           handleDownloadCampaigns={handleDownloadCampaigns}
-          handleExportCampaignsToSheet={handleExportCampaignsToSheet}
-          isExporting={isExporting}
           GOOGLE_ADS_ID_HELP_URL={GOOGLE_ADS_ID_HELP_URL}
           creationLookbackDays={creationLookbackDays}
           setCreationLookbackDays={setCreationLookbackDays}
@@ -7846,6 +8144,7 @@ const GigaApp = ({onReset, isDemoMode}) => {
         modalConfig={modalConfig}
         geminiConfig={geminiConfig}
         minSearchVolume={minSearchVolume}
+        showClusterNumbers={showClusterNumbers}
         keywordLimit={keywordLimit}
         configStatus={configStatus}
         onSave={handleSettingsSave}

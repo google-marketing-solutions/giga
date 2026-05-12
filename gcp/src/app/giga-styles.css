@@ -62,9 +62,9 @@ body {
 }
 
 #root {
-  max-width: 1600px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 32px;
+  padding: 20px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -75,7 +75,7 @@ body {
   background: var(--surface-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  padding: 32px;
+  padding: 24px;
   margin-bottom: 24px;
   border: 1px solid var(--border-color);
   transition:
