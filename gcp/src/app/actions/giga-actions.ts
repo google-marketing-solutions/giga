@@ -15,7 +15,7 @@ limitations under the License.
 
 'use server';
 
-import {GoogleAdsApi} from 'google-ads-api';
+import {GoogleAdsApi, common, services} from 'google-ads-api';
 import {getEnvVar} from '../../lib/utils';
 import {
   getHistoricalMetrics as googleAdsGetHistoricalMetrics,
@@ -59,30 +59,6 @@ export interface ImageContent {
   value: string;
 }
 
-export interface AdTextAsset {
-  text?: string;
-}
-
-export interface ResponsiveSearchAd {
-  headlines?: AdTextAsset[];
-  descriptions?: AdTextAsset[];
-}
-
-export interface AdGroupAd {
-  ad?: {
-    responsive_search_ad?: ResponsiveSearchAd;
-  };
-}
-
-export interface AdGroup {
-  id?: string | number;
-}
-
-export interface TopPerformingAdItem {
-  ad_group?: AdGroup;
-  ad_group_ad?: AdGroupAd;
-}
-
 export interface AdSuggestion {
   keywords: string[];
   headlines: string[];
@@ -122,7 +98,6 @@ const getAdsClient = (customerIdOverride?: string) => {
     refresh_token: refreshToken.trim(),
   });
 };
-
 
 export async function getLanguageId(
   lookupText: string,
@@ -205,7 +180,7 @@ export async function getLocationId(
     const suggestions = (responseData.geoTargetConstantSuggestions ||
       responseData.geo_target_constant_suggestions ||
       []) as GeoTargetSuggestion[];
-    const bestMatch = suggestions.find((s) => {
+    const bestMatch = suggestions.find(s => {
       const c = s.geoTargetConstant || s.geo_target_constant;
       return c?.status === 'ENABLED' || c?.status === 2;
     });
@@ -635,16 +610,16 @@ export async function getTopPerformingAdsAndKeywords(
       LIMIT ${topN}
     `;
     const response = await customer.query(query);
-    return response.map((item: TopPerformingAdItem) => ({
+    return response.map((item: services.IGoogleAdsRow) => ({
       adGroupId: item.ad_group?.id?.toString() || '',
 
       headlines: (
         item.ad_group_ad?.ad?.responsive_search_ad?.headlines || []
-      ).map((x: AdTextAsset) => x.text || ''),
+      ).map((x: common.IAdTextAsset) => x.text || ''),
 
       descriptions: (
         item.ad_group_ad?.ad?.responsive_search_ad?.descriptions || []
-      ).map((x: AdTextAsset) => x.text || ''),
+      ).map((x: common.IAdTextAsset) => x.text || ''),
       keywords: [], // To keep it simple, we skip keyword mapping here unless necessary
     }));
   } catch (e) {
