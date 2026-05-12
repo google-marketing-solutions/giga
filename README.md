@@ -24,7 +24,7 @@ limitations under the License.
 
 ## Latest Updates
 
-- **May 2026:** Support deployment on Google Cloud Run.
+- **May 2026:** Support deployment on Google Cloud Run (see [Cloud Run Deployment Guide](gcp/README.md)).
 - **April 2026:** Account ID selector for Google Ads Manager accounts and added multi-select growth metrics.
 - **March 2026:**
   - Agentic Insights Follow-up to power dynamic, ongoing chat analysis functionality.
