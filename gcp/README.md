@@ -105,6 +105,26 @@ This project utilizes the following Google services:
 
 To get started with GIGA, clone the repository and copy `configuration.env.template` to `configuration.env` and add all necessary information.
 
+### Obtaining a Google Ads Refresh Token
+
+To use the Google Ads API, you will need an OAuth2 Client ID, Client Secret, and a Refresh Token. Here is the easiest way to generate a Refresh Token using the Google OAuth 2.0 Playground:
+
+1. **Create OAuth2 Credentials:**
+   - Go to the [Google Cloud Console](https://console.cloud.google.com/).
+   - Navigate to **APIs & Services > Credentials**.
+   - Create an **OAuth client ID** of type **Web application**.
+   - Add `https://developers.google.com/oauthplayground` to the **Authorized redirect URIs**.
+   - Note down your **Client ID** and **Client Secret**.
+
+2. **Generate the Refresh Token:**
+   - Go to the [Google OAuth 2.0 Playground](https://developers.google.com/oauthplayground/).
+   - Click the gear icon ⚙️ (OAuth 2.0 configuration) in the top right corner.
+   - Check **"Use your own OAuth credentials"** and enter your Client ID and Client Secret.
+   - In **Step 1: Select & authorize APIs**, input `https://www.googleapis.com/auth/adwords` into the "Input your own scopes" field and click **Authorize APIs**.
+   - Log in with the Google Account that has access to your Google Ads account.
+   - In **Step 2: Exchange authorization code for tokens**, click **Exchange authorization code for tokens**.
+   - Your **Refresh token** will be displayed in the response panel.
+
 ## Run locally
 
 Run the server locally
@@ -124,3 +144,4 @@ sh bin/deploy.sh
 ```
 
 After deployment is done, you'll see a link to the deployed app in the terminal output.
+
