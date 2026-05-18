@@ -58,6 +58,7 @@ gcloud config set project $CLOUD_RUN_GCP_PROJECT_ID
 
 # Enable the required services
 gcloud services enable run.googleapis.com --project $CLOUD_RUN_GCP_PROJECT_ID
+gcloud services enable cloudresourcemanager.googleapis.com --project $CLOUD_RUN_GCP_PROJECT_ID
 gcloud services enable containerregistry.googleapis.com --project $CLOUD_RUN_GCP_PROJECT_ID
 gcloud services enable cloudbuild.googleapis.com --project $CLOUD_RUN_GCP_PROJECT_ID
 
