@@ -105,6 +105,45 @@ This project utilizes the following Google services:
 
 To get started with GIGA, clone the repository and copy `configuration.env.template` to `configuration.env` and add all necessary information.
 
+### Obtaining a Google Ads Refresh Token
+
+You will need a Google Ads Developer Token to access and use the Google Ads Agent that is part of GIGA. Currently, once a developer token is associated with a specific GCP project, neither the token nor the project can be changed. As such, your team members who use *different* developer tokens must also use different OAuth Clients created in separate GCP projects for accessing the agent. This does not affect shared BigQuery data or other GCP resources.
+
+First navigate to your desired project in GCP, enable the [Google Ads API](https://console.cloud.google.com/apis/library/googleads.googleapis.com) then follow the steps below.
+
+> Note: This process assumes you are already in a possesion of a Google Ads Developer Token. If not, please follow the instructions at https://developers.google.com/google-ads/api/docs/api-policy/developer-token#new-token to obtain a new one.
+
+#### Step 1: Configure OAuth Consent Screen
+
+1. Go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) page in the Google Cloud Console.
+2. Choose **External** for the User Type and click **Create**.
+3. Enter **GIGA** as the **App name**.
+4. Enter your email address for the **User support email**.
+5. Click **Save and Continue** through the rest of the sections.
+
+#### Step 2: Create OAuth Client ID
+
+1. Go to the [Credentials](https://console.cloud.google.com/apis/credentials) page.
+2. Click **+ Create Credentials** and select **OAuth client ID**.
+3. Select **Web application** as the **Application type**.
+4. Enter **GIGA Google Ads OAuth Client** as the **Name**.
+5. Add the following URI under **Authorized redirect URIs**: `https://developers.google.com/oauthplayground`
+6. Click **Create**.
+7. A dialog will appear showing your **Client ID** and **Client Secret**. Click **Download JSON** to have a persistent version of the settings.
+
+#### Step 3: Obtain an OAuth Refresh Token
+
+1. Navigate to the [OAuth Playground](https://developers.google.com/oauthplayground/#step1&scopes=https%3A//www.googleapis.com/auth/adwords&url=https%3A//&content_type=application/json&http_method=GET&useDefaultOauthCred=checked&oauthEndpointSelect=Google&oauthAuthEndpointValue=https%3A//accounts.google.com/o/oauth2/auth&oauthTokenEndpointValue=https%3A//oauth2.googleapis.com/token&includeCredentials=unchecked&accessTokenType=bearer&autoRefreshToken=unchecked&accessType=offline&forceAprovalPrompt=checked&response_type=code)
+2. On the right-hand-side in the **OAuth 2.0 Configuration**
+   * Select "Server-side" **OAuth flow**
+   * Select "Google" as the **OAuth endpoint**
+   * Enter your OAuth Client ID and secret (Step 2.7 above)
+3. On the left-hand-side in **Select & authorize APIs**
+   * Add https://www.googleapis.com/auth/adwords
+   * Click **Authorize APIs** and complete the popup OAuth flow
+4. In the new screen on the left-hand-side, click **Exchange authorization code for tokens**
+5. Copy the resulting JSON in the **Request/Response** view and save it locally to have a persistent version of the settings.
+
 ## Run locally
 
 Run the server locally
@@ -124,3 +163,4 @@ sh bin/deploy.sh
 ```
 
 After deployment is done, you'll see a link to the deployed app in the terminal output.
+
