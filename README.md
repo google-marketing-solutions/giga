@@ -80,7 +80,7 @@ Inspect trending keywords:
 
 This project utilizes the following Google services:
 
-- **[Vertex AI](https://cloud.google.com/vertex-ai/docs):** Used for generating intelligent insights and clustering keywords using Gemini models.
+- **[Gemini Enterprise Agent Platform](https://cloud.google.com/products/gemini-enterprise-agent-platform):** Used for generating intelligent insights and clustering keywords using Gemini models.
 - **[Google Ads API (Keyword Planner)](https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas):** Used for fetching keyword ideas, search volumes, and historical metrics.
 
 ## Limitations
@@ -90,8 +90,8 @@ This project utilizes the following Google services:
 
 ## Prerequisites
 
-- **Google Ads Account with a Developer Token:** The developer token needs **"Basic"** or **"Standard"** access level ("Test Account Access" is not sufficient, see [access levels](https://developers.google.com/google-ads/api/docs/access-levels) for details). Additionally, it requires the **"Permissible Use"** for **"Researching keywords and recommendations"** (see [permissible use](https://developers.google.com/google-ads/api/docs/api-policy/access-levels#permissible-use) for details).
-- Google Cloud Project with [Vertex AI](https://cloud.google.com/vertex-ai) enabled
+- **Google Ads Account with a Developer Token:** The developer token needs **"Basic"** or **"Standard"** access level ("Test Account Access" is not sufficient, see [access levels](https://developers.google.com/google-ads/api/docs/access-levels) for details). Additionally, it requires the **"Permissible Use"** for **"Researching keywords and recommendations"** (see [permissible use](https://developers.google.com/google-ads/api/docs/api-policy/access-levels#permissible-use) and [how to change permissible use](https://developers.google.com/google-ads/api/docs/api-policy/access-levels#how-to-change-permissible-use) for details).
+- Google Cloud Project with [Gemini Enterprise Agent Platform](https://cloud.google.com/products/gemini-enterprise-agent-platform) enabled
 - Google Workspace (to run [Google Apps Script](https://developers.google.com/apps-script))
 
 ## Get Started
@@ -112,7 +112,7 @@ To get started with GIGA:
 
    <img src="assets/web_app_setup.png" alt="Setup" width="400"/>
 
-   The user set in "Execute as" needs at least the Vertex AI User ([roles/aiplatform.user](https://docs.cloud.google.com/vertex-ai/docs/general/access-control#aiplatform.user)) IAM role as well as [read access](https://support.google.com/google-ads/answer/9978556) to the associated Google Ads Account.
+   The user set in "Execute as" needs at least the Gemini Enterprise Agent Platform User ([roles/aiplatform.user](https://docs.cloud.google.com/vertex-ai/docs/general/access-control#aiplatform.user)) IAM role as well as [read access](https://support.google.com/google-ads/answer/9978556) to the associated Google Ads Account.
 
 1. Setup
    When you run the application the first time, it'll automatically show the settings screen where you need to specify your Google Ads account Id and the corresponding developer token.
@@ -162,4 +162,4 @@ If you encounter issues, please verify the following:
 
 - **[Developer Token Access](https://developers.google.com/google-ads/api/docs/access-levels):** Ensure your developer token has at least **"Basic"** or **"Standard"** access level. Test account access is insufficient.
 - **[GCP Project Binding](https://developers.google.com/google-ads/api/docs/get-started/common-errors):** Remember that a Google Cloud Project is permanently associated with the first developer token used. Ensure you haven't previously used a different token with this project.
-- **Connection Test:** To verify your access to Vertex AI and the Google Ads API, you can make a copy of this [Test Spreadsheet](https://docs.google.com/spreadsheets/d/1ZUR1XxyCA48YhULFYUBOb86CMcgavD6boO5kNtb-kXk/view) and run the included tests.
+- **Connection Test:** To verify your access to Gemini Enterprise Agent Platform and the Google Ads API, you can make a copy of this [Test Spreadsheet](https://docs.google.com/spreadsheets/d/1ZUR1XxyCA48YhULFYUBOb86CMcgavD6boO5kNtb-kXk/view) and run the included tests.
