@@ -876,6 +876,12 @@ limitations under the License.
   <?!= include('tabInsights'); ?>
   <?!=
     include('tabCampaigns'); ?>
+  <?!=
+    include('tabAlerts'); ?>
+
+  <script>
+    window.DEFAULT_SYNTHESIS_PROMPT = <?= JSON.stringify(defaultSynthesisPrompt) ?>;
+  </script>
 
   <script type="text/babel">
     const { useState, useEffect, useRef, useMemo } = React;
@@ -887,6 +893,7 @@ limitations under the License.
       COUNTRIES,
       DEFAULT_PROMPT,
       DEFAULT_TRENDS_PROMPT,
+      DEFAULT_SYNTHESIS_PROMPT,
       LANGUAGE_INFO_URL,
       LOCATION_INFO_URL,
       GOOGLE_ADS_ID_HELP_URL,
@@ -922,6 +929,37 @@ limitations under the License.
         'explore',
         'giga_activeTab'
       );
+
+      // Alerts State
+      const [activeAlerts, setActiveAlerts] = useState([]);
+
+      useEffect(() => {
+          if (activeTab === 'alerts') {
+              fetchActiveAlerts();
+          }
+      }, [activeTab]);
+
+      const fetchActiveAlerts = async () => {
+          try {
+              const alerts = await googleScriptRun.getActiveAlerts();
+              setActiveAlerts(alerts);
+          } catch (e) {
+              console.error('Failed to fetch active alerts:', e);
+          }
+      };
+
+      const deleteAlert = async (id) => {
+          try {
+              const res = await googleScriptRun.deleteEmailAlert(id);
+              if (res.success) {
+                  fetchActiveAlerts();
+              } else {
+                  showError('Error', res.error);
+              }
+          } catch (e) {
+              showError('Error', e);
+          }
+      };
 
       // Version State
       const [showVersionModal, setShowVersionModal] = useState(false);
@@ -1028,6 +1066,10 @@ limitations under the License.
       const [geminiPrompt, setGeminiPrompt] = useStickyState(
         DEFAULT_TRENDS_PROMPT,
         'giga_geminiPrompt'
+      );
+      const [trendSynthesisPrompt, setTrendSynthesisPrompt] = useStickyState(
+        DEFAULT_SYNTHESIS_PROMPT,
+        'giga_trendSynthesisPrompt'
       );
       const [useKeywordPlanner, setUseKeywordPlanner] = useStickyState(
         true,
@@ -1648,8 +1690,10 @@ limitations under the License.
       const [geminiConfig, setGeminiConfig] = useStickyState(
         {
           projectId: '',
-          modelId: 'gemini-3.1-pro-preview',
+          modelId: 'gemini-3.1-flash-lite-preview',
           location: 'global',
+          temperature: 0.7,
+          topP: 0.9,
         },
         'giga_geminiConfig'
       );
@@ -1683,6 +1727,9 @@ limitations under the License.
       const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
       const [pendingAction, setPendingAction] = useState(null);
       const [devTokenInput, setDevTokenInput] = useState('*****');
+      
+      const [synthesizedTrends, setSynthesizedTrends] = useStickyState(null, 'giga_synthesizedTrends');
+      const [isSynthesizing, setIsSynthesizing] = useState(false);
 
       const clearCache = () => {
         localStorage.clear();
@@ -1871,7 +1918,15 @@ limitations under the License.
         }
       }, [configStatus]);
 
-      const runExplore = async overrideKeywords => {
+      const runExplore = async (overrideKeywords, emailConfig) => {
+        const langName = [...LANGUAGES, ...customLanguages].find(l => l.id === language)?.name;
+        const allCountries = [
+          ...COUNTRIES,
+          ...Object.values(window.REGION_MAP || {}).flat(),
+          ...customCountries
+        ];
+        const countryName = allCountries.find(c => c.id === country)?.name;
+
         if (!useKeywordPlanner && !useGemini) {
           setHighlightKeywordSources(true);
           showAlert('At least one source needs to be selected.');
@@ -1895,6 +1950,48 @@ limitations under the License.
 
         setIsExploring(true);
         isExploringRef.current = true;
+
+        // Handle Email Alert Creation
+        if (emailConfig && emailConfig.emailAlert) {
+            if (!emailConfig.emails) {
+                showAlert('Please enter at least one email recipient.');
+                setIsExploring(false);
+                return;
+            }
+            
+            setExploreStatus('Creating email alert...');
+            try {
+                const res = await googleScriptRun.createEmailAlert({
+                    seed: seedKeywords.join(', '),
+                    emails: emailConfig.emails,
+                    frequency: emailConfig.frequency,
+                    language: language || undefined,
+                    location: country || undefined,
+                    continent: continent || undefined,
+                    languageName: langName || undefined,
+                    locationName: countryName || undefined,
+                    maxIdeas: 500, // Standard default or can be linked to minSearchVolume logic if needed
+                    growthMetric: 'latest_vs_avg', // Default as per user request
+                    geminiConfig: geminiConfig,
+                });
+                if (res.success) {
+                    // We don't block the rest of the execution, but we should notify.
+                    // Actually, we can just show a toast or continue.
+                    // Let's continue with the explore run.
+                    console.log('Email alert created:', res.id);
+                } else {
+                    showError('Failed to create email alert', res.error);
+                    setIsExploring(false);
+                    return; // Stop if alert creation fails?
+                }
+            } catch (e) {
+                showError('Failed to create email alert', e);
+                setIsExploring(false);
+                return;
+            }
+        }
+
+
 
         if (isDemoMode) {
           setExploreStatus('Getting keyword ideas...');
@@ -1964,6 +2061,7 @@ limitations under the License.
         setIdeasData(null);
         setClusters(null);
         setSelectedCluster(null);
+        setSynthesizedTrends(null);
 
         try {
           let processedIdeas = [];
@@ -2057,15 +2155,9 @@ limitations under the License.
             setExploreStatus('Generating Gemini keywords...');
 
             let finalGeminiPrompt = geminiPrompt;
-            const langName = [...LANGUAGES, ...customLanguages].find(
-              l => l.id === language
-            )?.name;
             if (langName) {
               finalGeminiPrompt += `\n\nOutput in ${langName}`;
             }
-            const countryName = [...COUNTRIES, ...customCountries].find(
-              c => c.id === country
-            )?.name;
             if (countryName) {
               finalGeminiPrompt += `\nLocation: ${countryName}`;
             }
@@ -2173,6 +2265,27 @@ limitations under the License.
             setChartLabels(processedIdeas[0].months.slice());
           }
 
+          if (configStatus.adsAccountId) {
+            setExploreStatus('Checking account status for keywords...');
+            try {
+              const keywordTexts = processedIdeas.map(idea => idea.text);
+              const existenceMap = await googleScriptRun.checkKeywordsExistence(keywordTexts);
+              
+              if (!isExploringRef.current) return;
+
+              processedIdeas = processedIdeas.map(idea => ({
+                ...idea,
+                accountStatus: existenceMap[idea.text] ? 'Exists' : 'Not in Account'
+              }));
+            } catch (e) {
+              console.error('Error checking keyword existence:', e);
+              processedIdeas = processedIdeas.map(idea => ({
+                ...idea,
+                accountStatus: 'Error'
+              }));
+            }
+          }
+
           setIdeasData(processedIdeas);
 
           // Filter relevant ideas
@@ -2206,6 +2319,33 @@ limitations under the License.
               `Done. Found ${processedIdeas.length} keywords (Clustering skipped).`
             );
           }
+
+          if (processedIdeas && processedIdeas.length > 0) {
+            try {
+              setIsSynthesizing(true);
+              setExploreStatus('Synthesizing macro trends for top keywords...');
+              // Sort by active growthMetric and grab top 10
+              const sortedForSynthesis = [...processedIdeas].sort((a, b) => {
+                let growthA = 0; let growthB = 0;
+                if (growthMetric === 'yoy') { growthA = a.growthYoY || 0; growthB = b.growthYoY || 0; }
+                else if (growthMetric === 'mom') { growthA = a.growthMoM || 0; growthB = b.growthMoM || 0; }
+                else if (growthMetric === 'latest_vs_avg') { growthA = a.growthLatestVsAvg || 0; growthB = b.growthLatestVsAvg || 0; }
+                else if (growthMetric === 'latest_vs_max') { growthA = a.growthLatestVsMax || 0; growthB = b.growthLatestVsMax || 0; }
+                else if (growthMetric === 'three_months_vs_avg') { growthA = a.growthThreeMonthsVsAvg || 0; growthB = b.growthThreeMonthsVsAvg || 0; }
+                return growthB - growthA;
+              });
+              const top10Texts = sortedForSynthesis.slice(0, 10).map(i => i.text);
+
+              const synthResult = await googleScriptRun.synthesizeTrends(top10Texts, geminiConfig, langName, continent, countryName, trendSynthesisPrompt);
+              setSynthesizedTrends(synthResult);
+              setExploreStatus('Done.');
+            } catch (e) {
+              console.error('Synthesis failed:', e);
+            } finally {
+              setIsSynthesizing(false);
+            }
+          }
+
         } catch (e) {
           console.error(e);
           setExploreStatus(`Error: ${e.message}`);
@@ -2911,6 +3051,12 @@ limitations under the License.
           );
         }
 
+        if (newSettings.devToken) {
+          promises.push(
+            updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken)
+          );
+        }
+
         await Promise.all(promises);
 
         setModalConfig({ ...modalConfig, isOpen: false });
@@ -3535,16 +3681,25 @@ limitations under the License.
             >
               Campaigns
             </TabButton>
+            <TabButton
+              active={activeTab === 'alerts'}
+              onClick={() => setActiveTab('alerts')}
+            >
+              Alerts
+            </TabButton>
           </div>
 
           {activeTab === 'explore' && (
             <ExploreTab
               keywords={keywords}
               setKeywords={setKeywords}
+              accountId={configStatus.adsAccountId}
               runExplore={runExplore}
               stopExplore={stopExplore}
               isExploring={isExploring}
               exploreStatus={exploreStatus}
+              synthesizedTrends={synthesizedTrends}
+              isSynthesizing={isSynthesizing}
               ideasData={ideasData}
               setIdeasData={setIdeasData}
               setClusters={setClusters}
@@ -3584,6 +3739,8 @@ limitations under the License.
               setUseGemini={setUseGemini}
               geminiPrompt={geminiPrompt}
               setGeminiPrompt={setGeminiPrompt}
+              trendSynthesisPrompt={trendSynthesisPrompt}
+              setTrendSynthesisPrompt={setTrendSynthesisPrompt}
               useClustering={useClustering}
               setUseClustering={setUseClustering}
               highlightKeywordSources={highlightKeywordSources}
@@ -3615,6 +3772,8 @@ limitations under the License.
               setFollowUpSuggestions={setFollowUpSuggestions}
               geminiConfig={geminiConfig}
               onOpenSettings={(highlight) => setModalConfig({ ...modalConfig, isOpen: true, type: 'settings', highlight: highlight || null })}
+              synthesizedTrends={synthesizedTrends}
+              isSynthesizing={isSynthesizing}
             />
           )}
 
@@ -3658,6 +3817,13 @@ limitations under the License.
               setCreationMetric={setCreationMetric}
               geminiConfig={geminiConfig}
               onOpenSettings={(highlight) => setModalConfig({ ...modalConfig, isOpen: true, type: 'settings', highlight: highlight || null })}
+            />
+          )}
+
+          {activeTab === 'alerts' && (
+            <AlertsTab
+              activeAlerts={activeAlerts}
+              onDeleteAlert={deleteAlert}
             />
           )}
 

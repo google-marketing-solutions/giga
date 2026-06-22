@@ -34,6 +34,8 @@ limitations under the License.
     setFollowUpSuggestions,
     geminiConfig,
     onOpenSettings,
+    synthesizedTrends,
+    isSynthesizing,
   }) => {
     const languageInputRef = React.useRef(null);
     const [selectedImage, setSelectedImage] = React.useState(null);
@@ -389,6 +391,65 @@ limitations under the License.
             </button>
           </div>
         </div>
+
+        {(isSynthesizing || synthesizedTrends) && (
+          <div
+            className="mt-4 card"
+            style={{ border: '1px solid var(--border-color)' }}
+          >
+            <h3>Macro Trends Synthesis</h3>
+            {isSynthesizing ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 0' }}>
+                <div className="spinner"></div> Synthesizing top keyword trends via Gemini...
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    marginTop: '10px',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  <thead>
+                    <tr
+                      style={{
+                        borderBottom: '2px solid var(--border-color)',
+                        color: 'var(--text-secondary)',
+                      }}
+                    >
+                      <th style={{ textAlign: 'left', padding: '8px', width: '20%' }}>Trending Keyword</th>
+                      <th style={{ textAlign: 'left', padding: '8px', width: '40%' }}>Explanation</th>
+                      <th style={{ textAlign: 'left', padding: '8px', width: '20%' }}>Industry Trend</th>
+                      <th style={{ textAlign: 'left', padding: '8px', width: '20%' }}>Top Competitors</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(synthesizedTrends || []).map((trend, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)', verticalAlign: 'top' }}>
+                        <td style={{ padding: '8px', fontWeight: 'bold' }}>{trend.trending_keyword}</td>
+                        <td style={{ padding: '8px' }}>{trend.explanation}</td>
+                        <td style={{ padding: '8px' }}>
+                          <span style={{background: 'var(--bg-color)', border: '1px solid var(--border-color)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.8rem'}}>
+                            {trend.industry_trend}
+                          </span>
+                        </td>
+                        <td style={{ padding: '8px' }}>
+                          {(trend.competitors || []).map((comp, cIdx) => (
+                            <span key={cIdx} style={{background: 'var(--bg-color)', border: '1px solid var(--border-color)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.8rem', marginRight: '4px', display: 'inline-block', marginBottom: '2px'}}>
+                              {comp}
+                            </span>
+                          ))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
         {insightsStatus && (
           <div className="status-msg">{insightsStatus}</div>

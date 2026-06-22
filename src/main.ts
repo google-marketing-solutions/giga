@@ -16,7 +16,11 @@
 
 import { getLocationId } from './geo';
 import { generateKeywordIdeas } from './ideas';
-import { getInsightsPrompt, INSIGHTS_CHAT_PROMPT } from './prompt';
+import {
+  getInsightsPrompt,
+  INSIGHTS_CHAT_PROMPT,
+  TREND_SYNTHESIS_PROMPT,
+} from './prompt';
 import {
   columnWiseSum,
   getScriptProperties,
@@ -579,6 +583,110 @@ export const getInsightsChatResponse = async (
 
   return removeHtmlTicks(result as unknown as string);
 };
+
+/**
+ * Synthesizes trends from the top growing keywords.
+ *
+ * @param topKeywords - An array of the top keyword strings.
+ * @param geminiConfig - The Gemini configuration from the frontend.
+ * @returns The synthesized trends.
+ */
+export const synthesizeTrends = (
+  topKeywords: string[],
+  geminiConfig: Partial<GeminiConfig>,
+  language?: string,
+  continent?: string,
+  location?: string,
+  promptTemplate?: string
+) => {
+  let finalPrompt = promptTemplate || TREND_SYNTHESIS_PROMPT;
+  finalPrompt = finalPrompt
+    .replace(/\${language}/g, language || 'Not specified')
+    .replace(/\${continent}/g, continent || 'Not specified')
+    .replace(/\${location}/g, location || 'Not specified');
+
+  const prompt = `${finalPrompt}\n\nSeed Keywords:\n${topKeywords.map(k => '- ' + k).join('\n')}`;
+
+  const responseSchema: ResponseSchema = {
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        trending_keyword: { type: 'string' },
+        explanation: { type: 'string' },
+        industry_trend: { type: 'string' },
+      },
+      required: ['trending_keyword', 'explanation', 'industry_trend'],
+    },
+  };
+
+  const config = createGeminiConfig(
+    geminiConfig,
+    'application/json',
+    responseSchema
+  );
+
+  // Add tools and thinking config per requirement
+  config.enableUrlContext = true;
+  config.enableGoogleSearch = true;
+
+  if (config.modelId === 'gemini-3.1-pro-preview') {
+    config.thinkingConfig = {
+      thinkingLevel: 'HIGH',
+    };
+  }
+
+  const trends = gemini(config)(prompt) as any[];
+
+  // Fetch competitors for each trend
+  const competitorsSchema: ResponseSchema = {
+    type: 'array',
+    items: { type: 'string' },
+  };
+
+  const competitorsConfig = createGeminiConfig(
+    geminiConfig,
+    'application/json',
+    competitorsSchema
+  );
+  competitorsConfig.enableGoogleSearch = true;
+  competitorsConfig.enableUrlContext = true;
+
+  if (competitorsConfig.modelId === 'gemini-3.1-pro-preview') {
+    competitorsConfig.thinkingConfig = {
+      thinkingLevel: 'HIGH',
+    };
+  }
+
+  const trendsList = Array.isArray(trends) ? trends : [];
+  const enrichedTrends = trendsList.map(trend => {
+    const competitorPrompt = `Persona: You are an expert marketing analyst specializing in competitive intelligence and real-time market research.
+
+Task: Use the Google Search tool to conduct a thorough search and identify the top 10 current, direct commercial competitors, alternatives, or solution providers operating at the intersection of the keyword "${trend.trending_keyword}" and the industry trend "${trend.industry_trend}".
+
+Search Strategy & Relevancy Guidelines:
+1. Execute targeted Google search queries focusing on commercial alternatives, service providers, or vendors within the "${trend.trending_keyword}" and "${trend.industry_trend}" domain.
+2. Prioritize active B2B or B2C companies offering direct commercial products, solutions, or services matching the trend.
+3. Exclude non-competitor entities, including news and media outlets, informational blogs, review directories (unless they represent specific competing software/services), industry reports, and general information sources like Wikipedia.
+4. Verify company status to ensure they are active, independent, and operational (filtering out defunct, rebranded, or acquired companies).
+
+Strict Output Constraint:
+Identify exactly 10 competitors. The output must be returned as a JSON array of strings matching the required schema. Do not include any conversational filler, markdown formatting (other than valid JSON), descriptions, or introductory/concluding remarks.`;
+
+    try {
+      const competitors = gemini(competitorsConfig)(competitorPrompt);
+      return { ...trend, competitors };
+    } catch (e) {
+      console.error(
+        `Failed to get competitors for trend ${trend.trending_keyword}:`,
+        e
+      );
+      return { ...trend, competitors: [] };
+    }
+  });
+
+  return enrichedTrends;
+};
 /**
  * Checks if the current active user is the effective user.
  *
@@ -632,6 +740,7 @@ export const doGet = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (template as any).include = (filename: string) =>
     HtmlService.createHtmlOutputFromFile(filename).getContent();
+  (template as any).defaultSynthesisPrompt = TREND_SYNTHESIS_PROMPT;
   return template.evaluate().setTitle('GIGA');
 };
 

@@ -184,3 +184,40 @@ export const DEFAULT_STYLE_GUIDE = `### Styleguide and Technical Specifications 
 *   **Include a Clear Call to Action (CTA):** Tell users what you want them to do next, for example, "Shop Now," "Request a Quote," or "Sign Up Today." Short and straightforward CTAs are effective.
 *   **Highlight Promotions:** If you have special offers, discounts, or limited-time deals, feature them in your descriptions to create a sense of urgency and value.
 `;
+
+export const TREND_SYNTHESIS_PROMPT = `Act as a Lead Technology Analyst and Digital Transformation Consultant. Your objective is to perform a research and synthesis analysis based on a provided list of seed keywords. 
+
+The analysis should be tailored to the following geographical and linguistic context:
+- Language: \${language}
+- Continent: \${continent}
+- Location: \${location}
+
+Ensure the research and synthesis take into account the specified Language, Continent, and Location to provide relevant insights for that region.
+
+Follow these instructions precisely:
+
+### STAGE 1: RESEARCH & ANALYSIS (Internal Thinking)
+1. For each seed keyword provided by the user, identify with Google Search the latest industry trends driving that specific technology or concept. **CRITICAL:** Focus your research on findings relevant to the specified Location (\${location}), Continent (\${continent}), and in the specified Language (\${language}) where applicable.
+2. For each trend identified, formulate a concise explanation detailing why it is currently significant or driving market behavior in that specific target region.
+
+### STAGE 2: SYNTHESIS & ABSTRACTION
+1. Review your findings from Stage 1 and identify 3-5 "Trending Keywords" that represent the convergence or evolution of those findings.
+2. **CRITICAL:** These keywords must be phrased as actual **search keywords** that users would realistically type into Google (e.g., "AI writing tools", "cloud cost optimization") rather than high-level abstract topics or broad categories (e.g., "Artificial Intelligence", "Cloud Computing"). They should reflect real search behavior while remaining concise (usually 2-4 words), not full sentences or questions.
+3. For each synthesized keyword, summarize the core industry trend from Stage 1 that directly led to its creation.
+
+### CRITICAL FORMATTING CONSTRAINTS:
+- **NO INLINE CITATIONS:** Do NOT include bracketed citation numbers (e.g., [1], [4, 5]) inside the text of your explanations or trends. Write clean, unannotated text.
+- **STRICT JSON ONLY:** Your entire response must be a single, valid JSON array containing the final synthesis results. Do not include any conversational text, markdown formatting (like \`\`\`json), or explanations outside of the JSON block.
+- **OUTPUT LANGUAGE:** The "explanation" and "industry_trend" fields must ALWAYS be written in English. The "trending_keyword" field must be written in the specified Language (\${language}). However, the entire analysis must still focus on the trends and market behavior relevant to the specified region.
+
+### OUTPUT FORMAT:
+Use the exact JSON schema below for each item in the array:
+
+[
+  {
+    "trending_keyword": "string (The newly synthesized search keyword. MUST BE IN THE SELECTED LANGUAGE: \${language} and reflect actual search terms)",
+    "explanation": "string (A clear, analytical rationale for why this keyword is significant. MUST BE WRITTEN IN ENGLISH. Clean text only, no [1] brackets)",
+    "industry_trend": "string (A short, concise summary of the specific underlying trend from the seed keywords that this new keyword was derived from. MUST BE WRITTEN IN ENGLISH)"
+  }
+]
+`;

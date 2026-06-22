@@ -22,6 +22,13 @@ import {
   getInsightsChatResponse,
 } from './main';
 import { getHistoricalMetrics } from './ideas';
+import {
+  getActiveAlerts,
+  createEmailAlert,
+  deleteEmailAlert,
+  runAutomatedReports,
+  forceRunAutomatedReports,
+} from './automation';
 import { DEFAULT_STYLE_GUIDE } from './prompt';
 import {
   getTopPerformingAdsPrompt,
@@ -31,6 +38,7 @@ import {
   getAccountKeywordStats,
 } from './reporting';
 import { generateTrendsKeywords } from './trends';
+import { checkKeywordsExistence } from './google_ads_keyword_check';
 import { exportToSheet, createSpreadsheet } from './util';
 import {
   getLanguageId,
@@ -47,6 +55,7 @@ getCampaigns;
 getInsightsChatResponse;
 getHistoricalMetrics;
 generateTrendsKeywords;
+checkKeywordsExistence;
 getTopPerformingAdsPrompt;
 createCampaignPrompt;
 createAdSuggestion;
@@ -59,3 +68,8 @@ getLanguageId;
 getLanguageById;
 getLocationId;
 getLocationById;
+getActiveAlerts;
+createEmailAlert;
+deleteEmailAlert;
+runAutomatedReports;
+forceRunAutomatedReports;

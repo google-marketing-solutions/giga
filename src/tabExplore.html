@@ -29,10 +29,12 @@ limitations under the License.
   window.ExploreTab = ({
     keywords,
     setKeywords,
+    accountId,
     runExplore,
     stopExplore,
     isExploring,
     exploreStatus,
+
     ideasData,
     setIdeasData,
     setClusters,
@@ -72,6 +74,8 @@ limitations under the License.
     setUseGemini,
     geminiPrompt,
     setGeminiPrompt,
+    trendSynthesisPrompt,
+    setTrendSynthesisPrompt,
     useClustering,
     setUseClustering,
     highlightKeywordSources,
@@ -140,6 +144,7 @@ limitations under the License.
     });
     const [filters, setFilters] = useState({
       keyword: '',
+      accountStatus: '',
       minVolume: '',
       minGrowth: {},
       competition: '',
@@ -186,6 +191,11 @@ limitations under the License.
         document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Email Alert State
+    const [emailAlert, setEmailAlert] = useState(false);
+    const [recipientEmails, setRecipientEmails] = useState('');
+    const [emailFrequency, setEmailFrequency] = useState('weekly');
+
     const requestSort = key => {
       let direction = 'descending';
       if (sortConfig.key === key && sortConfig.direction === 'descending') {
@@ -209,6 +219,14 @@ limitations under the License.
         if (
           filters.keyword &&
           !item.text.toLowerCase().includes(filters.keyword.toLowerCase())
+        ) {
+          return false;
+        }
+
+        if (
+          filters.accountStatus &&
+          filters.accountStatus !== '' &&
+          item.accountStatus !== filters.accountStatus
         ) {
           return false;
         }
@@ -932,13 +950,49 @@ limitations under the License.
                 />
               </div>
             )}
+            <div className="mt-4">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <label style={{ margin: 0 }}>Trends Synthesis Prompt</label>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: '1rem',
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                    }}
+                    onClick={e => {
+                      e.preventDefault();
+                      setActiveInfoModal('trends_synthesis');
+                    }}
+                  >
+                    info
+                  </span>
+                </div>
+                {trendSynthesisPrompt !== window.DEFAULT_SYNTHESIS_PROMPT && (
+                  <button
+                    onClick={() => setTrendSynthesisPrompt(window.DEFAULT_SYNTHESIS_PROMPT)}
+                    className="btn btn-ghost btn-sm"
+                    style={{ padding: '2px 8px', fontSize: '0.8rem', fontWeight: 'normal' }}
+                  >
+                    ⟳ Reset to default
+                  </button>
+                )}
+              </div>
+              <InputField
+                type="textarea"
+                value={trendSynthesisPrompt}
+                onChange={setTrendSynthesisPrompt}
+                rows={6}
+              />
+            </div>
           </div>
         </details>
 
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             className="btn btn-primary"
-            onClick={runExplore}
+            onClick={() => runExplore(undefined, { emailAlert, emails: recipientEmails, frequency: emailFrequency })}
             disabled={isExploring}
           >
             {isExploring ? (
@@ -966,7 +1020,69 @@ limitations under the License.
               <span className="material-symbols-outlined">close</span> Cancel
             </button>
           )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--surface-color)', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: '500', color: 'var(--text-main)' }}>
+              <input
+                type="checkbox"
+                checked={emailAlert}
+                onChange={e => setEmailAlert(e.target.checked)}
+                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+              />
+              Email Alert
+            </label>
+
+            {emailAlert && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={recipientEmails}
+                    onChange={e => setRecipientEmails(e.target.value)}
+                    placeholder="Emails (comma-separated)"
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-color)',
+                      color: 'var(--text-main)',
+                      fontSize: '0.9rem',
+                      minWidth: '200px',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                    }}
+                    onFocus={e => e.target.style.borderColor = 'var(--primary)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
+                  />
+                  <select
+                    value={emailFrequency}
+                    onChange={e => setEmailFrequency(e.target.value)}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-color)',
+                      color: 'var(--text-main)',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="bi-weekly">Bi-weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+              </>
+            )}
+          </div>
         </div>
+        {emailAlert && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>info</span>
+                * Top 10 keywords based on &apos;Latest vs Average&apos; growth.
+            </div>
+        )}
 
         {seedChartData && (
           <div
@@ -1417,6 +1533,18 @@ limitations under the License.
                     >
                       Keyword{getSortIndicator('text')}
                     </th>
+                    {accountId && (
+                      <th
+                        style={{
+                          textAlign: 'left',
+                          padding: '8px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => requestSort('accountStatus')}
+                      >
+                        Account Status{getSortIndicator('accountStatus')}
+                      </th>
+                    )}
                     <th
                       style={{
                         textAlign: 'right',
@@ -1532,6 +1660,32 @@ limitations under the License.
                         }}
                       />
                     </th>
+                    {accountId && (
+                      <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
+                        <select
+                          value={filters.accountStatus || ''}
+                          onChange={e =>
+                            setFilters(prev => ({
+                              ...prev,
+                              accountStatus: e.target.value,
+                            }))
+                          }
+                          style={{
+                            width: '100%',
+                            padding: '4px',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '4px',
+                            boxSizing: 'border-box',
+                            background: 'var(--bg-color)',
+                            color: 'var(--text-main)',
+                          }}
+                        >
+                          <option value="">All</option>
+                          <option value="Exists">Exists</option>
+                          <option value="Not in Account">Not in Account</option>
+                        </select>
+                      </th>
+                    )}
                     <th style={{ padding: '4px 8px', fontWeight: 'normal' }}>
                       <input
                         type="number"
@@ -1751,6 +1905,16 @@ limitations under the License.
                               {text}
                             </div>
                           </td>
+                          {accountId && (
+                            <td style={{ padding: '8px' }}>
+                              <span style={{
+                                color: item.accountStatus === 'Exists' ? 'var(--success)' : item.accountStatus === 'Not in Account' ? 'var(--error)' : 'var(--error)',
+                                fontWeight: (item.accountStatus === 'Exists' || item.accountStatus === 'Not in Account') ? 'bold' : 'normal'
+                              }}>
+                                {item.accountStatus || 'Unknown'}
+                              </span>
+                            </td>
+                          )}
                           <td
                             style={{
                               padding: '8px',
@@ -1840,7 +2004,7 @@ limitations under the License.
                             }}
                           >
                             <td
-                              colSpan={6 + activeMetrics.length}
+                              colSpan={(accountId ? 3 : 2) + activeMetrics.length + activePerformanceMetrics.length}
                               style={{ padding: '16px' }}
                             >
                               {expandedIdeaChartData ? (
@@ -1897,6 +2061,8 @@ limitations under the License.
           </div>
         )}
 
+
+
         {activeInfoModal && (
           <Modal
             isOpen={!!activeInfoModal}
@@ -1910,6 +2076,7 @@ limitations under the License.
                 location_info: 'Location Settings',
                 clustering_info: 'Clustering Info',
                 performance_metrics_info: 'Performance Metrics',
+                trends_synthesis: 'Trends Synthesis Prompt',
               }[activeInfoModal] || 'Language Settings'
             }
           >
@@ -1982,6 +2149,15 @@ limitations under the License.
                   );
                 case 'gemini':
                   return <div>{promptCustomizationNote('Gemini Prompt')}</div>;
+                case 'trends_synthesis':
+                  return (
+                    <div>
+                      <p>
+                        This prompt is used to synthesize macro trends from the top growing keywords.
+                      </p>
+                      {promptCustomizationNote('Trends Synthesis Prompt')}
+                    </div>
+                  );
                 case 'seed_keywords':
                   return (
                     <div>

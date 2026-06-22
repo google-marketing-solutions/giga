@@ -1,0 +1,86 @@
+<!--
+Copyright 2025 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<script type="text/babel">
+  const { useState, useEffect } = React;
+
+  window.AlertsTab = ({ activeAlerts, onDeleteAlert }) => {
+    return (
+      <div className="tab-content">
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+             <h2>Active Email Alerts</h2>
+          </div>
+          {activeAlerts.length === 0 ? (
+            <p className="text-muted">No active alerts. Create one in the Explore tab.</p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid var(--border-color)' }}>
+                    <th style={{ padding: '12px', color: 'var(--text-secondary)', fontWeight: '600' }}>Seed Keywords</th>
+                    <th style={{ padding: '12px', color: 'var(--text-secondary)', fontWeight: '600' }}>Language</th>
+                    <th style={{ padding: '12px', color: 'var(--text-secondary)', fontWeight: '600' }}>Continent</th>
+                    <th style={{ padding: '12px', color: 'var(--text-secondary)', fontWeight: '600' }}>Location</th>
+                    <th style={{ padding: '12px', color: 'var(--text-secondary)', fontWeight: '600' }}>Emails</th>
+                    <th style={{ padding: '12px', color: 'var(--text-secondary)', fontWeight: '600' }}>Frequency</th>
+                    <th style={{ padding: '12px', color: 'var(--text-secondary)', fontWeight: '600' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeAlerts.map((alert, index) => (
+                    <tr key={index} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background-color 0.2s' }} className="table-row-hover">
+                      <td style={{ padding: '12px' }}>{alert.seed}</td>
+                      <td style={{ padding: '12px' }}>{alert.languageName || 'Not specified'}</td>
+                      <td style={{ padding: '12px' }}>{alert.continent || 'Not specified'}</td>
+                      <td style={{ padding: '12px' }}>{alert.locationName || 'Not specified'}</td>
+                      <td style={{ padding: '12px' }}>{alert.emails}</td>
+                      <td style={{ padding: '12px', textTransform: 'capitalize' }}>{alert.frequency}</td>
+                      <td style={{ padding: '12px' }}>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => onDeleteAlert(alert.id || index)}
+                          style={{
+                              background: 'transparent',
+                              color: 'var(--error)',
+                              border: '1px solid var(--error)',
+                              padding: '6px 10px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '0.85rem',
+                              fontWeight: '500',
+                              transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => { e.target.style.background = 'var(--error)'; e.target.style.color = 'white'; }}
+                          onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = 'var(--error)'; }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+</script>

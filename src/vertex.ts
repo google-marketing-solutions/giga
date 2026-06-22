@@ -15,7 +15,7 @@
  */
 
 import Ajv from 'ajv';
-import { fetchJson, getGcpProjectDetails } from './util';
+import { fetchJson, getGcpProjectDetails, getScriptProperties } from './util';
 
 const ajv = new Ajv();
 
@@ -23,7 +23,11 @@ const ajv = new Ajv();
  * Returns the GCP project ID.
  * @returns {string}
  */
-export const getGcpProjectId = () => getGcpProjectDetails().projectId;
+export const getGcpProjectId = () => {
+  const storedId = getScriptProperties('GCP_PROJECT_ID');
+  if (storedId) return storedId;
+  return getGcpProjectDetails().projectId;
+};
 
 /**
  * Adds authentication to a request.
@@ -66,6 +70,13 @@ export interface GeminiConfig {
   responseSchema?: ResponseSchema;
   enableGoogleSearch?: boolean;
   tools?: unknown[];
+  enableUrlContext?: boolean;
+  thinkingConfig?: {
+    thinkingLevel?: string;
+    thinkingBudget?: number;
+  };
+  temperature?: number;
+  topP?: number;
 }
 
 /**
@@ -228,6 +239,31 @@ const getGeminiRequest = (
     },
   ];
 
+  const requestTools = [];
+  if (enableGoogleSearch) {
+    requestTools.push({ googleSearch: {} });
+  }
+  if (config.enableUrlContext) {
+    requestTools.push({ urlContext: {} });
+  }
+
+  const generation_config: any = {
+    temperature: config.temperature,
+    top_p: config.topP,
+    max_output_tokens: config.maxOutputTokens,
+    response_mime_type: config.responseType,
+    response_schema: config.responseSchema,
+  };
+
+  if (config.thinkingConfig !== undefined) {
+    generation_config.thinkingConfig = config.thinkingConfig;
+  } else {
+    // Preserve old default so as not to break existing code
+    generation_config.thinkingConfig = {
+      thinkingBudget: 1024,
+    };
+  }
+
   const request = {
     contents: Array.isArray(prompt)
       ? prompt
@@ -238,19 +274,12 @@ const getGeminiRequest = (
           },
         ],
     // see https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#generationconfig
-    generation_config: {
-      max_output_tokens: config.maxOutputTokens,
-      response_mime_type: config.responseType,
-      response_schema: config.responseSchema,
-      thinkingConfig: {
-        thinkingBudget: 1024,
-      },
-    },
+    generation_config,
     tools: config.tools
       ? config.tools
-      : enableGoogleSearch
-        ? [{ googleSearch: {} }]
-        : [],
+      : requestTools.length > 0
+        ? requestTools
+        : undefined,
   };
 
   return [
