@@ -2992,7 +2992,7 @@ limitations under the License.
 
       // --- Render ---
 
-      const resolveAccountId = (accountId) => {
+      const resolveAccountId = (accountId, onChildSelectCallback) => {
         return new Promise(async (resolve) => {
           const cleanId = accountId.replaceAll('-', '').trim();
           const formattedId = cleanId.length === 10 ? cleanId.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') : accountId.trim();
@@ -3011,6 +3011,7 @@ limitations under the License.
                   children: mccCheck.children,
                   onSelect: (selectedId) => {
                     setMccSelectorConfig({ isOpen: false, children: [], onSelect: null });
+                    if (selectedId && onChildSelectCallback) onChildSelectCallback(selectedId);
                     resolve(selectedId);
                   }
                 });
@@ -3026,6 +3027,13 @@ limitations under the License.
             resolve(null);
           }
         });
+      };
+
+      const handleChooseChildAccount = async (mccId, devToken, callback) => {
+        if (devToken && devToken !== configStatus.devToken) {
+          await updateScriptProperty('DEVELOPER_TOKEN', devToken);
+        }
+        await resolveAccountId(mccId, callback);
       };
 
       const handleSettingsSave = async newSettings => {
@@ -3050,10 +3058,9 @@ limitations under the License.
             updateScriptProperty('ADS_ACCOUNT_ID', finalAdsId)
           );
         }
-
-        if (newSettings.devToken) {
+        if (newSettings.mccAccountId !== configStatus.mccAccountId) {
           promises.push(
-            updateScriptProperty('DEVELOPER_TOKEN', newSettings.devToken)
+            updateScriptProperty('LOGIN_CUSTOMER_ID', newSettings.mccAccountId || '')
           );
         }
 
@@ -3841,6 +3848,7 @@ limitations under the License.
             onSave={handleSettingsSave}
             onClearCache={clearCache}
             isEffectiveUser={IS_EFFECTIVE_USER}
+            onChooseChildAccount={handleChooseChildAccount}
           />
           {alertModal}
           {mccModal}

@@ -27,17 +27,28 @@ export const getCustomerId = () => {
   const id = getScriptProperties('ADS_ACCOUNT_ID');
   return id ? id.toString().replace(/-/g, '').trim() : '';
 };
+export const getLoginCustomerId = () => {
+  const id = getScriptProperties('LOGIN_CUSTOMER_ID');
+  return id ? id.toString().replace(/-/g, '').trim() : '';
+};
 export const ADS_VERSION = 'v23';
 export const ADS_ENDPOINT = `https://googleads.googleapis.com/${ADS_VERSION}`;
 
 export const addGoogleAdsAuth = (payload, loginCustomerId = '') => {
-  const id = loginCustomerId || getCustomerId();
+  let id = getLoginCustomerId();
+  if (loginCustomerId && loginCustomerId !== getCustomerId()) {
+    id = loginCustomerId;
+  }
+  if (!id) {
+    id = loginCustomerId || getCustomerId();
+  }
+  const devToken = getDeveloperToken() || '';
   const headers: Record<string, string> = {
-    'developer-token': getDeveloperToken(),
-    'Authorization': 'Bearer ' + ScriptApp.getOAuthToken(),
+    'developer-token': devToken,
+    'Authorization': 'Bearer ' + (ScriptApp.getOAuthToken() || ''),
   };
   if (id) {
-    headers['login-customer-id'] = id;
+    headers['login-customer-id'] = String(id);
   }
   return Object.assign(
     { payload },

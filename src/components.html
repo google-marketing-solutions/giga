@@ -411,6 +411,7 @@ limitations under the License.
     onSave,
     onClearCache,
     isEffectiveUser,
+    onChooseChildAccount,
   }) => {
     const [localGeminiConfig, setLocalGeminiConfig] =
       useState(geminiConfig);
@@ -420,6 +421,9 @@ limitations under the License.
       useState(showClusterNumbers ?? true);
     const [localAdsId, setLocalAdsId] = useState(
       configStatus.adsAccountId || ''
+    );
+    const [localMccId, setLocalMccId] = useState(
+      configStatus.mccAccountId || ''
     );
     const [localDevToken, setLocalDevToken] = useState('');
     const [localSpreadsheetUrl, setLocalSpreadsheetUrl] = useState('');
@@ -435,6 +439,7 @@ limitations under the License.
         setLocalShowClusterNumbers(showClusterNumbers ?? true);
         setLocalSpreadsheetUrl(modalConfig.spreadsheetUrl || '');
         setLocalAdsId(configStatus.adsAccountId || '');
+        setLocalMccId(configStatus.mccAccountId || '');
         setLocalDevToken('');
       }
     }, [
@@ -488,6 +493,7 @@ limitations under the License.
           minSearchVolume: localMinSearchVolume,
           showClusterNumbers: localShowClusterNumbers,
           adsAccountId: localAdsId,
+          mccAccountId: localMccId,
           devToken: localDevToken,
           spreadsheetUrl: localSpreadsheetUrl,
         });
@@ -919,7 +925,51 @@ limitations under the License.
             <div className="mt-4">
               <div className="input-group">
                 <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  Ads Account ID
+                  MCC ID
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: '1rem',
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                    }}
+                    onClick={e => {
+                      e.preventDefault();
+                      setInfoModalOpen('mcc_account_id');
+                    }}
+                    title="Learn more about the Google Ads Manager (MCC) ID"
+                  >
+                    info
+                  </span>
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={localMccId}
+                    onChange={e => setLocalMccId(e.target.value)}
+                    placeholder="e.g. 555-666-7777"
+                    style={{ flex: 1, boxSizing: 'border-box' }}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      if (onChooseChildAccount && localMccId) {
+                        onChooseChildAccount(localMccId, localDevToken, (chosenChildId) => {
+                          if (chosenChildId) setLocalAdsId(chosenChildId);
+                        });
+                      }
+                    }}
+                    style={{ whiteSpace: 'nowrap', padding: '8px 12px', height: 'auto' }}
+                    disabled={!localMccId}
+                  >
+                    Choose child account
+                  </button>
+                </div>
+              </div>
+              <div className="input-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  Child Account ID
                   <span
                     className="material-symbols-outlined"
                     style={{
@@ -931,7 +981,7 @@ limitations under the License.
                       e.preventDefault();
                       setInfoModalOpen('ads_account_id');
                     }}
-                    title="Learn more about the Google Ads Account ID"
+                    title="Learn more about the Google Ads Child Account ID"
                   >
                     info
                   </span>
@@ -1074,7 +1124,8 @@ limitations under the License.
               insights_model: 'Insights Model',
               image_model: 'Image Model',
               location: 'Location',
-              ads_account_id: 'Ads Account ID',
+              ads_account_id: 'Child Account ID',
+              mcc_account_id: 'MCC ID',
               developer_token: 'Developer Token'
             }[infoModalOpen] || 'Settings Info'
           }
@@ -1115,11 +1166,16 @@ limitations under the License.
             )}
             {infoModalOpen === 'ads_account_id' && (
               <p>
-                The Google Ads Account ID is required by the Google Ads API to fetch keyword ideas and search volume history using the Keyword Planner. 
+                The Google Ads Child Account ID is required by the Google Ads API to fetch keyword ideas and search volume history using the Keyword Planner. 
                 <br /><br />
                 <a href="https://support.google.com/google-ads/answer/1704344" target="_blank" rel="noopener noreferrer">Learn how to find your Google Ads Account ID</a>.
                 <br /><br />
                 <a href="https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas" target="_blank" rel="noopener noreferrer">Learn more about the Google Ads Keyword Planner API</a>.
+              </p>
+            )}
+            {infoModalOpen === 'mcc_account_id' && (
+              <p>
+                The Google Ads MCC ID is the 10-digit Manager Account ID used for authentication when managing child accounts.
               </p>
             )}
             {infoModalOpen === 'developer_token' && (

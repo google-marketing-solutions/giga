@@ -703,11 +703,13 @@ export const isEffectiveUser = () =>
 export const getScriptPropertiesConfiguration = () => {
   const devToken = getScriptProperties('DEVELOPER_TOKEN');
   const adsAccountId = getScriptProperties('ADS_ACCOUNT_ID');
+  const mccAccountId = getScriptProperties('LOGIN_CUSTOMER_ID');
   const spreadsheetUrl = getScriptProperties('SPREADSHEET_URL');
   return {
     hasDeveloperToken: !!devToken,
     hasAdsAccountId: !!adsAccountId,
     adsAccountId: adsAccountId || '',
+    mccAccountId: mccAccountId || '',
     spreadsheetUrl: spreadsheetUrl || '',
   };
 };
