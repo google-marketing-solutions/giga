@@ -5250,6 +5250,16 @@ const GigaApp = ({onReset, isDemoMode}) => {
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [versionUpdateType, setVersionUpdateType] = useState(''); // 'major', 'minor', 'patch'
 
+  // Status Message State
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const statusMessage = process.env.STATUS_MESSAGE;
+  
+  useEffect(() => {
+    if (typeof statusMessage !== 'undefined' && statusMessage.trim().length > 0) {
+      setShowStatusModal(true);
+    }
+  }, [statusMessage]);
+
   // Theme State
   const [theme, setTheme] = useStickyState('light', 'giga_theme');
 
@@ -7925,6 +7935,26 @@ const GigaApp = ({onReset, isDemoMode}) => {
 
   return (
     <div className="app">
+      {typeof statusMessage !== 'undefined' && statusMessage.trim().length > 0 && (
+        <div style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '16px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #f87171', display: 'flex', alignItems: 'center', fontWeight: 'bold', whiteSpace: 'pre-wrap' }}>
+          <span className="material-symbols-outlined" style={{ marginRight: '8px', fontSize: '24px' }}>error</span>
+          {statusMessage}
+        </div>
+      )}
+      <Modal
+        isOpen={showStatusModal}
+        onClose={() => setShowStatusModal(false)}
+        title="System Status"
+      >
+        <div style={{ color: '#dc2626', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 0', whiteSpace: 'pre-wrap' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>error</span>
+          {typeof statusMessage !== 'undefined' ? statusMessage : ''}
+        </div>
+        <div className="modal-actions">
+          <button className="btn btn-primary" onClick={() => setShowStatusModal(false)}>Acknowledge</button>
+        </div>
+      </Modal>
+
       <div
         style={{
           display: 'flex',

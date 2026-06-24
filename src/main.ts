@@ -34,6 +34,8 @@ import {
   ResponseSchema,
 } from './vertex';
 
+declare let STATUS_MESSAGE: string | undefined;
+
 const MIN_SEARCH_VOLUME_THRESHOLD_FOR_LATEST_MONTH = 100;
 
 /**
@@ -629,6 +631,8 @@ export const doGet = () => {
   const template = HtmlService.createTemplateFromFile('webApp');
   template.userEmail = Session.getEffectiveUser().getEmail();
   template.isEffectiveUser = isEffectiveUser();
+  template.statusMessage =
+    typeof STATUS_MESSAGE !== 'undefined' ? STATUS_MESSAGE : '';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (template as any).include = (filename: string) =>
     HtmlService.createHtmlOutputFromFile(filename).getContent();
