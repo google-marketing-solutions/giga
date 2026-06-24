@@ -23,6 +23,7 @@ const nextConfig = {
     GOOGLE_ADS_CLIENT_SECRET: process.env.GOOGLE_ADS_CLIENT_SECRET,
     GOOGLE_ADS_REFRESH_TOKEN: process.env.GOOGLE_ADS_REFRESH_TOKEN,
     GOOGLE_ADS_CUSTOMER_ID: process.env.GOOGLE_ADS_CUSTOMER_ID,
+    STATUS_MESSAGE: process.env.STATUS_MESSAGE,
   },
   serverExternalPackages: ['@google/genai'],
 };

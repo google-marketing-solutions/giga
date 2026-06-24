@@ -88,7 +88,7 @@ Inspect trending keywords:
 
 This project utilizes the following Google services:
 
-- **[Vertex AI](https://cloud.google.com/vertex-ai/docs):** Used for generating intelligent insights and clustering keywords using Gemini models.
+- **[Gemini Enterprise Agent Platform](https://cloud.google.com/products/gemini-enterprise-agent-platform):** Used for generating intelligent insights and clustering keywords using Gemini models.
 - **[Google Ads API (Keyword Planner)](https://developers.google.com/google-ads/api/docs/keyword-planning/generate-keyword-ideas):** Used for fetching keyword ideas, search volumes, and historical metrics.
 
 ## Limitations
@@ -98,8 +98,8 @@ This project utilizes the following Google services:
 
 ## Prerequisites
 
-- **[Google Ads Account with a Developer Token](https://developers.google.com/google-ads/api/docs/access-levels):** The developer token needs **"Basic"** or **"Standard"** access level ("Test Account Access" is not sufficient). Additionally, it requires the **"Permissible Use"** for **"Researching keywords and recommendations"** (see [permissible use](https://developers.google.com/google-ads/api/docs/api-policy/access-levels#permissible-use) for details).
-- Google Cloud Project with [Vertex AI](https://cloud.google.com/vertex-ai) enabled
+- **[Google Ads Account with a Developer Token](https://developers.google.com/google-ads/api/docs/access-levels):** The developer token needs **"Basic"** or **"Standard"** access level ("Test Account Access" is not sufficient). Additionally, it requires the **"Permissible Use"** for **"Researching keywords and recommendations"** (see [permissible use](https://developers.google.com/google-ads/api/docs/api-policy/access-levels#permissible-use) and [how to change permissible use](https://developers.google.com/google-ads/api/docs/api-policy/access-levels#how-to-change-permissible-use) for details).
+- Google Cloud Project with [Gemini Enterprise Agent Platform](https://cloud.google.com/products/gemini-enterprise-agent-platform) enabled
 
 ## Get Started
 
