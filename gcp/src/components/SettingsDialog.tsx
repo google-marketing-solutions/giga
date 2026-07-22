@@ -34,12 +34,9 @@ interface SettingsDialogProps {
 }
 
 const TEXT_MODELS = [
-  {
-    value: 'gemini-3.1-flash-lite-preview',
-    label: 'Gemini 3.1 Flash Lite Preview',
-  },
+  {value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash'},
+  {value: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash Lite'},
   {value: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro Preview'},
-  {value: 'gemini-3-flash-preview', label: 'Gemini 3 Flash Preview'},
 ];
 
 const IMAGE_MODELS = [
@@ -199,7 +196,7 @@ export function SettingsDialog({
               </label>
               <select
                 value={
-                  localConfig.fallbackTextModel || 'gemini-3.1-pro-preview'
+                  localConfig.fallbackTextModel || 'gemini-3.5-flash'
                 }
                 onChange={e =>
                   handleChange('fallbackTextModel', e.target.value)

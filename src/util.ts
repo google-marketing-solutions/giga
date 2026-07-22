@@ -375,3 +375,72 @@ export const createSpreadsheet = name => {
   }
   return url;
 };
+
+/**
+ * Dedicated helper function designed to manually trigger the Google Apps Script OAuth Authorization prompt.
+ * Touch all required Google Apps Script services (UrlFetchApp, MailApp, ScriptApp, SpreadsheetApp, Session)
+ * and Google Cloud Platform APIs (Cloud Resource Manager) to force authorization prompt for all scopes.
+ */
+export const authorizeUrlFetch = () => {
+  Logger.log(
+    'Executing authorizeUrlFetch trigger for all GIGA script permissions and GCP scopes...'
+  );
+  try {
+    // 1. Touch UrlFetchApp (script.external_request)
+    const res = UrlFetchApp.fetch('https://www.google.com', {
+      muteHttpExceptions: true,
+    });
+
+    // 2. Touch Session & User Info (userinfo.email)
+    const email = Session.getEffectiveUser().getEmail();
+
+    // 3. Touch MailApp (script.send_mail)
+    const quota = MailApp.getRemainingDailyQuota();
+
+    // 4. Touch ScriptApp (script.scriptapp)
+    const triggers = ScriptApp.getProjectTriggers();
+    const oauthToken = ScriptApp.getOAuthToken();
+
+    // 5. Touch SpreadsheetApp (spreadsheets)
+    const activeSs = SpreadsheetApp.getActiveSpreadsheet();
+
+    // 6. Touch Cloud Resource Manager API / GCP (cloud-platform)
+    // Do not swallow authorization or scope errors so Apps Script raises an exception
+    // and triggers the single OAuth consent dialog covering all scopes in appsscript.json.
+    const details = getGcpProjectDetails();
+    const gcpDetails = `Connected to GCP Project ID: ${details.projectId} (Project #: ${details.projectNumber})`;
+
+    Logger.log(
+      `Authorization check completed successfully. User: ${email}, Status: ${res.getResponseCode()}, Mail Quota: ${quota}. ${gcpDetails}`
+    );
+
+    return {
+      success: true,
+      message: `All GIGA script permissions (External HTTP, Google Ads, Mail, Triggers, Spreadsheets, GCP Cloud Platform, and User Info) successfully authorized! ${gcpDetails}`,
+    };
+  } catch (err: any) {
+    Logger.log('authorizeUrlFetch error: ' + err.message);
+    throw err;
+  }
+};
+
+/**
+ * Programmatically revokes the active user's OAuth token grant.
+ * This forces Google Apps Script to display the OAuth consent popup
+ * on the very next function execution.
+ */
+export const forceReauthorization = () => {
+  const token = ScriptApp.getOAuthToken();
+  if (token) {
+    UrlFetchApp.fetch(
+      `https://accounts.google.com/o/oauth2/revoke?token=${token}`,
+      {
+        muteHttpExceptions: true,
+      }
+    );
+  }
+  Logger.log(
+    'OAuth token successfully revoked! Now run authorizeUrlFetch to trigger the fresh OAuth consent dialog.'
+  );
+  return 'Token revoked. Run authorizeUrlFetch now.';
+};

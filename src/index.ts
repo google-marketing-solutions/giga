@@ -28,6 +28,7 @@ import {
   deleteEmailAlert,
   runAutomatedReports,
   forceRunAutomatedReports,
+  testTrendsAlert,
 } from './automation';
 import { DEFAULT_STYLE_GUIDE } from './prompt';
 import {
@@ -39,7 +40,12 @@ import {
 } from './reporting';
 import { generateTrendsKeywords } from './trends';
 import { checkKeywordsExistence } from './google_ads_keyword_check';
-import { exportToSheet, createSpreadsheet } from './util';
+import {
+  exportToSheet,
+  createSpreadsheet,
+  authorizeUrlFetch,
+  forceReauthorization,
+} from './util';
 import {
   getLanguageId,
   getLanguageById,
@@ -64,6 +70,8 @@ getAccountKeywordStats;
 DEFAULT_STYLE_GUIDE;
 exportToSheet;
 createSpreadsheet;
+authorizeUrlFetch;
+forceReauthorization;
 getLanguageId;
 getLanguageById;
 getLocationId;
@@ -73,3 +81,4 @@ createEmailAlert;
 deleteEmailAlert;
 runAutomatedReports;
 forceRunAutomatedReports;
+testTrendsAlert;

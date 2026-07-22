@@ -138,7 +138,7 @@ If you cannot confidently find a match, return null or empty values.`;
     required: ['id', 'name'],
   };
   const geminiConfig = {
-    model: (config?.explorationModelId as string) || 'gemini-3.1-pro-preview',
+    model: (config?.explorationModelId as string) || 'gemini-3.5-flash',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
@@ -224,7 +224,7 @@ If you cannot confidently find a match, return null or empty values.`;
     required: ['id', 'name'],
   };
   const geminiConfig = {
-    model: (config?.explorationModelId as string) || 'gemini-3.1-pro-preview',
+    model: (config?.explorationModelId as string) || 'gemini-3.5-flash',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
@@ -374,7 +374,7 @@ export async function generateTrendsKeywords(
   const finalPrompt = `${prompt}\nKeywords:\n${seedsStr}`;
   const responseSchema = {type: 'array', items: {type: 'string'}};
   const geminiConfig = {
-    model: (config?.explorationModelId as string) || 'gemini-3.1-pro-preview',
+    model: (config?.explorationModelId as string) || 'gemini-3.5-flash',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
@@ -418,7 +418,7 @@ export async function getClusters(
     },
   };
   const geminiConfig = {
-    model: (config?.explorationModelId as string) || 'gemini-3.1-pro-preview',
+    model: (config?.explorationModelId as string) || 'gemini-3.5-flash',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
@@ -493,7 +493,7 @@ export async function getInsightsChatResponse(
     required: ['response', 'suggestions'],
   };
   const geminiConfig = {
-    model: (config?.insightsModelId as string) || 'gemini-3.1-pro-preview',
+    model: (config?.insightsModelId as string) || 'gemini-3.5-flash',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
@@ -573,7 +573,7 @@ export async function getInsights(
     required: ['report', 'suggestions'],
   };
   const geminiConfig = {
-    model: (config?.insightsModelId as string) || 'gemini-3.1-pro-preview',
+    model: (config?.insightsModelId as string) || 'gemini-3.5-flash',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
@@ -701,7 +701,7 @@ Output the campaigns in ${langName}.`;
   };
 
   const geminiConfig = {
-    model: (config?.modelId as string) || 'gemini-3.1-pro-preview',
+    model: (config?.modelId as string) || 'gemini-3.5-flash',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
@@ -755,7 +755,7 @@ export async function createAdSuggestion(
     },
   };
   const geminiConfig = {
-    model: (config?.modelId as string) || 'gemini-3.1-pro-preview',
+    model: (config?.modelId as string) || 'gemini-3.5-flash',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };

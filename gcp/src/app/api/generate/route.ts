@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         : '';
 
     const streamingResp = await client.models.generateContentStream({
-      model: config.model || 'gemini-3.1-pro-preview',
+      model: config.model || 'gemini-3.5-flash',
       contents: [
         {role: 'user', parts: [{text: `${prompt}${jsonInstruction}`}]},
       ],

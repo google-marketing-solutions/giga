@@ -77,7 +77,7 @@ export const suggestLanguageId = (
   };
 
   const config = {
-    modelId: geminiConfig?.modelId || 'gemini-3.1-pro-preview',
+    modelId: geminiConfig?.modelId || 'gemini-3.5-flash',
     projectId: getGcpProjectId(),
     temperature: 0,
     topP: 1,
@@ -180,7 +180,7 @@ export const suggestLocationId = (
   };
 
   const config = {
-    modelId: geminiConfig?.modelId || 'gemini-3.1-pro-preview',
+    modelId: geminiConfig?.modelId || 'gemini-3.5-flash',
     projectId: getGcpProjectId(),
     temperature: 0,
     topP: 1,

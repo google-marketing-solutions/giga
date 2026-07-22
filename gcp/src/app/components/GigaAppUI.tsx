@@ -275,9 +275,9 @@ const PERFORMANCE_METRICS = [
 ];
 
 const MODEL_NAMES = {
+  'gemini-3.5-flash': 'Gemini 3.5 Flash',
+  'gemini-3.1-flash-lite': 'Gemini 3.1 Flash Lite',
   'gemini-3.1-pro-preview': 'Gemini 3.1 Pro',
-  'gemini-3-flash-preview': 'Gemini 3 Flash',
-  'gemini-3.1-flash-lite-preview': 'Gemini 3.1 Flash Lite',
 };
 
 const APP_VERSION = 'v1.2.0';
@@ -1056,11 +1056,11 @@ const SettingsModal = ({
                     })
                   }
                 >
-                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
-                  <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
-                  <option value="gemini-3.1-flash-lite-preview">
+                  <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                  <option value="gemini-3.1-flash-lite">
                     Gemini 3.1 Flash Lite
                   </option>
+                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
                 </select>
                 {modalConfig.highlight === 'EXPLORE_MODEL' && (
                   <div
@@ -1118,7 +1118,7 @@ const SettingsModal = ({
                   ref={insightsModelRef}
                   value={
                     localGeminiConfig.insightsModelId ||
-                    'gemini-3.1-pro-preview'
+                    'gemini-3.5-flash'
                   }
                   onChange={e =>
                     setLocalGeminiConfig({
@@ -1127,11 +1127,11 @@ const SettingsModal = ({
                     })
                   }
                 >
-                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
-                  <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
-                  <option value="gemini-3.1-flash-lite-preview">
+                  <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                  <option value="gemini-3.1-flash-lite">
                     Gemini 3.1 Flash Lite
                   </option>
+                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
                 </select>
                 {modalConfig.highlight === 'INSIGHTS_MODEL' && (
                   <div
@@ -1888,7 +1888,7 @@ const CampaignsTab = ({
   geminiConfig,
   onOpenSettings,
 }) => {
-  const campaignModelId = geminiConfig?.modelId || 'gemini-3.1-pro-preview';
+  const campaignModelId = geminiConfig?.modelId || 'gemini-3.5-flash';
   const campaignModelName = MODEL_NAMES?.[campaignModelId] || campaignModelId;
 
   return (
@@ -2859,7 +2859,7 @@ const ExploreTab = ({
     };
   }, [expandedIdea, chartLabels, theme]);
 
-  const exploreModelId = geminiConfig?.modelId || 'gemini-3.1-pro-preview';
+  const exploreModelId = geminiConfig?.modelId || 'gemini-3.5-flash';
   const exploreModelName = MODEL_NAMES?.[exploreModelId] || exploreModelId;
 
   return (
@@ -4457,7 +4457,7 @@ const InsightsTab = ({
   const [activeInfoModal, setActiveInfoModal] = React.useState(null);
 
   const insightsModelId =
-    geminiConfig?.insightsModelId || 'gemini-3.1-pro-preview';
+    geminiConfig?.insightsModelId || 'gemini-3.5-flash';
   const insightsModelName = MODEL_NAMES?.[insightsModelId] || insightsModelId;
 
   return (
@@ -5879,8 +5879,8 @@ const GigaApp = ({onReset, isDemoMode}) => {
   const [geminiConfig, setGeminiConfig] = useStickyState(
     {
       projectId: '',
-      modelId: 'gemini-3.1-pro-preview',
-      insightsModelId: 'gemini-3.1-pro-preview',
+      modelId: 'gemini-3.5-flash',
+      insightsModelId: 'gemini-3.5-flash',
       location: 'global',
     },
     'giga_geminiConfig',

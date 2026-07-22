@@ -572,11 +572,9 @@ limitations under the License.
                     })
                   }
                 >
-                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
-                  <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                  <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
-                  <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite</option>
                   <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                  <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
                 </select>
                 {modalConfig.highlight === 'EXPLORE_MODEL' && (
                   <div
@@ -631,7 +629,7 @@ limitations under the License.
               >
                 <select
                   ref={insightsModelRef}
-                  value={localGeminiConfig.insightsModelId || 'gemini-3-flash-preview'}
+                  value={localGeminiConfig.insightsModelId || 'gemini-3.5-flash'}
                   onChange={e =>
                     setLocalGeminiConfig({
                       ...localGeminiConfig,
@@ -639,11 +637,9 @@ limitations under the License.
                     })
                   }
                 >
-                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
-                  <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                  <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
-                  <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite</option>
                   <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                  <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
                 </select>
                 {modalConfig.highlight === 'INSIGHTS_MODEL' && (
                   <div

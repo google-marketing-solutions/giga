@@ -305,7 +305,7 @@ const runSingleAlert = (alert: AlertConfig) => {
   const trends = synthesizeTrends(
     top10Texts,
     alert.geminiConfig || {
-      modelId: 'gemini-3.1-flash-lite-preview',
+      modelId: 'gemini-3.5-flash',
       location: 'global',
     },
     alert.languageName,
@@ -530,7 +530,7 @@ export const testTrendsAlert = () => {
     locationName: 'United States',
     maxIdeas: 10,
     geminiConfig: {
-      modelId: 'gemini-3.1-flash-lite-preview',
+      modelId: 'gemini-3.5-flash',
       location: 'global',
     },
   };

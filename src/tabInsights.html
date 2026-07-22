@@ -41,7 +41,7 @@ limitations under the License.
     const [selectedImage, setSelectedImage] = React.useState(null);
     const [activeInfoModal, setActiveInfoModal] = React.useState(null);
 
-    const insightsModelId = geminiConfig?.insightsModelId || 'gemini-3-flash-preview';
+    const insightsModelId = geminiConfig?.insightsModelId || 'gemini-3.5-flash';
     const insightsModelName = window.MODEL_NAMES?.[insightsModelId] || insightsModelId;
 
     return (
