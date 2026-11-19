@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     const client = new GoogleGenAI({
       vertexai: true,
       project: appConfig.projectId,
-      location: safeVertexLocation(config.location),
+      location: safeVertexLocation(config?.location),
     });
 
     const jsonInstruction =

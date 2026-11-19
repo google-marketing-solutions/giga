@@ -13,6 +13,70 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * Vertex AI locations that this service is permitted to call. The
+ * `location` value is interpolated into the Vertex AI hostname by
+ * `@google/genai`, so any value not on this list must be rejected to
+ * prevent the request (and the attached service-account credentials)
+ * from being sent to an attacker-controlled host.
+ */
+const ALLOWED_VERTEX_LOCATIONS: ReadonlySet<string> = new Set([
+  'global',
+  'us',
+  'eu',
+  'us-central1',
+  'us-east1',
+  'us-east4',
+  'us-east5',
+  'us-south1',
+  'us-west1',
+  'us-west4',
+  'northamerica-northeast1',
+  'southamerica-east1',
+  'europe-central2',
+  'europe-north1',
+  'europe-southwest1',
+  'europe-west1',
+  'europe-west2',
+  'europe-west3',
+  'europe-west4',
+  'europe-west6',
+  'europe-west8',
+  'europe-west9',
+  'asia-east1',
+  'asia-east2',
+  'asia-northeast1',
+  'asia-northeast3',
+  'asia-south1',
+  'asia-southeast1',
+  'australia-southeast1',
+  'me-central1',
+  'me-central2',
+  'me-west1',
+]);
+
+/**
+ * Validates a caller-supplied Vertex AI location and returns a value that
+ * is safe to pass to `new GoogleGenAI({location})`. Falls back to
+ * `GCP_LOCATION` (or `global`) when no location is supplied, and throws on
+ * any value that is not an exact match for a known Vertex AI region.
+ *
+ * @param loc - The caller-supplied location.
+ * @returns A validated Vertex AI location string.
+ */
+export function safeVertexLocation(loc: unknown): string {
+  const requested = typeof loc === 'string' && loc ? loc : '';
+  const candidate = (
+    requested ||
+    process.env.GCP_LOCATION ||
+    'global'
+  ).toLowerCase();
+  if (!ALLOWED_VERTEX_LOCATIONS.has(candidate)) {
+    throw new Error('Unsupported Vertex AI location');
+  }
+  return candidate;
+}
+
 export function getEnvVar(name: string, defaultValue?: string): string {
   const value = process.env[name];
   if (!value) {
@@ -22,16 +86,6 @@ export function getEnvVar(name: string, defaultValue?: string): string {
     throw new Error(`${name} environment variable is undefined`);
   }
   return value;
-}
-
-export function safeVertexLocation(location: unknown): string {
-  if (
-    typeof location !== 'string' ||
-    !/^(?:global|us|eu|[a-z]+(?:-[a-z0-9]+)*[0-9])$/.test(location)
-  ) {
-    throw new Error('Invalid Vertex AI location');
-  }
-  return location;
 }
 
 /**

@@ -59,7 +59,7 @@ async function geminiRequestWithFallback(
   fallbackConfig?: TextGenerationConfig,
 ): Promise<unknown> {
   const projectId = appConfig.projectId;
-  const location = safeVertexLocation(config.location || 'global');
+  const location = safeVertexLocation(config.location);
 
   const client = new GoogleGenAI({
     vertexai: true,
