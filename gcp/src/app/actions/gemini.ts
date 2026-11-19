@@ -22,7 +22,7 @@ import {
   getApplicationConfig,
   type ApplicationConfig,
 } from '../../lib/config';
-import {withRetry} from '../../lib/utils';
+import {safeVertexLocation, withRetry} from '../../lib/utils';
 
 export interface TextGenerationConfig {
   model: string;
@@ -59,7 +59,7 @@ async function geminiRequestWithFallback(
   fallbackConfig?: TextGenerationConfig,
 ): Promise<unknown> {
   const projectId = appConfig.projectId;
-  const location = config.location || 'global';
+  const location = safeVertexLocation(config.location || 'global');
 
   const client = new GoogleGenAI({
     vertexai: true,

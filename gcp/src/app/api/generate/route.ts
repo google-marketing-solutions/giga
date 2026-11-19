@@ -15,6 +15,7 @@ limitations under the License.
 
 import {GoogleGenAI} from '@google/genai';
 import {appConfig} from '../../../lib/config';
+import {safeVertexLocation} from '../../../lib/utils';
 
 export async function POST(req: Request) {
   try {
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
     const client = new GoogleGenAI({
       vertexai: true,
       project: appConfig.projectId,
-      location: config.location,
+      location: safeVertexLocation(config.location),
     });
 
     const jsonInstruction =

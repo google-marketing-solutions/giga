@@ -17,10 +17,11 @@ limitations under the License.
 
 import {GoogleGenAI, HarmCategory, HarmBlockThreshold} from '@google/genai';
 import {appConfig} from '../../lib/config';
+import {safeVertexLocation} from '../../lib/utils';
 
 export async function generateImage(formData: FormData) {
   const prompt = formData.get('prompt') as string;
-  const location = formData.get('location') as string;
+  const location = safeVertexLocation(formData.get('location'));
   const model = formData.get('model') as string;
   const referenceImagesBase64 = formData.getAll(
     'referenceImagesBase64',

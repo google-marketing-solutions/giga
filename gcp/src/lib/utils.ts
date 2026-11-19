@@ -24,6 +24,16 @@ export function getEnvVar(name: string, defaultValue?: string): string {
   return value;
 }
 
+export function safeVertexLocation(location: unknown): string {
+  if (
+    typeof location !== 'string' ||
+    !/^(?:global|us|eu|[a-z]+(?:-[a-z0-9]+)*[0-9])$/.test(location)
+  ) {
+    throw new Error('Invalid Vertex AI location');
+  }
+  return location;
+}
+
 /**
  * Splits an array into chunks of a specified size.
  *
