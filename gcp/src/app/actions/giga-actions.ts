@@ -86,6 +86,8 @@ const getAdsClient = (customerIdOverride?: string) => {
     customerIdOverride ||
     properties.ADS_ACCOUNT_ID ||
     getEnvVar('GOOGLE_ADS_CUSTOMER_ID', '');
+  // Read optional manager account ID so client accounts under an MCC work.
+  const loginCustomerId = getEnvVar('GOOGLE_ADS_LOGIN_CUSTOMER_ID', '');
 
   const client = new GoogleAdsApi({
     client_id: clientId.trim(),
@@ -95,6 +97,10 @@ const getAdsClient = (customerIdOverride?: string) => {
 
   return client.Customer({
     customer_id: customerId.trim().replace(/-/g, ''),
+    // Pass login_customer_id only when configured for MCC-managed accounts.
+    ...(loginCustomerId.trim()
+      ? {login_customer_id: loginCustomerId.trim().replace(/-/g, '')}
+      : {}),
     refresh_token: refreshToken.trim(),
   });
 };
@@ -138,7 +144,12 @@ If you cannot confidently find a match, return null or empty values.`;
     required: ['id', 'name'],
   };
   const geminiConfig = {
-    model: (config?.explorationModelId as string) || 'gemini-3.1-pro-preview',
+    // Fall back to config.modelId (set by the Exploration & Campaign Model
+    // dropdown) so selected models like gemini-3.8-flash are actually used.
+    model:
+      (config?.explorationModelId as string) ||
+      (config?.modelId as string) ||
+      'gemini-3.1-pro-preview',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
@@ -224,7 +235,12 @@ If you cannot confidently find a match, return null or empty values.`;
     required: ['id', 'name'],
   };
   const geminiConfig = {
-    model: (config?.explorationModelId as string) || 'gemini-3.1-pro-preview',
+    // Fall back to config.modelId (set by the Exploration & Campaign Model
+    // dropdown) so selected models like gemini-3.8-flash are actually used.
+    model:
+      (config?.explorationModelId as string) ||
+      (config?.modelId as string) ||
+      'gemini-3.1-pro-preview',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
@@ -374,7 +390,12 @@ export async function generateTrendsKeywords(
   const finalPrompt = `${prompt}\nKeywords:\n${seedsStr}`;
   const responseSchema = {type: 'array', items: {type: 'string'}};
   const geminiConfig = {
-    model: (config?.explorationModelId as string) || 'gemini-3.1-pro-preview',
+    // Fall back to config.modelId (set by the Exploration & Campaign Model
+    // dropdown) so selected models like gemini-3.8-flash are actually used.
+    model:
+      (config?.explorationModelId as string) ||
+      (config?.modelId as string) ||
+      'gemini-3.1-pro-preview',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
@@ -418,7 +439,12 @@ export async function getClusters(
     },
   };
   const geminiConfig = {
-    model: (config?.explorationModelId as string) || 'gemini-3.1-pro-preview',
+    // Fall back to config.modelId (set by the Exploration & Campaign Model
+    // dropdown) so selected models like gemini-3.8-flash are actually used.
+    model:
+      (config?.explorationModelId as string) ||
+      (config?.modelId as string) ||
+      'gemini-3.1-pro-preview',
     location: (config?.location as string) || 'global',
     responseMimeType: 'application/json',
   };
