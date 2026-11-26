@@ -276,6 +276,8 @@ const PERFORMANCE_METRICS = [
 
 const MODEL_NAMES = {
   'gemini-3.1-pro-preview': 'Gemini 3.1 Pro',
+  // Add display name for gemini-3.8-flash so UI headers show a friendly label.
+  'gemini-3.8-flash': 'Gemini 3.8 Flash',
   'gemini-3-flash-preview': 'Gemini 3 Flash',
   'gemini-3.1-flash-lite-preview': 'Gemini 3.1 Flash Lite',
 };
@@ -1057,6 +1059,8 @@ const SettingsModal = ({
                   }
                 >
                   <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                  {/* Add gemini-3.8-flash for Exploration & Campaign Model */}
+                  <option value="gemini-3.8-flash">Gemini 3.8 Flash</option>
                   <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
                   <option value="gemini-3.1-flash-lite-preview">
                     Gemini 3.1 Flash Lite
@@ -1128,6 +1132,8 @@ const SettingsModal = ({
                   }
                 >
                   <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                  {/* Add gemini-3.8-flash option for Insights Model */}
+                  <option value="gemini-3.8-flash">Gemini 3.8 Flash</option>
                   <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
                   <option value="gemini-3.1-flash-lite-preview">
                     Gemini 3.1 Flash Lite

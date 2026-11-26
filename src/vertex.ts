@@ -242,9 +242,13 @@ const getGeminiRequest = (
       max_output_tokens: config.maxOutputTokens,
       response_mime_type: config.responseType,
       response_schema: config.responseSchema,
-      thinkingConfig: {
-        thinkingBudget: 1024,
-      },
+      // Omit deprecated thinkingBudget for gemini-3.8-flash to avoid
+      // Vertex AI 400 INVALID_ARGUMENT errors; preserve it for other models.
+      ...(config.modelId !== 'gemini-3.8-flash' && {
+        thinkingConfig: {
+          thinkingBudget: 1024,
+        },
+      }),
     },
     tools: config.tools
       ? config.tools
